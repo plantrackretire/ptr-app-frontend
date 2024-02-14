@@ -1,35 +1,70 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { ReactElement, createContext, useContext, useEffect, useState } from 'react';
+// import { BrowserRouter, Route, Routes } from 'react-router-dom'
+// import LoadingOverlay from 'react-loading-overlay-ts';
+// import LoadingSpinner from './LoadingSpinner';
+import { useAuthenticator } from '@aws-amplify/ui-react'
+import { fetchUserAttributes } from '@aws-amplify/auth';
 
-function App() {
-  const [count, setCount] = useState(0)
-console.log("IN APP COMP");
+
+const UserContext = createContext('');
+
+const App = (props:any): ReactElement => {
+  console.log("IN COMPONENT");
+  const { user, signOut } = useAuthenticator((context) => [context.user]); // passed in function limits changes that cause re-render
+  const [appUserAttributes, setAppUserAttributes] = useState({userid: '', username: '', email: '', family_name: '', given_name: '' })
+  
+  useEffect(() => {
+    console.log("IN USE EFFECT")
+    // This avoids race conditions by ensuring the async call is only made once.
+    let setUserAttributes = true;
+
+    if(appUserAttributes.username !== user.username) {
+      const getUserAttributes = async() => {
+        const attributes = await fetchUserAttributes();
+        
+        if(setUserAttributes) {
+          setAppUserAttributes({
+            userid: user.userId,
+            username: user.username,
+            email: attributes.email || '',
+            family_name: attributes.family_name || '',
+            given_name: attributes.given_name || '',
+          })
+        }
+      }
+
+      getUserAttributes();
+      console.log("DONE WITH USE EFFECT")
+    }
+
+    return () => { setUserAttributes = false };
+  }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  
+  console.log("ABOUT TO RETURN JSX");
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <main>
+      <h1>
+        Welcome {appUserAttributes.given_name}
+      </h1>
+      <h2>
+        Click <a href="." onClick={signOut}>here</a> to logout
+      </h2>
+    </main>
+  );
+  console.log("EXITING COMPONENT");
+};
 
-export default App
+export default App;
+
+/* <LoadingOverlay
+active={isLoading}
+spinner={<LoadingSpinner />}
+>
+<BrowserRouter>
+    <Routes>
+      <Route path='/' element={<Survey />}/>
+    </Routes>
+</BrowserRouter>
+</LoadingOverlay> */
+
