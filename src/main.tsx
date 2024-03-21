@@ -1,14 +1,16 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import './index.css';
-import PtrAuthenticatorProvider from './components/PtrAuthenticator';
-import App from './components/App';
-
+import { AppAuthenticatorProvider } from './providers/AppAuthenticatorProvider';
+import App from './App';
+import { ConfigProvider } from './providers/ConfigProvider';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <PtrAuthenticatorProvider>
-      <App />
-    </PtrAuthenticatorProvider>
+    <AppAuthenticatorProvider>
+      <ConfigProvider>
+        <App />
+      </ConfigProvider>
+    </AppAuthenticatorProvider>
   </React.StrictMode>,
 )

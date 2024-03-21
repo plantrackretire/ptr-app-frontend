@@ -1,0 +1,17 @@
+.header {
+  width: 100%;
+  height: 100%;
+  padding: var(--outer-padding);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.header--nav {
+  margin-left: auto;
+}
+
+.header--nav .svg-container {
+  width: 1.5em;
+  height: 1.5em;
+}

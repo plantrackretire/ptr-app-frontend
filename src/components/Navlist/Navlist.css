@@ -1,0 +1,21 @@
+/* Name the sections of the page for grid */
+.navlist ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .5em;
+}
+
+.navlist ul li {
+  display: flex;
+  column-gap: .5em;
+  align-items: center;
+}
+
+.navlist--icon {
+  display: flex;
+  align-items: center;
+}
+
+@media (min-width: 800px) {
+}

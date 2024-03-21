@@ -1,0 +1,18 @@
+/* Name the sections of the page for grid */
+.networth {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.networth--main {
+  padding: var(--outer-padding);
+  border-right: 1px solid var(--light-grey);
+  display: flex;
+  flex-direction: column;
+  gap: 3em;
+}
+
+.networth--secondary {
+  padding: var(--outer-padding);
+}

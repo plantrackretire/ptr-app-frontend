@@ -1,0 +1,11 @@
+/* Name the sections of the page for grid */
+.clear-button {
+  display: flex;
+  gap: .3em;
+  align-items: center;
+}
+
+.clear-button--icon {
+  display: flex;
+  align-items: center;
+}

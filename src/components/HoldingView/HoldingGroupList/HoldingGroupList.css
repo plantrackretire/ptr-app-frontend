@@ -1,0 +1,13 @@
+.holding-group-list--two-line {
+    display: flex;
+    flex-direction: column;
+    align-items: inherit;
+  }
+  
+  .holding-group-list--two-line :nth-child(2) {
+    color: var(--medium-grey);
+  }
+  
+  .holding-group-list td:not(:first-child):not(:nth-child(2)) {
+    text-align: right;
+  }

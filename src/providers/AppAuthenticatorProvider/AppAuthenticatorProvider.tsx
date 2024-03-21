@@ -3,7 +3,7 @@ import { Amplify } from 'aws-amplify';
 import { Authenticator, useAuthenticator } from '@aws-amplify/ui-react';
 import { fetchUserAttributes } from '@aws-amplify/auth';
 import '@aws-amplify/ui-react/styles.css';
-import config from '../../../ptr-app-backend/cdk-outputs.json'
+import config from '../../../../ptr-app-backend/cdk-outputs.json'
 import { MouseEventHandler } from 'react';
 
 Amplify.configure({
@@ -15,31 +15,31 @@ Amplify.configure({
   }
 });
 
-export interface IPtrAuthenticatorContext {
+interface IAuthenticatorContext {
   userid: string,
   username: string,
   email: string,
   family_name: string,
   given_name: string,
-  signOut: MouseEventHandler<HTMLAnchorElement> | undefined
+  signOutFunction: MouseEventHandler | undefined
 }
-export const PtrAuthenticatorContext = createContext<IPtrAuthenticatorContext | null>(null);
 
-interface PtrAuthenticatorProps {
+export const AuthenticatorContext = createContext<IAuthenticatorContext | null>(null);
+
+interface AuthenticatorProps {
   children: ReactElement
 }
 
-const PtrAuthenticator = ({children}: PtrAuthenticatorProps) => {
-  const { user, signOut } = useAuthenticator((context) => [context.user]); // passed in function limits changes that cause re-render
-  const [appUserAttributes, setAppUserAttributes] = useState({userid: '', username: '', email: '', family_name: '', given_name: '', signOut: signOut })
+const AppAuthenticator = ({children}: AuthenticatorProps) => {
+  const { user, signOut } = useAuthenticator((context) => [context.user]); // Passed in function limits changes that cause re-render
+  const [appUserAttributes, setAppUserAttributes] = 
+    useState({userid: '', username: '', email: '', family_name: '', given_name: '', signOutFunction: signOut })
   
   useEffect(() => {
     // This avoids race conditions by ignoring results from stale calls
     let ignoreResults = false;
 
     if(appUserAttributes.username !== user.username) {
-      console.log(appUserAttributes.username);
-      console.log(user.username);
       const getUserAttributes = async() => {
         const attributes = await fetchUserAttributes();
         
@@ -50,7 +50,7 @@ const PtrAuthenticator = ({children}: PtrAuthenticatorProps) => {
             email: attributes.email || '',
             family_name: attributes.family_name || '',
             given_name: attributes.given_name || '',
-            signOut: signOut
+            signOutFunction: signOut
           })
         }
       }
@@ -62,7 +62,7 @@ const PtrAuthenticator = ({children}: PtrAuthenticatorProps) => {
   }, [user.username])
   
   return (
-    <PtrAuthenticatorContext.Provider value={appUserAttributes}>
+    <AuthenticatorContext.Provider value={appUserAttributes}>
       { appUserAttributes.userid ?
         <div>
           { children }
@@ -70,22 +70,20 @@ const PtrAuthenticator = ({children}: PtrAuthenticatorProps) => {
       :
         <h1>Logging In...</h1>
       }
-    </PtrAuthenticatorContext.Provider>
+    </AuthenticatorContext.Provider>
   );
 };
 
 
-const PtrAuthenticatorProvider = ({children}: PtrAuthenticatorProps) => {
+export const AppAuthenticatorProvider = ({children}: AuthenticatorProps) => {
   return (
     <Authenticator formFields={formFields} hideSignUp={false}>
-      <PtrAuthenticator>
+      <AppAuthenticator>
         { children }
-      </PtrAuthenticator>
+      </AppAuthenticator>
     </Authenticator>
   );
 };
-
-export default PtrAuthenticatorProvider;
 
 
 const formFields = {

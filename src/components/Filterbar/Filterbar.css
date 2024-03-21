@@ -1,0 +1,20 @@
+/* Name the sections of the page for grid */
+.filterbar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2em;
+}
+
+.filterbar--filters {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5em;
+}
+
+.filterbar--filter {
+  display: flex;
+  flex-direction: column;
+  gap: .5em;
+  width: 13em;
+  white-space: nowrap;
+}

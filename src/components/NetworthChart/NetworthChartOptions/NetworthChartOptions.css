@@ -1,0 +1,17 @@
+.networth-chart--options {
+    width: 100%;
+    display: flex;
+    justify-content: end;
+    gap: 1em;
+    color: var(--medium-grey);
+}
+
+.networth-chart--options--time-period {
+    display: flex;
+    gap: 1.5em;
+}
+
+.networth-chart--options--units {
+    display: flex;
+    gap: 1em;
+}

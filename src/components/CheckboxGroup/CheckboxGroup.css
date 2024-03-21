@@ -1,0 +1,6 @@
+/* Name the sections of the page for grid */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: .25em;
+}

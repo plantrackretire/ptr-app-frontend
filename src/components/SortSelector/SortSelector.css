@@ -1,0 +1,15 @@
+.sort-selector {
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+  gap: .3em;
+}
+.sort-selector--sort-order {
+  display: flex;
+  align-items: center;
+  gap: .5em;
+}
+.sort-selector--sort-direction {
+  display: flex;
+  gap: .75em;
+}

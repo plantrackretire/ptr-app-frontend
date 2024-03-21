@@ -1,26 +1,29 @@
-import { Fragment, ReactElement, useContext } from 'react';
+import { ReactElement } from 'react';
 // import { BrowserRouter, Route, Routes } from 'react-router-dom'
 // import LoadingOverlay from 'react-loading-overlay-ts';
 // import LoadingSpinner from './LoadingSpinner';
-import { PtrAuthenticatorContext } from './PtrAuthenticator';
-
+import { Page } from './pages';
 
 const App = (): ReactElement => {
-  const appUserAttributes = useContext(PtrAuthenticatorContext);
-
   return (
-    <Fragment>
-      <h1>
-        Welcome {appUserAttributes!.given_name}
-      </h1>
-      <h2>
-        Click <a href="." onClick={appUserAttributes?.signOut}>here</a> to logout
-      </h2>
-    </Fragment>
+    <Page />
   );
 };
 
 export default App;
+
+
+
+// const appUserAttributes = useContext(PtrAuthenticatorContext);
+
+/* <Fragment>
+<h1>
+  Welcome {appUserAttributes!.given_name}
+</h1>
+<h2>
+  Click <a href="." onClick={appUserAttributes?.signOut}>here</a> to logout
+</h2>
+</Fragment> */
 
 /* <LoadingOverlay
 active={isLoading}

@@ -1,0 +1,53 @@
+.dropdown-list {
+    height: 2em;
+    min-height: 2em !important;
+    font-size: .85em;
+  
+    .react-dropdown-select-dropdown {
+        z-index: 999; /* make sure dropdown appears on top of other elements */
+    }
+}
+ 
+/* For reference: */
+/* Set style for the current input item in the droplist, use !important to override library */
+/* .react-dropdown-select-item.react-dropdown-select-item-selected,
+.react-dropdown-select-item.react-dropdown-select-item-active {
+  border: none !important;
+  box-shadow: 0 0px 0px #ccc inset !important;
+  background-color: red !important;
+} */
+
+/* Remove border on input, including when active */
+/* .react-dropdown-select {
+    border: none !important;
+    box-shadow: 0 0px 0px #ccc inset !important;
+} */
+
+/* Format the dropdown icon in the input */
+/* .react-dropdown-select-dropdown-handle {
+    border: none !important;
+    box-shadow: 0 0px 0px #ccc inset !important;
+    background-color: red;
+} */
+
+/* Format droplist */
+/* .react-dropdown-select-dropdown {
+    border: none !important;
+    box-shadow: 0 0px 0px #ccc inset !important;
+    background-color: red !important;
+} */
+
+/* Format items in droplist */
+/* .react-dropdown-select-item {
+    border: none !important;
+    box-shadow: 0 0px 0px #ccc inset !important;
+    color: white;
+    background-color: red !important;
+} */
+
+/* Format items in the droplist */
+/* .react-dropdown-select-item {
+    border: none !important;
+    box-shadow: 0 0px 0px #ccc inset !important;
+    background-color: red !important;
+} */

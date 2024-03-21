@@ -1,0 +1,10 @@
+/* Name the sections of the page for grid */
+.navbar {
+  width: 100%;
+  padding: var(--outer-padding);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 3em;
+  min-height: 100%;
+}
