@@ -1,6 +1,7 @@
+import './AppAuthenticatorProvider.css';
 import { ReactElement, createContext, useEffect, useState } from 'react';
 import { Amplify } from 'aws-amplify';
-import { Authenticator, useAuthenticator } from '@aws-amplify/ui-react';
+import { Authenticator, Flex, Text, useAuthenticator } from '@aws-amplify/ui-react';
 import { fetchUserAttributes } from '@aws-amplify/auth';
 import '@aws-amplify/ui-react/styles.css';
 import config from '../../../../ptr-app-backend/cdk-outputs.json'
@@ -74,10 +75,14 @@ const AppAuthenticator = ({children}: AuthenticatorProps) => {
   );
 };
 
-
 export const AppAuthenticatorProvider = ({children}: AuthenticatorProps) => {
+  const components = {
+    Header: () => { return header(undefined) },
+    Footer: footer
+  };  
+
   return (
-    <Authenticator formFields={formFields} hideSignUp={false}>
+    <Authenticator components={components} formFields={formFields} hideSignUp={false}>
       <AppAuthenticator>
         { children }
       </AppAuthenticator>
@@ -85,8 +90,46 @@ export const AppAuthenticatorProvider = ({children}: AuthenticatorProps) => {
   );
 };
 
+const header = (message: string | undefined) => {
+  return ( 
+    <div style={{ margin: "30px"}}>
+    <Flex justifyContent="center">
+      <h1 className="login-title">Finance App</h1>
+    </Flex>
+    { message &&
+      <Flex justifyContent="center">
+        <h3 className="login-message">{message}</h3>
+      </Flex>
+    }
+    </div>
+  );
+}
+const footer = () => {
+  return (
+    <Flex justifyContent="center" padding="10px">
+      <Text>&copy; All Rights Reserved</Text>
+    </Flex>
+  );
+}
+  
 
 const formFields = {
+  signIn: {
+    username: {
+      order: 1,
+      labelHidden: true,
+      label: 'User Name:',
+      placeholder: 'User Name',
+      isRequired: true,
+    },
+    password: {
+      order: 5,
+      labelHidden: true,
+      label: 'Password:',
+      placeholder: 'Password',
+      isRequired: true,
+    },
+  },
   signUp: {
     username: {
       order: 1,

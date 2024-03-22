@@ -1,0 +1,42 @@
+
+.amplify-tabs__item {
+    color: var(--default-color) !important;
+} 
+.amplify-tabs__item:focus-visible {
+    box-shadow: 0 0 0 1px var(--dark-grey) !important;
+} 
+.amplify-tabs__item:hover {
+    color: var(--active-color) !important;
+}
+.amplify-tabs__item--active {
+    color: var(--active-color) !important;
+    border-color: var(--active-color) !important;
+}
+
+.amplify-input:focus {
+    box-shadow: 0 0 0 1px var(--dark-grey) !important;
+}
+
+.amplify-button {
+    color: var(--default-color) !important;
+}
+.amplify-button:focus,
+.amplify-button:hover {
+    background-color: var(--light-active-color) !important;
+    border-color: transparent !important;
+    box-shadow: 0 0 0 1px var(--dark-grey) !important;
+}
+
+.amplify-button--primary {
+    background-color: var(--dark-grey) !important;
+    color: var(--app-background-color) !important;
+}
+.amplify-button--primary:hover,
+.amplify-button--primary:focus {
+    background-color: var(--active-color) !important;
+    box-shadow: 0 0 0 1px var(--dark-grey) !important;
+}
+.amplify-button--primary:hover:active {
+    background-color: var(--dark-grey) !important;
+    box-shadow: 0 0 0 1px var(--dark-grey) !important;
+}

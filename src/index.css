@@ -1,6 +1,7 @@
 :root {
   /* Variables */
   --app-background-color: #242424;
+  --light-blue: #90c8ee;
   --blue: #35A2EB;
   --green: #0DB800;
   --red: #B80000;
@@ -13,7 +14,20 @@
   --h1-font-size: 1.6em;
   --desktop-navbar-width: 18em;
   --default-font: Helvetica, Inter, system-ui, Avenir, Arial, sans-serif;
+  --default-color: var(--dark-grey);
+  --active-color: var(--blue);
+  --light-active-color: var(--light-blue);
 
+  --amplify-internal-button-focus-box-shadow: {0px 0px 0px 0px} !important;
+
+  background-color: var(--app-background-color);
+
+  font-family: var(--default-font);
+  font-weight: 400;
+  font-size: var(--default-font-size);
+  color: var(--default-color);
+  fill: var(--dark-grey);
+  
   color-scheme: light dark;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -31,14 +45,6 @@ body {
   height: 100vh;
   place-items: center;
 
-  background-color: var(--app-background-color);
-
-  font-family: var(--default-font);
-  font-weight: 400;
-  font-size: var(--default-font-size);
-  color: var(--dark-grey);
-  fill: var(--dark-grey);
-  
   line-height:unset !important; /* turn off amplify setting */
 }
 
@@ -97,8 +103,8 @@ a:hover {
   transition: all .1s;
 }
 .button-el:hover {
-  color: var(--blue) !important;
-  fill: var(--blue) !important;
+  color: var(--active-color) !important;
+  fill: var(--active-color) !important;
 }
 .button-el:hover:active {
   font-weight: 600 !important;
@@ -107,9 +113,9 @@ a:hover {
   transform: scale(1.1);
 }
 .active {
-  color: var(--blue) !important;
+  color: var(--active-color) !important;
   font-weight: 800 !important;
-  fill: var(--blue) !important;
+  fill: var(--active-color) !important;
 }
 
 ul {
