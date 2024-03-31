@@ -4,9 +4,9 @@
   gap: 1.25em;
 }
 
-.basic-table--sub-row .holding-group-list--two-line > :first-child {
+.basic-table--sub-row .basic-table--two-line > :first-child {
   font-size: .85em;
 }
-.basic-table--sub-row .holding-group-list--two-line > :nth-child(2) {
+.basic-table--sub-row .basic-table--two-line > :nth-child(2) {
   font-size: .75em;
 }

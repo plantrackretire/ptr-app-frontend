@@ -1,6 +1,8 @@
 /* Represents the header and content (two rows) */
 .page {
   height: 100vh;
+  max-width: var(--app-max-width);
+  margin: auto;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
 }

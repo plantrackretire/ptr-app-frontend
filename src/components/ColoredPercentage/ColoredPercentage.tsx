@@ -9,10 +9,10 @@ interface IColoredPercentage {
 
 export const ColoredPercentage: React.FC<IColoredPercentage> = ({ percentage, classes }) => {
   let arrow = "▲ ";
-  let className = "positive-value-change";
+  let className = "color-modifier--positive-value-change";
   if(percentage < 0) {
     arrow = "▼ ";
-    className = "negative-value-change";
+    className = "color-modifier--negative-value-change";
   }
 
   className = className + (classes ? " " + classes : "");

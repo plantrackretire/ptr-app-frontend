@@ -1,15 +1,16 @@
-import { DayValue } from '@hassanmojab/react-modern-calendar-datepicker';
 import './HoldingView.css';
 import { SectionHeading, SectionHeadingSizeType } from '../SectionHeading';
 import { DropdownListOptionsType } from '../DropdownList';
 import { useState } from 'react';
 import { SortSelector } from '../SortSelector';
-import { IAggValueChange, calcAggChange, initAggChangeWithRecord, processAggChangeRecord } from '../../utils/calcs';
+import { AggregateValues } from '../../utils/calcs';
 import { HoldingGroupList } from './HoldingGroupList';
-import { compareDayValues } from '../../utils/dates';
+import { compareDates } from '../../utils/dates';
 
 
 interface IHoldingView {
+  startDate: Date,
+  asOfDate: Date,
   scope: string,
   holdings: IHolding[],
 }
@@ -17,34 +18,38 @@ interface IHoldingView {
 // Used to aggregate calculations to determine the aggregate gain/loss for a grouping
 export interface IHoldingGroup extends IHolding {
   holdings: IHolding[],
-  aggValueChange: IAggValueChange,
+  aggValues: AggregateValues, // Used to track start and end balance and calc change in value
+  hasNonZeroHoldings: boolean,
 }
 
 export interface IHolding {
-  holdingId: string,
-  securityId: string,
-  shortName: string
-  name: string,
-  assetClass: string,
-  accountId: string,
+  holdingId: number,
+  securityId: number,
+  securityShortName: string
+  securityName: string,
+  fullAssetClass: string,
+  accountId: number,
   accountName: string,
+  holdingDate: Date,
   balance: number,
   quantity: number,
   price: number,
-  lastQuantityUpdateDate?: DayValue,
-  lastPriceUpdateDate?: DayValue,
-  ytdChangePercentage: number,
+  lastQuantityUpdateDate?: Date,
+  lastPriceUpdateDate?: Date,
+  startDatePositionDate?: Date,
+  startDateValue?: number,
+  changeInValue?: number,
 }
 
-export const HoldingView: React.FC<IHoldingView> = ({ scope, holdings }) => {
+export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, scope, holdings }) => {
   const [sortOrder, setSortOrder] = useState<DropdownListOptionsType>([holdingsSortOrderOptions[0]]);
   const [sortDirection, setSortDirection] = useState<string>("asc");
 
   const handleHoldingActionButtonClick = () => {
-    console.log("HOLDING ACTION");
+    alert("Show transactions for holding.");
   }
 
-  const holdingGroups = createHoldingGroups(holdings);
+  const holdingGroups = createHoldingGroups(startDate, asOfDate, holdings);
 
   const sortFunctions = sortFunctionSet[sortOrder[0].value][sortDirection];
   const holdingGroupsSorted = Object.values(holdingGroups).sort(sortFunctions['firstLevel']);
@@ -76,33 +81,38 @@ export const HoldingView: React.FC<IHoldingView> = ({ scope, holdings }) => {
 };
 
 // Group holdings by security, calculating aggregate numbers and a list of holdings per security
-const createHoldingGroups = (holdings: IHolding[]): { [index: string]: IHoldingGroup } => {
+const createHoldingGroups = (startDate: Date, asOfDate: Date, holdings: IHolding[]): { [index: string]: IHoldingGroup } => {
   let gh: { [index: string]: IHoldingGroup } = {};
   const groupedHoldings = holdings.reduce((gh, item) => {
-    if(!gh[item.name]) {
-      gh[item.name] = {
+    if(!gh[item.securityId]) {
+      gh[item.securityId] = {
         ...item,
         holdings: [item],
-        aggValueChange: initAggChangeWithRecord(item.balance, item.ytdChangePercentage),
+        aggValues: new AggregateValues(startDate, asOfDate),
+        hasNonZeroHoldings: item.quantity != 0,
       }
+      gh[item.securityId].aggValues.addValues(item.startDateValue || 0, item.balance);
     } else  {
-      const rec = gh[item.name];
+      const rec = gh[item.securityId];
       rec.quantity += item.quantity;
       rec.balance += item.balance;
-      rec.accountId = 'Multi';
+      rec.accountId = 0;
       rec.accountName = 'Multi';
-      if('lastPriceUpdateDate' in rec && !compareDayValues(rec.lastPriceUpdateDate, item.lastPriceUpdateDate))
+      if('lastPriceUpdateDate' in rec && compareDates(rec.lastPriceUpdateDate!, item.lastPriceUpdateDate!))
         delete rec.lastPriceUpdateDate;
-      if('lastQuantityUpdateDate' in rec && !compareDayValues(rec.lastQuantityUpdateDate, item.lastQuantityUpdateDate))
+      if('lastQuantityUpdateDate' in rec && compareDates(rec.lastQuantityUpdateDate!, item.lastQuantityUpdateDate!))
         delete rec.lastQuantityUpdateDate;
-      processAggChangeRecord(rec.aggValueChange, item.balance, item.ytdChangePercentage);
+      rec.aggValues.addValues(item.startDateValue || 0, item.balance);
+      if(!rec.hasNonZeroHoldings && item.quantity != 0)
+        rec.hasNonZeroHoldings = true;
       rec.holdings.push(item);
     }
     return gh;
   }, gh);
+  // Update each grouped holding so the IHolding record has a changeInValue
   Object.values(groupedHoldings).forEach(groupedHolding => {
-    groupedHolding.ytdChangePercentage = 
-      calcAggChange(groupedHolding.aggValueChange);
+    const changeResult = groupedHolding.aggValues.calcChangeInValuePercentage();
+    groupedHolding.changeInValue = changeResult === null ? 0 : changeResult;
   });
 
   return groupedHoldings;
@@ -114,12 +124,12 @@ const sortFunctionSet: { [index: number]: { [index: string]: { [index: string]: 
     {
       'asc': 
         {
-          'firstLevel': (a: IHolding,b: IHolding) => a.name >= b.name ? 1 : -1,
+          'firstLevel': (a: IHolding,b: IHolding) => a.securityName >= b.securityName ? 1 : -1,
           'secondLevel': (a: IHolding,b: IHolding) => a.accountName >= b.accountName ? 1 : -1,
         },
       'desc':
         {
-          'firstLevel': (a: IHolding,b: IHolding) => a.name <= b.name ? 1 : -1,
+          'firstLevel': (a: IHolding,b: IHolding) => a.securityName <= b.securityName ? 1 : -1,
           'secondLevel': (a: IHolding,b: IHolding) => a.accountName <= b.accountName ? 1 : -1,
         },
   },

@@ -1,4 +1,5 @@
 .account-view {
+  min-width: 480px;
   display: flex;
   flex-direction: column;
   gap: 2em;

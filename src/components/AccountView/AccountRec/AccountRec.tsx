@@ -1,5 +1,4 @@
 import './AccountRec.css';
-import { SectionHeading, SectionHeadingSizeType } from '../../SectionHeading';
 import { IAccount } from '..';
 import { ColoredPercentage } from '../../ColoredPercentage';
 import { formatBalance } from '../../../utils/general';
@@ -7,33 +6,31 @@ import { formatBalance } from '../../../utils/general';
 
 interface IAccountRec {
   account: IAccount,
-  filterType: string,
-  filterValue: string,
-  setFilterType: (type: string) => void,
-  setFilterValue: (value: string) => void,
+  handleAccountTypeCategoryButtonClick: () => void,
+  isActive?: boolean,
 }
 
-export const AccountRec: React.FC<IAccountRec> = ({ account, filterValue, filterType, setFilterType, setFilterValue }) => {
+export const AccountRec: React.FC<IAccountRec> = ({ account, handleAccountTypeCategoryButtonClick, isActive }) => {
+  const changeInValuePercentage: number | null | string = account.aggValues!.calcChangeInValuePercentage();
   return (
-    <tr className="account-rec">
+    <tr className="account-rec"  onClick={handleAccountTypeCategoryButtonClick}>
       <td>
-        <SectionHeading
-          size={SectionHeadingSizeType.small} 
-          label={account.accountName + " | " + account.accountCustodian}
-          subLabel={account.accountTypeName}
-          handleActionButtonClick={() => { 
-            setFilterType("account");
-            setFilterValue(account.accountName); 
-          }}
-          actionText={"View " + account.accountName + " holdings"}
-          isActive={filterType === "account" && filterValue === account.accountName}
-        />
+        <div className='basic-table--two-line'>
+          <div className={isActive ? "active" : ""}>
+            {account.accountName + " | " + account.accountCustodian}
+          </div>
+          <small>{account.accountTypeName}</small>
+        </div>
       </td>
       <td>
-        <ColoredPercentage percentage={account.ytdChangePercentage!} />
+        { changeInValuePercentage === null ?
+            <span>N/A</span>
+          :
+            <ColoredPercentage percentage={changeInValuePercentage} />
+        }
       </td>
       <td>
-        { formatBalance(account.balance!) }
+        { formatBalance(account.aggValues!.getAggregateEndValue()) }
       </td>
     </tr>
   );

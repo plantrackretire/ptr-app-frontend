@@ -17,7 +17,7 @@ interface IAccountTypeCategoryList {
 export const AccountTypeCategoryList: React.FC<IAccountTypeCategoryList> = ({ accountTypeCategoryGroups, accountSortFunction, 
   filterValue, filterType, setFilterType, setFilterValue }) => {
   return (
-    <table className="basic-table">
+    <table className="basic-table basic-table--clickable-rows">
       {
         accountTypeCategoryGroups.map((accountTypeCategoryGroup) => (
           <Fragment key={accountTypeCategoryGroup.accountTypeCategory.accountTypeCategoryName}>
@@ -36,10 +36,11 @@ export const AccountTypeCategoryList: React.FC<IAccountTypeCategoryList> = ({ ac
                 <AccountRec
                   key={account.accountId}
                   account={account}
-                  filterType={filterType}
-                  filterValue={filterValue}
-                  setFilterType={setFilterType}
-                  setFilterValue={setFilterValue}
+                  handleAccountTypeCategoryButtonClick={() => { 
+                    setFilterType("account");
+                    setFilterValue(account.accountName); 
+                  }}
+                  isActive={filterType === "account" && filterValue === account.accountName}
                 />
               ))
             }

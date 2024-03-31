@@ -2,7 +2,7 @@ import './AppAuthenticatorProvider.css';
 import { ReactElement, createContext, useEffect, useState } from 'react';
 import { Amplify } from 'aws-amplify';
 import { Authenticator, Flex, Text, useAuthenticator } from '@aws-amplify/ui-react';
-import { fetchUserAttributes } from '@aws-amplify/auth';
+import { fetchUserAttributes, fetchAuthSession } from '@aws-amplify/auth';
 import '@aws-amplify/ui-react/styles.css';
 import config from '../../../../ptr-app-backend/cdk-outputs.json'
 import { MouseEventHandler } from 'react';
@@ -22,6 +22,7 @@ interface IAuthenticatorContext {
   email: string,
   family_name: string,
   given_name: string,
+  jwtToken: string,
   signOutFunction: MouseEventHandler | undefined
 }
 
@@ -34,7 +35,7 @@ interface AuthenticatorProps {
 const AppAuthenticator = ({children}: AuthenticatorProps) => {
   const { user, signOut } = useAuthenticator((context) => [context.user]); // Passed in function limits changes that cause re-render
   const [appUserAttributes, setAppUserAttributes] = 
-    useState({userid: '', username: '', email: '', family_name: '', given_name: '', signOutFunction: signOut })
+    useState({userid: '', username: '', email: '', family_name: '', given_name: '', jwtToken: '', signOutFunction: signOut })
   
   useEffect(() => {
     // This avoids race conditions by ignoring results from stale calls
@@ -43,7 +44,9 @@ const AppAuthenticator = ({children}: AuthenticatorProps) => {
     if(appUserAttributes.username !== user.username) {
       const getUserAttributes = async() => {
         const attributes = await fetchUserAttributes();
-        
+
+        const jwtToken = (await fetchAuthSession()).tokens?.idToken?.toString() as string;
+      
         if(!ignoreResults) {
           setAppUserAttributes({
             userid: user.userId,
@@ -51,6 +54,7 @@ const AppAuthenticator = ({children}: AuthenticatorProps) => {
             email: attributes.email || '',
             family_name: attributes.family_name || '',
             given_name: attributes.given_name || '',
+            jwtToken: jwtToken,
             signOutFunction: signOut
           })
         }

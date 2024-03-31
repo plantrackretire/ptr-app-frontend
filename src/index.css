@@ -1,5 +1,7 @@
 :root {
   /* Variables */
+  --app-max-width: 1800px;
+
   --app-background-color: #242424;
   --light-blue: #90c8ee;
   --blue: #35A2EB;
@@ -45,6 +47,7 @@ body {
   height: 100vh;
   place-items: center;
 
+
   line-height:unset !important; /* turn off amplify setting */
 }
 
@@ -70,6 +73,7 @@ h3 {
 }
 
 h4 {
+  display: inherit;
   font-size: calc(var(--h1-font-size) - .6em);
   font-weight: 400;
   font-style: italic;
@@ -101,6 +105,7 @@ a:hover {
   -moz-transition: all .1s;
   -o-transition: all .1s;
   transition: all .1s;
+  text-align: inherit;
 }
 .button-el:hover {
   color: var(--active-color) !important;
@@ -142,10 +147,11 @@ svg {
   fill: var(--medium-grey);
 }
 
-.positive-value-change {
+/* Classes used to modify color based on varying criteria.  'color-modifier' prefix is required so other elements can select on it. */
+.color-modifier--positive-value-change {
   color: var(--green);
 }
-.negative-value-change {
+.color-modifier--negative-value-change {
   color: var(--red);
 }
 
@@ -158,13 +164,16 @@ svg {
 }
 
 /* Following settings cover tables of data */
-/* basic-table--sub-row is for child rows to a parent, shown set into the parent */
+/* basic-table--sub-row is for child rows to a parent, first column should be <br/> to show child set into the parent */
 /* With heading should structure as: <table><thead><tbody><thead><tbody><table>..., without heading: <table><tbody><table> */
 .basic-table {
   width: 100%;
-  border-collapse: separate;
   border-spacing: 0 0; /* Along with separate setting above this allows for cell and row spacing when non-zero */
-  white-space: nowrap;
+}
+.basic-table th,
+.basic-table td {
+  vertical-align: top;
+  text-wrap: balance;
 }
 .basic-table th {
   padding-top: .6em;
@@ -179,9 +188,6 @@ svg {
   padding-right: .5em;
   border-bottom: 1px solid var(--light-grey);
 }
-.basic-table th:first-child { padding-left: .5em; }
-.basic-table thead + tbody td:first-child { padding-left: 1em; }
-.basic-table tbody tr:last-child td { border-bottom: 0; }
 /* sub-row assumes content start one column in (first column blank for sub-rows and second slightly indented */
 .basic-table--sub-row td:not(:first-child) {
   padding-top: .25em;
@@ -190,9 +196,44 @@ svg {
   background-color: var(--light-grey);
   border-bottom: 1px solid var(--app-background-color);
 }
+.basic-table th:first-child { padding-left: .5em; }
+.basic-table thead + tbody td:first-child { padding-left: 1em; }
+.basic-table tbody tr:last-child td { border-bottom: 0; }
+.basic-table--two-line {
+  display: flex;
+  flex-direction: column;
+}
+.basic-table--two-line :nth-child(2) {
+  color: var(--medium-grey);
+}
 .basic-table--sub-row td:nth-child(2) { padding-left: 1em; }
 tr.basic-table--sub-row:has(+ :not(.basic-table--sub-row)) td {
   border-bottom: 1px solid var(--light-grey);
+}
+/* Use class basic-table--clickable-rows to have rows behave as buttons */
+.basic-table--clickable-rows tr:not(.basic-table--sub-row):hover td {
+  background-color: var(--light-grey);
+  cursor: pointer;
+}
+.basic-table--clickable-rows tr:hover th,
+.basic-table--clickable-rows tr.basic-table--sub-row:hover td:not(:first-child) {
+  background-color: var(--medium-grey) !important;
+  color: white;
+  cursor: pointer;
+}
+.basic-table--clickable-rows tr:hover th [class*="color-modifier"],
+.basic-table--clickable-rows tr.basic-table--sub-row:hover td:not(:first-child) [class*="color-modifier"],
+.basic-table--clickable-rows tr.basic-table--sub-row:hover .basic-table--two-line :nth-child(2),
+.basic-table--clickable-rows tr:hover th .active,
+.basic-table--clickable-rows tr.basic-table--sub-row:hover td:not(:first-child) .active {
+  color: white !important;
+}
+/* Use basic-table--nowrap on td elements to force no wrapping of text. */
+/* Set width or max-width to have ellipse show when content exceeds width. */
+.basic-table--nowrap {
+  white-space: nowrap;
+  text-overflow: ellipsis !important;
+  overflow: hidden;
 }
 
 

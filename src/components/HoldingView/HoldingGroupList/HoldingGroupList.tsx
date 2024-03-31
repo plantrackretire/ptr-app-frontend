@@ -13,7 +13,7 @@ interface IHoldingGroupList {
 
 export const HoldingGroupList: React.FC<IHoldingGroupList> = ({ holdingGroups, handleHoldingActionButtonClick, accountHoldingSortFunction }) => {
   return (
-    <table className="basic-table holding-group-list">
+    <table className="holding-group-list basic-table basic-table--clickable-rows" width="100%">
       <tbody>
         {
           holdingGroups.map((holdingGroup) => (
@@ -24,8 +24,7 @@ export const HoldingGroupList: React.FC<IHoldingGroupList> = ({ holdingGroups, h
               />
               {
                 holdingGroup.holdings.length > 1 && 
-                holdingGroup.holdings.sort(accountHoldingSortFunction)
-                  .map((accountHolding) => (
+                holdingGroup.holdings.sort(accountHoldingSortFunction).map((accountHolding) => (
                   <AccountHolding
                     key={accountHolding.accountId}
                     accountHolding={accountHolding}

@@ -16,7 +16,7 @@ export const DateFilter: React.FC<IDateFilter> = ({ selectedDay, setSelectedDay,
   const handleDrPrecannedDateValueChange = (newValue: DropdownListOptionsType) => {
     if(newValue.length > 0) {
       const newDay = calcDate(newValue[0].value);
-      if(!compareDayValues(selectedDay, newDay)) {
+      if(compareDayValues(selectedDay, newDay)) {
         setSelectedDay(newDay);
       }
     }

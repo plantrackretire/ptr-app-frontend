@@ -82,7 +82,7 @@ export const NetworthChart: React.FC<INetworthChart> = memo(({ labels, balances 
   let dataLabels = filteredLabels;
   let dataValues = filteredBalances;
   if(units === "Years" && yearValueType === "%") {
-    dataLabels = filteredLabels.slice(1); // Drop first year because we cannot calculate and percentage change for it
+    dataLabels = filteredLabels.slice(1); // Drop first year because we cannot calculate a percentage change for it
     dataValues = createChangesInValue(filteredBalances); // Calc change in value percentage for each year (except first)
   }
 
@@ -244,7 +244,7 @@ const createOptionsRecord = (config: IConfigContext, units: string, yearValueTyp
     options.scales.y.ticks = {
       // Extract year
       callback: function(_value: string | number, index: number, _ticks: Tick[]) {
-        return (this.getLabelForValue(index) as string).slice(-4);
+        return (this.getLabelForValue(index) as string).slice(0, 4);
       }
     };
     options.layout = {

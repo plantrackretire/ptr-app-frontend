@@ -1,17 +1,17 @@
-import { DayValue } from '@hassanmojab/react-modern-calendar-datepicker';
 import './AccountView.css';
 import { SectionHeading, SectionHeadingSizeType } from '../SectionHeading';
 import { useState } from 'react';
 import { AccountTypeCategoryList } from './AccountTypeCategoryList';
 import { IHolding } from '../HoldingView';
-import { IAggValueChange, calcAggChange, initAggChangeWithRecord, processAggChangeRecord } from '../../utils/calcs';
+import { AggregateValues } from '../../utils/calcs';
 import { SortSelector } from '../SortSelector';
 import { DropdownListOptionsType } from '../DropdownList';
 
 
 interface IAccountView {
-  asOfDate: DayValue,
-  accounts: { [index: string]: IAccount },
+  startDate: Date,
+  asOfDate: Date,
+  accounts: { [index: number]: IAccount },
   holdings: IHolding[],
   filterType: string,
   filterValue: string,
@@ -20,34 +20,31 @@ interface IAccountView {
 }
 export interface IAccountTypeCategoryGroup {
   accountTypeCategory: IAccountTypeCategory,
-  accounts: { [index: string]: IAccount },
+  accounts: { [index: number]: IAccount },
+  hasNonZeroAccounts: boolean,
 }
 export interface IAccountTypeCategory {
-  accountTypeCategoryId: string,
   accountTypeCategoryName: string,
-  aggValueChange: IAggValueChange,
-  balance: number,
-  ytdChangePercentage: number,
+  aggValues: AggregateValues, // Used to track start and end agg balances and to calc change in value
 }
 export interface IAccount {
-  accountId: string,
-  accountTypeCategoryId: string,
+  accountId: number,
   accountTypeCategoryName: string,
+  accountTypeId: number,
   accountTypeName: string,
   accountCustodian: string,
   accountName: string,
-  aggValueChange?: IAggValueChange,
-  balance?: number,
-  ytdChangePercentage?: number,
+  aggValues?: AggregateValues, // Used to track start and end agg balances and to calc change in value
+  hasNonZeroHoldings?: boolean,
 }
 
-export const AccountView: React.FC<IAccountView> = ({ asOfDate, accounts, holdings, 
+export const AccountView: React.FC<IAccountView> = ({ startDate, asOfDate, accounts, holdings, 
   filterType, filterValue, setFilterType, setFilterValue }) => {
   const [sortOrder, setSortOrder] = useState<DropdownListOptionsType>([accountSortOrderOptions[0]]);
   const [sortDirection, setSortDirection] = useState<string>("asc");
 
-  const accountTypeCategoryGroups = createAccountTypeCategoryGroups(holdings, accounts);
-  
+  const accountTypeCategoryGroups = createAccountTypeCategoryGroups(startDate, asOfDate, holdings, accounts);
+
   const sortFunctionsFirstLevel = sortFunctionSetFirstLevel[sortOrder[0].value][sortDirection];
   const sortFunctionsSecondLevel = sortFunctionSetSecondLevel[sortOrder[0].value][sortDirection];
   const accountTypeCategoryGroupsSorted = Object.values(accountTypeCategoryGroups).sort(sortFunctionsFirstLevel);
@@ -58,7 +55,7 @@ export const AccountView: React.FC<IAccountView> = ({ asOfDate, accounts, holdin
         <SectionHeading
           size={SectionHeadingSizeType.medium} 
           label="Accounts"
-          subLabel={ "As of " + asOfDate?.month.toString() + " / " + asOfDate?.day.toString() + " / " + asOfDate?.year.toString() } 
+          subLabel={ "As of " + (asOfDate?.getMonth()+1) + " / " + asOfDate?.getDate() + " / " + asOfDate?.getFullYear() } 
           handleActionButtonClick={() => { setFilterType("All"); setFilterValue("All"); }}
           isActive={filterType === "All" ? true : false}
         />
@@ -82,55 +79,48 @@ export const AccountView: React.FC<IAccountView> = ({ asOfDate, accounts, holdin
   );
 };
 
-const createAccountTypeCategoryGroups = (holdings: IHolding[], accounts: { [index: string]: IAccount }): { [index: string]: IAccountTypeCategoryGroup } => {
+const createAccountTypeCategoryGroups = (startDate: Date, asOfDate: Date, 
+  holdings: IHolding[], accounts: { [index: string]: IAccount }): { [index: string]: IAccountTypeCategoryGroup } => {
   let atcg: { [index: string]: IAccountTypeCategoryGroup } = {};
   const accountTypeCategoryGroups = holdings.reduce((atcg, holding) => {
     const holdingAccount = accounts[holding.accountId];
-    
-    // Process account type category, create new IAccountTypeCategoryGroup (to hold category and related accounts) if it doesn't exist
-    // aggValueChange records hold two calculated aggregates to calc the aggregate gain/loss for each agg level (account and account type category)
-    if(!atcg[holdingAccount.accountTypeCategoryId]) {
-      atcg[holdingAccount.accountTypeCategoryId] = {
+
+    // Create new IAccountTypeCategoryGroup (to hold category and related accounts) if it doesn't exist
+    if(!atcg[holdingAccount.accountTypeCategoryName]) {
+      atcg[holdingAccount.accountTypeCategoryName] = {
         accountTypeCategory: {
-          accountTypeCategoryId: holdingAccount.accountTypeCategoryId,
           accountTypeCategoryName: holdingAccount.accountTypeCategoryName,
-          aggValueChange: initAggChangeWithRecord(holding.balance, holding.ytdChangePercentage),
-          balance: holding.balance,
-          ytdChangePercentage: 0,
+          aggValues: new AggregateValues(startDate, asOfDate),
         },
         accounts: {},
+        hasNonZeroAccounts: false,
       }
-    } else  { // Account type category group exists, update category totals
-      const rec = atcg[holdingAccount.accountTypeCategoryId];
-      rec.accountTypeCategory.balance += holding.balance;
-      processAggChangeRecord(rec.accountTypeCategory.aggValueChange, holding.balance, holding.ytdChangePercentage);
     }
 
+    const rec = atcg[holdingAccount.accountTypeCategoryName];
+    // Update aggregates on account type category
+    rec.accountTypeCategory.aggValues.addValues(holding.startDateValue ? holding.startDateValue : 0, holding.balance);
+
     // Process account
-    const accountTypeCategory = atcg[holdingAccount.accountTypeCategoryId];
-    if(!accountTypeCategory.accounts[holdingAccount.accountId]) {
-      const account = {...holdingAccount};
-      account.balance = holding.balance;
-      account.ytdChangePercentage = 0;
-      account.aggValueChange = initAggChangeWithRecord(holding.balance, holding.ytdChangePercentage);
-      accountTypeCategory.accounts[holdingAccount.accountId] = account;
-    } else {
-      const account = accountTypeCategory.accounts[holdingAccount.accountId];
-      account.balance! += holding.balance;
-      processAggChangeRecord(account.aggValueChange!, holding.balance, holding.ytdChangePercentage);
+    // If account does not exist on account type category group
+    if(!rec.accounts[holdingAccount.accountId]) {
+      const account = {...holdingAccount,
+        changeInValue: 0,
+        aggValues: new AggregateValues(startDate, asOfDate),
+        hasNonZeroHoldings: false,
+      }
+      rec.accounts[holdingAccount.accountId] = account;
+    }
+    const account = rec.accounts[holdingAccount.accountId];
+    account.aggValues!.addValues(holding.startDateValue ? holding.startDateValue : 0, holding.balance);
+    if(!account.hasNonZeroHoldings && holding.quantity != 0) {
+      account.hasNonZeroHoldings = true;
+      if(!rec.hasNonZeroAccounts)
+        rec.hasNonZeroAccounts = true;
     }
 
     return atcg;
   }, atcg);
-
-  // Loop through the account type categories, as well as the accounts within it, to calc aggregate gain/loss for each
-  // Uses the agg values that were accumulated during the reduce function above
-  Object.values(accountTypeCategoryGroups).forEach(accountTypeCategoryGroup => {
-    accountTypeCategoryGroup.accountTypeCategory.ytdChangePercentage = calcAggChange(accountTypeCategoryGroup.accountTypeCategory.aggValueChange);
-    Object.values(accountTypeCategoryGroup.accounts).forEach(account => {
-      account.ytdChangePercentage = calcAggChange(account.aggValueChange!);
-    });
-  });
 
   return accountTypeCategoryGroups;
 }
@@ -146,9 +136,9 @@ const sortFunctionSetFirstLevel: { [index: number]: { [index: string]: (a: IAcco
   2: 
   {
     'asc': (a: IAccountTypeCategoryGroup,b: IAccountTypeCategoryGroup) => 
-      a.accountTypeCategory.balance >= b.accountTypeCategory.balance ? 1 : -1,
+      a.accountTypeCategory.aggValues.getAggregateEndValue() >= b.accountTypeCategory.aggValues.getAggregateEndValue() ? 1 : -1,
     'desc': (a: IAccountTypeCategoryGroup,b: IAccountTypeCategoryGroup) => 
-      a.accountTypeCategory.balance <= b.accountTypeCategory.balance ? 1 : -1,
+      a.accountTypeCategory.aggValues.getAggregateEndValue() <= b.accountTypeCategory.aggValues.getAggregateEndValue() ? 1 : -1,
   },
 };
 
@@ -160,8 +150,8 @@ const sortFunctionSetSecondLevel: { [index: number]: { [index: string]: (a: IAcc
     },
   2: 
   {
-    'asc': (a: IAccount,b: IAccount) => a.balance! >= b.balance! ? 1 : -1,
-    'desc': (a: IAccount,b: IAccount) => a.balance! <= b.balance! ? 1 : -1,
+    'asc': (a: IAccount,b: IAccount) => a.aggValues!.getAggregateEndValue()! >= b.aggValues!.getAggregateEndValue()! ? 1 : -1,
+    'desc': (a: IAccount,b: IAccount) => a.aggValues!.getAggregateEndValue()! <= b.aggValues!.getAggregateEndValue()! ? 1 : -1,
   },
 };
 

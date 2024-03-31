@@ -1,5 +1,4 @@
 import './HoldingRec.css';
-import { SectionHeading, SectionHeadingSizeType } from '../../../SectionHeading';
 import { ColoredPercentage } from '../../../ColoredPercentage';
 import { formatBalance, formatPrice, formatQuantity } from '../../../../utils/general';
 import { IHolding } from '../..';
@@ -12,51 +11,50 @@ interface IHoldingRec {
 
 export const HoldingRec: React.FC<IHoldingRec> = ({ holding, handleHoldingActionButtonClick }) => {
   return (
-    <tr>
+    <tr onClick={handleHoldingActionButtonClick}>
       <td>
-        <span>{holding.shortName}</span>
+        <span>{holding.securityShortName}</span>
       </td>
       <td>
-        <SectionHeading
-          size={SectionHeadingSizeType.small} 
-          label={holding.name}
-          subLabel={holding.accountName}
-          handleActionButtonClick={handleHoldingActionButtonClick} 
-          actionText={"View " + holding.name + " transactions"}
-        />
+        <div className="basic-table--two-line">
+          <span>{holding.securityName}</span>
+          <small>
+            { holding.accountName }
+          </small>
+        </div>
       </td>
-      <td>
-        <div className="holding-group-list--two-line">
+      <td className='basic-table--nowrap'>
+        <div className="basic-table--two-line">
           <span>{formatPrice(holding.price)}</span>
           <small>
             {
               !('lastPriceUpdateDate' in holding) ? 'Multi' :
-              holding.lastPriceUpdateDate?.month + " / " + 
-                holding.lastPriceUpdateDate?.day + " / " + holding.lastPriceUpdateDate?.year
+              holding.lastPriceUpdateDate!.getMonth()+1 + " / " + 
+                holding.lastPriceUpdateDate?.getDate() + " / " + holding.lastPriceUpdateDate?.getFullYear()
             }
           </small>
         </div>
       </td>
-      <td>
-        <div className="holding-group-list--two-line">
+      <td className='basic-table--nowrap'>
+        <div className="basic-table--two-line">
           <span>{formatQuantity(holding.quantity)}</span>
           <small>
             {
               !('lastQuantityUpdateDate' in holding) ? 'Multi' :
-              holding.lastQuantityUpdateDate?.month + " / " + 
-                holding.lastQuantityUpdateDate?.day + " / " + holding.lastQuantityUpdateDate?.year
+              holding.lastQuantityUpdateDate!.getMonth()+1 + " / " + 
+                holding.lastQuantityUpdateDate?.getDate() + " / " + holding.lastQuantityUpdateDate?.getFullYear()
             }
           </small>
         </div>
       </td>
-      <td>
-        <div className="holding-group-list--two-line">
+      <td className='basic-table--nowrap'>
+        <div className="basic-table--two-line">
           { formatBalance(holding.balance) }
-          { !('ytdChangePercentage' in holding) ?
+          { !('changeInValue' in holding) ?
               <small>Multi</small> 
             :
               <small>
-                <ColoredPercentage percentage={holding.ytdChangePercentage!} />
+                <ColoredPercentage percentage={holding.changeInValue!} />
               </small>
           }
         </div>

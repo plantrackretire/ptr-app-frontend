@@ -42,18 +42,64 @@ export const calcDate = (precannedDateValue: number): DayValue => {
 export const getPrecannedDateValue = (date: DayValue): DropdownListOptionsType => {
     for(var value of precannedDates) {
         const newDate = calcDate(value.value);
-        if(compareDayValues(newDate, date))
+        if(!compareDayValues(newDate, date))
             return([value]);
     }
 
     return [];
 };
 
-export const compareDayValues = (dayValue1: DayValue, dayValue2: DayValue): boolean => {
-    if(!dayValue1 || !dayValue2) return false;
-    if(dayValue1.day === dayValue2.day && dayValue1.month === dayValue2.month && dayValue1.year === dayValue2.year)
-        return true;
-    return false;
+// Date constructor assumes local time zone.
+// Doing this to ensure dates are consistent regardless of location. 
+// If a position date is 3/31/2024 it shouldn't change because you happen to be in a different time zone when viewing it.
+export const createLocalDate = (year: number, month: number, date: number): Date => {
+    return new Date(year, month-1, date);
+}
+
+// Assumes string format of YYYY-MM-DD
+export const createLocalDateFromDateTimeString = (dt: string): Date => {
+    const dateParts = dt.split("-");
+    const year = Number(dateParts[0]);
+    const month = Number(dateParts[1]);
+    const date = Number(dateParts[2].substring(0, 2));
+
+    return createLocalDate(year, month, date);
+}
+
+export const compareDates = (date1: Date, date2: Date): number => {
+    const date1Time = date1.getTime();
+    const date2Time = date2.getTime();
+
+    if(date1Time < date2Time)
+        return -1;
+    if(date1Time > date2Time)
+        return 1;
+    return 0;
+}
+
+// -1 if dayValue1 < dayValue2, 1 if dayValue1 > dayValue2, 0 if dayValue1 == dayValue2
+export const compareDayValues = (dayValue1: DayValue, dayValue2: DayValue): number => {
+    if(!dayValue1 || !dayValue2) {
+        console.log("Invalid date");
+        // TODO: Throw exception
+        return -1;
+    }
+    if(dayValue1.year < dayValue2.year)
+        return -1;
+    if(dayValue1.year > dayValue2.year)
+        return 1;
+
+    if(dayValue1.month < dayValue2.month)
+        return -1;
+    if(dayValue1.month > dayValue2.month)
+        return 1;
+
+    if(dayValue1.day < dayValue2.day)
+        return -1;
+    if(dayValue1.day > dayValue2.day)
+        return 1;
+
+    return 0;
 }
 
 const isLeapYear = (year: number): boolean => {
@@ -63,7 +109,7 @@ const isLeapYear = (year: number): boolean => {
         return (year % 4) == 0;
 }
 
-// Assumes string format of x/x/xxxx
+// Assumes string format of YYYY-MM-DD
 export const getYearFromStringDate = (date: string) => {
     if(date.length < 8) {
         // TODO throw exception
@@ -71,10 +117,10 @@ export const getYearFromStringDate = (date: string) => {
         return "";
     }
 
-    return date.slice(-4);
+    return date.slice(4);
 }
 
-// Assumes string format of x/x/xxxx
+// Assumes string format of YYYY-MM-DD
 export const getMonthFromStringDate = (date: string) => {
     if(date.length < 8) {
         // TODO throw exception
@@ -82,13 +128,13 @@ export const getMonthFromStringDate = (date: string) => {
         return "";
     }
 
-    const splitString = date.split("/");
+    const splitString = date.split("-");
     if(splitString.length !== 3) {
         // TODO throw exception
         console.log("Invalid date split in getMonthFromStringDate");
         return "";
     }
-    return splitString[0];
+    return splitString[1];
 }
 
 export const adjustDateByYear = (date: Date, numYears: number) => {
@@ -103,15 +149,16 @@ export const adjustDateByYear = (date: Date, numYears: number) => {
     return date;
 }
 
+// Assumes string format of YYYY-MM-DD
 export const createDateFromString = (stringDate: string): Date => {
-    const splitString = stringDate.split("/");
+    const splitString = stringDate.split("-");
     if(splitString.length !== 3) {
         // TODO throw exception
-        console.log("Invalid date split in getMonthFromStringDate");
+        console.log("Invalid date split in createDateFromString");
         return new Date();
     }
 
-    return new Date(Number(splitString[2]), Number(splitString[0])-1, Number(splitString[1]));
+    return new Date(Number(splitString[0]), Number(splitString[1])-1, Number(splitString[2]));
 }
 
 export const calcDiffInDays = (startDate: Date, endDate: Date) => {

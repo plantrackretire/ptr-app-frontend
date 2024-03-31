@@ -1,5 +1,4 @@
 import './AccountHolding.css';
-import { SectionHeading, SectionHeadingSizeType } from '../../../SectionHeading';
 import { IHolding } from '../..';
 import { ColoredPercentage } from '../../../ColoredPercentage';
 import { formatBalance, formatQuantity } from '../../../../utils/general';
@@ -12,37 +11,32 @@ interface IAccountHolding {
 
 export const AccountHolding: React.FC<IAccountHolding> = ({ accountHolding, handleHoldingActionButtonClick }) => {
   return (
-    <tr key={accountHolding.holdingId} className="basic-table--sub-row">
+    <tr key={accountHolding.holdingId} className="basic-table--sub-row" onClick={handleHoldingActionButtonClick}>
       <td><br /></td>
       <td>
-        <SectionHeading
-          size={SectionHeadingSizeType.tiny} 
-          label={accountHolding.accountName}
-          handleActionButtonClick={handleHoldingActionButtonClick} 
-          actionText={"View " + accountHolding.name + " transactions"}
-        />
+        <small>{accountHolding.accountName}</small>
       </td>
       <td><br /></td>
       <td>
-        <div className="holding-group-list--two-line">
+        <div className="basic-table--two-line">
           <span>{formatQuantity(accountHolding.quantity)}</span>
           <small>
             {
               !('lastQuantityUpdateDate' in accountHolding) ? 'Multi' :
-              accountHolding.lastQuantityUpdateDate?.month + " / " + 
-                accountHolding.lastQuantityUpdateDate?.day + " / " + accountHolding.lastQuantityUpdateDate?.year
+              accountHolding.lastQuantityUpdateDate!.getMonth()+1 + " / " + 
+                accountHolding.lastQuantityUpdateDate!.getDate() + " / " + accountHolding.lastQuantityUpdateDate!.getFullYear()
             }
           </small>
         </div>
       </td>
       <td>
-        <div className="holding-group-list--two-line">
+        <div className="basic-table--two-line">
           <span>{ formatBalance(accountHolding.balance) }</span>
-          { !('ytdChangePercentage' in accountHolding) ?
+          { !('changeInValue' in accountHolding) ?
               <small>Multi</small> 
             :
               <small>
-                <ColoredPercentage percentage={accountHolding.ytdChangePercentage!} />
+                <ColoredPercentage percentage={accountHolding.changeInValue!} />
               </small>
           }
         </div>

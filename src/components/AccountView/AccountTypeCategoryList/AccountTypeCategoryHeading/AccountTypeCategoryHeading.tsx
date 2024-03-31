@@ -1,5 +1,4 @@
 import './AccountTypeCategoryHeading.css';
-import { SectionHeading, SectionHeadingSizeType } from '../../../SectionHeading';
 import { IAccountTypeCategory } from '../..';
 import { ColoredPercentage } from '../../../ColoredPercentage';
 import { formatBalance } from '../../../../utils/general';
@@ -14,21 +13,17 @@ interface IAccountTypeCategoryHeading {
 export const AccountTypeCategoryHeading: React.FC<IAccountTypeCategoryHeading> = ({ accountTypeCategory, handleAccountTypeCategoryButtonClick, isActive }) => {
   return (
     <thead className="account-type-category-heading">
-      <tr>
+      <tr onClick={handleAccountTypeCategoryButtonClick}>
         <th>
-          <SectionHeading
-            size={SectionHeadingSizeType.small} 
-            label={accountTypeCategory.accountTypeCategoryName}
-            handleActionButtonClick={handleAccountTypeCategoryButtonClick} 
-            actionText={"View " + accountTypeCategory.accountTypeCategoryName + " transactions"}
-            isActive={isActive}
-          />
+          <div className={isActive ? "active" : ""}>
+            {accountTypeCategory.accountTypeCategoryName}
+          </div>
         </th>
         <th>
-          <ColoredPercentage percentage={accountTypeCategory.ytdChangePercentage} />
+          <ColoredPercentage percentage={accountTypeCategory.aggValues.calcChangeInValuePercentage() || 0} />
         </th>
         <th>
-          { formatBalance(accountTypeCategory.balance) }
+          { formatBalance(accountTypeCategory.aggValues.getAggregateEndValue()) }
         </th>
       </tr>
     </thead>
