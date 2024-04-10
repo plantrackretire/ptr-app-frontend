@@ -2,4 +2,5 @@
 .checkbox {
     display: flex;
     gap: .25em;
+    align-items: center;
 }

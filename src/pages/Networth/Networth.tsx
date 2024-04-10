@@ -1,71 +1,87 @@
+import './Networth.css';
 import { useContext, useEffect, useState } from 'react';
 import { AccountView, IAccount } from '../../components/AccountView';
 import { HoldingView, IHolding } from '../../components/HoldingView';
 import { NetworthChart } from '../../components/NetworthChart';
 import { PtrAppApiStack } from '../../../../ptr-app-backend/cdk-outputs.json';
-import './Networth.css';
 import { AuthenticatorContext } from '../../providers/AppAuthenticatorProvider';
-import { createLocalDate, createLocalDateFromDateTimeString } from '../../utils/dates';
+import { createDateFromDayValue, createDateStringFromDate, createLocalDateFromDateTimeString, getBeginningOfYear, getPriorMonthEnd } from '../../utils/dates';
+import { fetchData } from '../../utils/general';
+import { IFilterBarValues, createFormattedFilterBarValues } from '../../components/FilterBar';
 
 
-export const Networth: React.FC = () => {
+interface INetworth {
+    filterBarValues: IFilterBarValues,
+}
+
+export const Networth: React.FC<INetworth> = ({ filterBarValues }) => {
     const [holdingsFilterType, setHoldingsFilterType] = useState<string>("All");
     const [holdingsFilterValue, setHoldingsFilterValue] = useState<string>("All");
     const [dbHoldings, setDbHoldings] = useState<[] | null>(null);
     const [dbAccounts, setDbAccounts] = useState<{[index: number]: IAccount} | null>(null);
     const [dbHistoricalHoldings, setDbHistoricalHoldings] = useState<{ [index: string]: [] } | null>(null);
     const appUserAttributes = useContext(AuthenticatorContext);
-    const asOfDate = createLocalDate(2024,3,31);
-    const startDate = createLocalDate(2024,1,1);
 
     useEffect(() => {
         // This avoids race conditions by ignoring results from stale calls
         let ignoreResults = false;
 
-        if(dbHoldings === null) {
-          const getDbHoldings = async() => {
-            console.log("Getting holdings");
-            const url = PtrAppApiStack.PtrAppGetHoldingsApiEndpoint + "GetHoldings";
-            const body = { userId: 7493728439, queryType: "asOf", startDate: "2024-01-01", endDate: "2024-02-29" };
+        const formattedFilterBarValues = createFormattedFilterBarValues(filterBarValues);
+        const formattedEndDate = getPriorMonthEnd(createDateFromDayValue(filterBarValues.asOfDate));
+        console.log(formattedFilterBarValues);
+        console.log(ignoreResults);
+
+        const getDbHoldings = async() => {
+            const url = PtrAppApiStack.PtrAppApiEndpoint + "GetHoldings";
+            const body = { userId: 7493728439, queryType: "asOf", startDate: "2024-01-01", endDate: createDateStringFromDate(formattedEndDate), 
+                filters: formattedFilterBarValues };
             const postResultJSON = await fetchData(url, body, appUserAttributes!.jwtToken);
+
+            console.log("asOf Results");
+            console.log(postResultJSON);
 
             createDates(postResultJSON.holdings);
             const accountMapping = createAccountMapping(postResultJSON.accounts);
                     
             if(!ignoreResults) {
-                console.log("Setting holdings");
                 setDbHoldings(postResultJSON.holdings);
                 setDbAccounts(accountMapping);
             }
-          }
-    
-          getDbHoldings();
         }
+
+        getDbHoldings();
     
         return () => { ignoreResults = true };
-    }, [])
+    }, [filterBarValues])
     useEffect(() => {
         // This avoids race conditions by ignoring results from stale calls
         let ignoreResults = false;
 
-        if(dbHistoricalHoldings === null) {
-          const getDbHistoricalHoldings = async() => {
-            console.log("Getting historical holdings");
-            const url = PtrAppApiStack.PtrAppGetHoldingsApiEndpoint + "GetHoldings";
-            const body = { userId: 7493728439, queryType: "historical", startDate: "2011-12-31", endDate: "2024-02-29" };
+        const formattedFilterBarValues = createFormattedFilterBarValues(filterBarValues);
+        console.log("Create date:");
+        console.log(createDateFromDayValue(filterBarValues.asOfDate));
+        const formattedEndDate = getPriorMonthEnd(createDateFromDayValue(filterBarValues.asOfDate));
+        console.log(formattedEndDate);
+        console.log("HERE");
+        
+        const getDbHistoricalHoldings = async() => {
+            const url = PtrAppApiStack.PtrAppApiEndpoint + "GetHoldings";
+            const body = { userId: 7493728439, queryType: "historical", startDate: "2011-12-31", endDate: createDateStringFromDate(formattedEndDate),
+                filters: formattedFilterBarValues };
             const postResultJSON = await fetchData(url, body, appUserAttributes!.jwtToken);
 
+            console.log("historical Results");
+            console.log(postResultJSON);
+
             if(!ignoreResults) {
-                console.log("Setting historical holdings");
                 setDbHistoricalHoldings(postResultJSON);
             }
-          }
-    
-          getDbHistoricalHoldings();
         }
+
+        getDbHistoricalHoldings();
     
         return () => { ignoreResults = true };
-    }, [])
+    }, [filterBarValues])
     
     let filteredHoldings: IHolding[] = [];
     if(!(holdingsFilterType === "All")) {
@@ -86,8 +102,8 @@ export const Networth: React.FC = () => {
         default: holdingsFilterScope = holdingsFilterValue + " Accounts"; break;
     }
 
-    console.log(dbHistoricalHoldings);
-
+    const asOfDate = createDateFromDayValue(filterBarValues.asOfDate);
+    const startDate = getBeginningOfYear(asOfDate);
     return (
         <div className='networth scrollable'>
             <div className='networth--main scrollable'>
@@ -112,18 +128,6 @@ export const Networth: React.FC = () => {
         </div>
     );
 };
-
-const fetchData = async (url: string, body: any, token: string) => {
-    const postResult = await fetch(url, {
-        method: 'POST',
-        body: JSON.stringify(body),
-        headers: {
-            'Authorization': token,
-        }
-    });
-    const postResultJSON = await postResult.json();  
-    return postResultJSON;      
-}
 
 const applyFilterToRecord = (record: IHolding, accounts: {[index: number]: IAccount}, holdingsFilterType: string, holdingsFilterValue: string) => {
     switch(holdingsFilterType) {
@@ -168,6 +172,7 @@ const holdings: IHolding[] = [
         securityId: 1,
         securityShortName: "91279768",
         securityName: "6mo Tsy Bill 2024-03-07 5.487%",
+        assetClassId: 1,
         fullAssetClass: "Fixed Income -> US -> Treasuries -> Short Term",
         accountId: 2,
         accountName: "Peter's Investments",
@@ -184,6 +189,7 @@ const holdings: IHolding[] = [
         securityId: 2,
         securityShortName: "91279633",
         securityName: "6mo Tsy Bill 2024-04-18 5.394%",
+        assetClassId: 1,
         fullAssetClass: "Fixed Income -> US -> Treasuries -> Short Term",
         accountId: 2,
         accountName: "Peter's Investments",
@@ -200,6 +206,7 @@ const holdings: IHolding[] = [
         securityId: 10,
         securityShortName: "GLDM",
         securityName: "SPDR Gold Minishares Trust ETF",
+        assetClassId: 1,
         fullAssetClass: "Commodities -> Gold",
         accountId: 6,
         accountName: "Dina's 401k",
@@ -216,6 +223,7 @@ const holdings: IHolding[] = [
         securityId: 3,
         securityShortName: "AAPL",
         securityName: "Apple Inc.",
+        assetClassId: 1,
         fullAssetClass: "Equities -> US -> Large Cap",
         accountId: 4,
         accountName: "Dina's Investments",
@@ -232,6 +240,7 @@ const holdings: IHolding[] = [
         securityId: 4,
         securityShortName: "BTC",
         securityName: "Bitcoin",
+        assetClassId: 1,
         fullAssetClass: "Crypto -> Currency",
         accountId: 5,
         accountName: "Peter's Crypto",
@@ -248,6 +257,7 @@ const holdings: IHolding[] = [
         securityId: 5,
         securityShortName: "N/A",
         securityName: "Cash",
+        assetClassId: 1,
         fullAssetClass: "Cash Equivalent -> Checking/Savings",
         accountId: 1,
         accountName: "Peter's Savings",
@@ -264,6 +274,7 @@ const holdings: IHolding[] = [
         securityId: 5,
         securityShortName: "N/A",
         securityName: "Cash",
+        assetClassId: 1,
         fullAssetClass: "Cash Equivalent -> Checking/Savings",
         accountId: 2,
         accountName: "Peter's Investments",
@@ -280,6 +291,7 @@ const holdings: IHolding[] = [
         securityId: 5,
         securityShortName: "N/A",
         securityName: "Cash",
+        assetClassId: 1,
         fullAssetClass: "Cash Equivalent -> Checking/Savings",
         accountId: 3,
         accountName: "Joint Checking",
@@ -296,6 +308,7 @@ const holdings: IHolding[] = [
         securityId: 6,
         securityShortName: "N/A",
         securityName: "Freshbooks Inc.",
+        assetClassId: 1,
         fullAssetClass: "Private Investment -> Private Equity -> Direct",
         accountId: 2,
         accountName: "Peter's Investments",
@@ -312,6 +325,7 @@ const holdings: IHolding[] = [
         securityId: 7,
         securityShortName: "MSFT",
         securityName: "Microsoft Corporation",
+        assetClassId: 1,
         fullAssetClass: "Equities -> US -> Large Cap",
         accountId: 4,
         accountName: "Dina's Investments",
@@ -328,6 +342,7 @@ const holdings: IHolding[] = [
         securityId: 8,
         securityShortName: "O",
         securityName: "Realty Income Corporation",
+        assetClassId: 1,
         fullAssetClass: "Equities -> US -> REIT",
         accountId: 6,
         accountName: "Dina's 401k",
@@ -344,6 +359,7 @@ const holdings: IHolding[] = [
         securityId: 9,
         securityShortName: "N/A",
         securityName: "Spartan Self Storage Debt Fund",
+        assetClassId: 1,
         fullAssetClass: "Private Investment  -> Real Estate -> Self Storage",
         accountId: 2,
         accountName: "Peter's Investments",
@@ -360,6 +376,7 @@ const holdings: IHolding[] = [
         securityId: 10,
         securityShortName: "GLDM",
         securityName: "SPDR Gold Minishares Trust ETF",
+        assetClassId: 1,
         fullAssetClass: "Commodities -> Gold",
         accountId: 7,
         accountName: "Peter's IRA",
@@ -376,6 +393,7 @@ const holdings: IHolding[] = [
         securityId: 11,
         securityShortName: "N/A",
         securityName: "Sunrise MHP Fund III",
+        assetClassId: 1,
         fullAssetClass: "Private Investment -> Real Estate -> MHP",
         accountId: 2,
         accountName: "Peter's Investments",
@@ -392,6 +410,7 @@ const holdings: IHolding[] = [
         securityId: 12,
         securityShortName: "VGLT",
         securityName: "Vanguard Long Term Treasury ETF",
+        assetClassId: 1,
         fullAssetClass: "Fixed Income -> US -> Treasuries -> Long Term",
         accountId: 7,
         accountName: "Peter's IRA",
@@ -408,6 +427,7 @@ const holdings: IHolding[] = [
         securityId: 13,
         securityShortName: "VIOV",
         securityName: "Vanguard S&P Small Cap 600 Value",
+        assetClassId: 1,
         fullAssetClass: "Equities -> US -> Small Cap -> Value",
         accountId: 6,
         accountName: "Dina's 401k",
@@ -424,6 +444,7 @@ const holdings: IHolding[] = [
         securityId: 13,
         securityShortName: "VIOV",
         securityName: "Vanguard S&P Small Cap 600 Value",
+        assetClassId: 1,
         fullAssetClass: "Equities -> US -> Small Cap -> Value",
         accountId: 7,
         accountName: "Peter's IRA",
@@ -440,6 +461,7 @@ const holdings: IHolding[] = [
         securityId: 13,
         securityShortName: "VIOV",
         securityName: "Vanguard S&P Small Cap 600 Value",
+        assetClassId: 1,
         fullAssetClass: "Equities -> US -> Small Cap -> Value",
         accountId: 8,
         accountName: "Dina's Roth 401k",
@@ -456,6 +478,7 @@ const holdings: IHolding[] = [
         securityId: 13,
         securityShortName: "VIOV",
         securityName: "Vanguard S&P Small Cap 600 Value",
+        assetClassId: 1,
         fullAssetClass: "Equities -> US -> Small Cap -> Value",
         accountId: 9,
         accountName: "Peter's Roth IRA",
@@ -472,6 +495,7 @@ const holdings: IHolding[] = [
         securityId: 14,
         securityShortName: "VTI",
         securityName: "Vanguard Total Stock market ETF",
+        assetClassId: 1,
         fullAssetClass: "Equities -> US -> Large Cap -> Blend",
         accountId: 4,
         accountName: "Dina's Investments",
@@ -488,6 +512,7 @@ const holdings: IHolding[] = [
         securityId: 14,
         securityShortName: "VTI",
         securityName: "Vanguard Total Stock market ETF",
+        assetClassId: 1,
         fullAssetClass: "Equities -> US -> Large Cap -> Blend",
         accountId: 7,
         accountName: "Peter's IRA",
@@ -504,6 +529,7 @@ const holdings: IHolding[] = [
         securityId: 14,
         securityShortName: "VTI",
         securityName: "Vanguard Total Stock market ETF",
+        assetClassId: 1,
         fullAssetClass: "Equities -> US -> Large Cap -> Blend",
         accountId: 8,
         accountName: "Dina's Roth 401k",
@@ -520,6 +546,7 @@ const holdings: IHolding[] = [
         securityId: 14,
         securityShortName: "VTI",
         securityName: "Vanguard Total Stock market ETF",
+        assetClassId: 1,
         fullAssetClass: "Equities -> US -> Large Cap -> Blend",
         accountId: 9,
         accountName: "Peter's Roth IRA",
@@ -536,6 +563,7 @@ const holdings: IHolding[] = [
         securityId: 15,
         securityShortName: "VB",
         securityName: "Vanguard Small-Cap ETF",
+        assetClassId: 1,
         fullAssetClass: "Equities -> US -> Small Cap -> Blend",
         accountId: 6,
         accountName: "Dina's 401k",
@@ -552,6 +580,7 @@ const holdings: IHolding[] = [
         securityId: 16,
         securityShortName: "VXUS",
         securityName: "Vanguard Total International Stock ETF",
+        assetClassId: 1,
         fullAssetClass: "Equities -> Int'l -> Large Cap -> Blend",
         accountId: 7,
         accountName: "Peter's IRA",
@@ -568,6 +597,7 @@ const holdings: IHolding[] = [
         securityId: 17,
         securityShortName: "VOO",
         securityName: "Vanguard S&P 500 ETF",
+        assetClassId: 1,
         fullAssetClass: "Equities -> US -> Large Cap -> Blend",
         accountId: 8,
         accountName: "Dina's Roth 401k",
@@ -584,6 +614,7 @@ const holdings: IHolding[] = [
         securityId: 17,
         securityShortName: "VOO",
         securityName: "Vanguard S&P 500 ETF",
+        assetClassId: 1,
         fullAssetClass: "Equities -> US -> Large Cap -> Blend",
         accountId: 9,
         accountName: "Peter's Roth IRA",
@@ -600,6 +631,7 @@ const holdings: IHolding[] = [
 const accounts: { [index: string]: IAccount } = {
     "1": {
         accountId: 1,
+        accountTypeCategoryId: 1,
         accountTypeCategoryName: 'Taxable',
         accountTypeId: 1,
         accountTypeName: "Money Market",
@@ -608,6 +640,7 @@ const accounts: { [index: string]: IAccount } = {
     },
     "2": {
         accountId: 2,
+        accountTypeCategoryId: 1,
         accountTypeCategoryName: 'Taxable',
         accountTypeId: 2,
         accountTypeName: "Brokerage",
@@ -616,6 +649,7 @@ const accounts: { [index: string]: IAccount } = {
     },
     "3": {
         accountId: 3,
+        accountTypeCategoryId: 1,
         accountTypeCategoryName: 'Taxable',
         accountTypeId: 3,
         accountTypeName: "Checking",
@@ -624,6 +658,7 @@ const accounts: { [index: string]: IAccount } = {
     },
     "4": {
         accountId: 4,
+        accountTypeCategoryId: 1,
         accountTypeCategoryName: 'Taxable',
         accountTypeId: 2,
         accountTypeName: "Brokerage",
@@ -632,6 +667,7 @@ const accounts: { [index: string]: IAccount } = {
     },
     "5": {
         accountId: 5,
+        accountTypeCategoryId: 1,
         accountTypeCategoryName: 'Taxable',
         accountTypeId: 2,
         accountTypeName: "Brokerage",
@@ -640,6 +676,7 @@ const accounts: { [index: string]: IAccount } = {
     },
     "6": {
         accountId: 6,
+        accountTypeCategoryId: 2,
         accountTypeCategoryName: 'Tax Deferred',
         accountTypeId: 4,
         accountTypeName: "Solo 401k",
@@ -648,6 +685,7 @@ const accounts: { [index: string]: IAccount } = {
     },
     "7": {
         accountId: 7,
+        accountTypeCategoryId: 2,
         accountTypeCategoryName: 'Tax Deferred',
         accountTypeId: 5,
         accountTypeName: "Rollover IRA",
@@ -656,6 +694,7 @@ const accounts: { [index: string]: IAccount } = {
     },
     "8": {
         accountId: 8,
+        accountTypeCategoryId: 3,
         accountTypeCategoryName: 'Tax Exempt',
         accountTypeId: 6,
         accountTypeName: "Roth 401k",
@@ -664,6 +703,7 @@ const accounts: { [index: string]: IAccount } = {
     },
     "9": {
         accountId: 9,
+        accountTypeCategoryId: 3,
         accountTypeCategoryName: 'Tax Exempt',
         accountTypeId: 7,
         accountTypeName: "Roth IRA",

@@ -66,6 +66,38 @@ export const createLocalDateFromDateTimeString = (dt: string): Date => {
     return createLocalDate(year, month, date);
 }
 
+export const createDateFromDayValue = (dt: DayValue): Date => {
+    if(!dt) return new Date();
+
+    return new Date(dt.year, dt.month-1, dt.day);
+};
+
+export const createDateStringFromDayValue = (dt: DayValue): string => {
+    if(!dt) return "";
+
+    return (dt.year + "-" + dt.month + "-" + dt.day);
+};
+
+export const createDateStringFromDate = (dt: Date): string => {
+    if(!dt) return "";
+
+    return (dt.getFullYear() + "-" + (dt.getMonth()+1) + "-" + dt.getDate());
+};
+
+export const getBeginningOfYear = (dt: Date): Date => {
+    return new Date(dt.getFullYear(), 0, 1);
+}
+
+export const getPriorMonthEnd = (dt: Date): Date => {
+    if(new Date(dt.getTime() + 86400000).getDate() === 1) {
+        return dt;
+    } else {
+        const newDt = new Date(dt.getFullYear(), dt.getMonth(), 1);
+        newDt.setDate(newDt.getDate() - 1);
+        return newDt;
+    }
+}
+
 export const compareDates = (date1: Date, date2: Date): number => {
     const date1Time = date1.getTime();
     const date2Time = date2.getTime();

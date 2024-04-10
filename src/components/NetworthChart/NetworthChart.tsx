@@ -183,7 +183,6 @@ const createDataRecord = (dataLabels: string[], dataValues: number[], config: IC
   };
 }
 
-
 const createOptionsRecord = (config: IConfigContext, units: string, yearValueType: string) => {
   const options: { [index: string]: any } = {
     responsive: true,
@@ -224,6 +223,9 @@ const createOptionsRecord = (config: IConfigContext, units: string, yearValueTyp
       intersect: false,
       mode: "index" as const,
       backgroundColor: config?.getColor(AppColors.darkGrey),
+      callbacks: {
+        label: function(tooltipItem: any) { return tooltipItem.dataset.label + ': ' + formatBalance(tooltipItem.raw); },
+      }
     };
     options.scales.y.ticks ={
       // Include a dollar sign in the ticks

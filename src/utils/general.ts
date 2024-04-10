@@ -1,3 +1,15 @@
+export const fetchData = async (url: string, body: any, token: string) => {
+  const postResult = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: {
+          'Authorization': token,
+      }
+  });
+  const postResultJSON = await postResult.json();  
+  return postResultJSON;      
+}
+
 export const compareObjects = (obj1: any, obj2: any): boolean => {
   return JSON.stringify(obj1) === JSON.stringify(obj2);
 }

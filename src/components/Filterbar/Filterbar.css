@@ -14,7 +14,16 @@
 .filterbar--filter {
   display: flex;
   flex-direction: column;
-  gap: .5em;
+  gap: .4em;
   width: 13em;
   white-space: nowrap;
+}
+
+.filterbar--apply {
+  width: 100%;
+  text-align: center;
+}
+
+.filterbar .de-emphasize {
+  font-size: .85em;
 }

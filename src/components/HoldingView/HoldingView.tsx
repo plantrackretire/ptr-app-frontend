@@ -27,6 +27,7 @@ export interface IHolding {
   securityId: number,
   securityShortName: string
   securityName: string,
+  assetClassId: number,
   fullAssetClass: string,
   accountId: number,
   accountName: string,
@@ -84,6 +85,9 @@ export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, scope
 const createHoldingGroups = (startDate: Date, asOfDate: Date, holdings: IHolding[]): { [index: string]: IHoldingGroup } => {
   let gh: { [index: string]: IHoldingGroup } = {};
   const groupedHoldings = holdings.reduce((gh, item) => {
+    if(item.securityName === "Brookside LXV") {
+      console.log(item);
+    }
     if(!gh[item.securityId]) {
       gh[item.securityId] = {
         ...item,

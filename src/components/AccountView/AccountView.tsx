@@ -29,6 +29,7 @@ export interface IAccountTypeCategory {
 }
 export interface IAccount {
   accountId: number,
+  accountTypeCategoryId: number,
   accountTypeCategoryName: string,
   accountTypeId: number,
   accountTypeName: string,
@@ -38,7 +39,7 @@ export interface IAccount {
   hasNonZeroHoldings?: boolean,
 }
 
-export const AccountView: React.FC<IAccountView> = ({ startDate, asOfDate, accounts, holdings, 
+export const AccountView: React.FC<IAccountView> = ({ startDate, asOfDate, accounts, holdings,
   filterType, filterValue, setFilterType, setFilterValue }) => {
   const [sortOrder, setSortOrder] = useState<DropdownListOptionsType>([accountSortOrderOptions[0]]);
   const [sortDirection, setSortDirection] = useState<string>("asc");

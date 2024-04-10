@@ -19,6 +19,7 @@
   --default-color: var(--dark-grey);
   --active-color: var(--blue);
   --light-active-color: var(--light-blue);
+  --dark-active-color: var(--blue);
 
   --amplify-internal-button-focus-box-shadow: {0px 0px 0px 0px} !important;
 
@@ -94,11 +95,10 @@ a:hover {
   color: var(--blue);
 }
 
-.button-el {
-  padding: 0;
+.button-el,
+.button-el--visual {
   margin: 0;
   border: 0;
-  cursor: pointer;
   color: inherit;
   background-color: inherit;
   -webkit-transition: all .1s;
@@ -107,14 +107,39 @@ a:hover {
   transition: all .1s;
   text-align: inherit;
 }
+.button-el {
+  padding: 0;
+  cursor: pointer;
+}
+.button-el--visual {
+  padding: .5em 1.5em .5em 1.5em;
+  background-color: var(--light-grey);
+}
+.button-el--visual:not(.enabled) {
+  color: var(--medium-grey) !important;
+  fill: var(--medium-grey) !important;
+}
+.button-el--visual.enabled {
+  cursor: pointer;
+  border: 1px solid var(--dark-active-color);
+  color: var(--blue) !important;
+  fill: var(--blue) !important;
+}
 .button-el:hover {
   color: var(--active-color) !important;
   fill: var(--active-color) !important;
 }
-.button-el:hover:active {
+.button-el--visual.enabled:hover {
+  background-color: var(--dark-active-color);
+  color: white !important;
+  fill: white !important;
+}
+.button-el:hover:active,
+.button-el--visual.enabled:hover:active {
   font-weight: 600 !important;
 }
-.button-el:hover:active svg {
+.button-el:hover:active svg,
+.button-el--visual.enabled:hover:active svg {
   transform: scale(1.1);
 }
 .active {
@@ -143,7 +168,8 @@ svg {
   overflow: visible;
 }
 
-.svg-de-emphasize {
+.de-emphasize {
+  color: var(--medium-grey);
   fill: var(--medium-grey);
 }
 

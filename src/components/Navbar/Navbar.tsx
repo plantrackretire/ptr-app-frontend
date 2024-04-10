@@ -3,13 +3,19 @@ import { Navlist } from '../Navlist';
 import { PiggyBankIcon } from '../../assets/PiggyBankIcon';
 import { PieChartIcon } from '../../assets/PieChartIcon';
 import { PerformanceChartIcon } from '../../assets/PerformanceChartIcon';
-import { Filterbar } from '../Filterbar';
+import { FilterBar, IFilterBarValues } from '../FilterBar';
 
-export const Navbar: React.FC = () => {
+
+interface INavbar {
+  filterBarValues: IFilterBarValues,
+  setFilterBarValues: (filterBarValues: IFilterBarValues) => void,
+}
+
+export const Navbar: React.FC<INavbar> = ({ filterBarValues, setFilterBarValues }) => {
   return (
     <div className='navbar'>
       <Navlist navItems={navItems} iconWidth="1em" />
-      <Filterbar />
+      <FilterBar appliedFilterBarValues={filterBarValues} setAppliedFilterBarValues={setFilterBarValues} />
     </div>
   );
 };  
