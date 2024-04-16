@@ -13,6 +13,7 @@ import { fetchData } from '../../utils/general';
 import { createDateFromDayValue, createDateStringFromDate, getBeginningOfYear, getPriorMonthEnd } from '../../utils/dates';
 
 
+// Account Type Category does not appear here because they appear together with Account Types in account type filter (distinguished by level: 0 and 1).
 export enum FilterableFilterBarCategories {
   accountTypes = "accountTypes",
   accounts = "accounts",
@@ -21,10 +22,10 @@ export enum FilterableFilterBarCategories {
   tags = "tags",
 };
 export interface IFilterableFilterBarValues {
-  accountTypes: { value: number, label: string, filter?: (number | string) }[],
-  accounts: { value: number, label: string, filter?: (number | string) }[],
-  assetClasses: { value: number, label: string, filter?: (number | string) }[],
-  assets: { value: number, label: string, filter?: (number | string) }[],
+  accountTypes: { value: number, label: string, filter?: (number | string), level?: number }[],
+  accounts: { value: number, label: string, filter?: (number | string), level?: number }[],
+  assetClasses: { value: number, label: string, filter?: (number | string), level?: number }[],
+  assets: { value: number, label: string, filter?: (number | string), level?: number }[],
   tags: string[],
 };
 export interface IFilterBarValues extends IFilterableFilterBarValues {
@@ -59,7 +60,8 @@ interface IFilterBarOptions {
   assetOptions: IFilterBarOption[],
 }
 // Format expected by REST API
-export interface IFormattedFilterBarValues {
+export interface IServerFilterValues {
+  accountTypeCategories: number[], 
   accountTypes: number[], 
   accounts: number[], 
   assetClasses: number[], 
@@ -499,22 +501,22 @@ function sortHierarchyArray(array: IFilterBarOption[]): IFilterBarOption[] {
   return sortedArray;
 }
 
-export const createFormattedFilterBarValues = (filterBarValues: IFilterBarValues) => {
-  const formattedFilterBarValues: { accountTypes: number[], accounts: number[], assetClasses: number[], assets: number[], tags: number[] } = 
-      { accountTypes: [], accounts: [], assetClasses: [], assets: [], tags: [] };
+export const formatFilterBarValuesForServer = (filterBarValues: IFilterBarValues): IServerFilterValues => {
+  const formattedFilterBarValues: IServerFilterValues = 
+      { accountTypeCategories: [], accountTypes: [], accounts: [], assetClasses: [], assets: [], tags: [] };
 
-  if(filterBarValues.accountTypes.length > 0) {
-      formattedFilterBarValues.accountTypes = filterBarValues.accountTypes.map(el => el.value);
-      console.log("ACCOUNT TYPES");
-      console.log(formattedFilterBarValues);
-  }
   if(filterBarValues.accounts.length > 0) {
     formattedFilterBarValues.accounts = filterBarValues.accounts.map(el => el.value);
+  }
+  // Account type filter holds both account type category and account type values, distinguished by level.
+  if((filterBarValues.accountTypes.length > 0) && (filterBarValues.accounts.length <= 0)) {
+    formattedFilterBarValues.accountTypes = filterBarValues.accountTypes.flatMap(el => el.level === 1 ? el.value : []);
+    formattedFilterBarValues.accountTypeCategories = filterBarValues.accountTypes.flatMap(el => el.level === 0 ? el.value : []);
   }
   if(filterBarValues.assets.length > 0) {
     formattedFilterBarValues.assets = filterBarValues.assets.map(el => el.value);
   }
-  if(filterBarValues.assetClasses.length > 0) {
+  if((filterBarValues.assetClasses.length) > 0 && (filterBarValues.assets.length <= 0)) {
     formattedFilterBarValues.assetClasses = filterBarValues.assetClasses.flatMap(el => (el.filter as string)!.split(',').map(Number));
     console.log(formattedFilterBarValues.assetClasses);
   }

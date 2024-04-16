@@ -7,7 +7,14 @@
         z-index: 999; /* make sure dropdown appears on top of other elements */
     }
 }
- 
+
+/* *** Set --react-dropdown-select-handle-width to width of droplist element in parent, used to manage width when text overflows */
+.react-dropdown-select-content span {
+    max-width: calc(var(--react-dropdown-select-handle-width) - 17px); /* used to controls size of dropdown when text overflows */
+    overflow: hidden;
+    text-overflow:ellipsis !important;
+}
+
 /* For reference: */
 /* Set style for the current input item in the droplist, use !important to override library */
 /* .react-dropdown-select-item.react-dropdown-select-item-selected,

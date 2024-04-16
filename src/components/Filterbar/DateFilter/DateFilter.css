@@ -3,7 +3,8 @@
   display: flex;
   flex-direction: column;
   gap: .5em;
-  width: 11em;
+  --react-dropdown-select-handle-width: 11em; 
+  width: var(--react-dropdown-select-handle-width);
   font-size: .9em;
   white-space: nowrap;
 }

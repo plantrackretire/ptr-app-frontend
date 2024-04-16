@@ -15,7 +15,8 @@
   display: flex;
   flex-direction: column;
   gap: .4em;
-  width: 13em;
+  --react-dropdown-select-handle-width: 13em; 
+  width: var(--react-dropdown-select-handle-width);
   white-space: nowrap;
 }
 

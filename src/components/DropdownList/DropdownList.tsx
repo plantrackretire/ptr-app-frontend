@@ -12,7 +12,13 @@ interface IDropdownList {
 }
 
 export const DropdownList: React.FC<IDropdownList> = ({ dropdownOptions, dropdownValue, handleDropdownValueChange }) => {
+  let tooltipText = '';
+  if(dropdownValue) {
+    dropdownValue.forEach((val, index) => index > 0 ? tooltipText += ", " + val.label : tooltipText += "Selected: " + val.label);
+  }
+
   return (
+    <div title={tooltipText}>
     <Select 
       className="dropdown-list"
       dropdownPosition="auto"
@@ -20,5 +26,6 @@ export const DropdownList: React.FC<IDropdownList> = ({ dropdownOptions, dropdow
       values={dropdownValue} 
       onChange={(values) => handleDropdownValueChange(values)} 
     />
+    </div>
   );
 };

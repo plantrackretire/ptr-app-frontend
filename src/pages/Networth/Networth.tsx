@@ -7,7 +7,7 @@ import { PtrAppApiStack } from '../../../../ptr-app-backend/cdk-outputs.json';
 import { AuthenticatorContext } from '../../providers/AppAuthenticatorProvider';
 import { createDateFromDayValue, createDateStringFromDate, createLocalDateFromDateTimeString, getBeginningOfYear, getPriorMonthEnd } from '../../utils/dates';
 import { fetchData } from '../../utils/general';
-import { IFilterBarValues, createFormattedFilterBarValues } from '../../components/FilterBar';
+import { IFilterBarValues, formatFilterBarValuesForServer } from '../../components/FilterBar';
 
 
 interface INetworth {
@@ -26,19 +26,15 @@ export const Networth: React.FC<INetworth> = ({ filterBarValues }) => {
         // This avoids race conditions by ignoring results from stale calls
         let ignoreResults = false;
 
-        const formattedFilterBarValues = createFormattedFilterBarValues(filterBarValues);
+        const formattedFilterBarValues = formatFilterBarValuesForServer(filterBarValues);
         const formattedEndDate = getPriorMonthEnd(createDateFromDayValue(filterBarValues.asOfDate));
-        console.log(formattedFilterBarValues);
-        console.log(ignoreResults);
+        const beginningOfYear = getBeginningOfYear(formattedEndDate);
 
         const getDbHoldings = async() => {
             const url = PtrAppApiStack.PtrAppApiEndpoint + "GetHoldings";
-            const body = { userId: 7493728439, queryType: "asOf", startDate: "2024-01-01", endDate: createDateStringFromDate(formattedEndDate), 
-                filters: formattedFilterBarValues };
+            const body = { userId: 7493728439, queryType: "asOf", startDate: createDateStringFromDate(beginningOfYear), 
+                endDate: createDateStringFromDate(formattedEndDate), filters: formattedFilterBarValues };
             const postResultJSON = await fetchData(url, body, appUserAttributes!.jwtToken);
-
-            console.log("asOf Results");
-            console.log(postResultJSON);
 
             createDates(postResultJSON.holdings);
             const accountMapping = createAccountMapping(postResultJSON.accounts);
@@ -57,21 +53,14 @@ export const Networth: React.FC<INetworth> = ({ filterBarValues }) => {
         // This avoids race conditions by ignoring results from stale calls
         let ignoreResults = false;
 
-        const formattedFilterBarValues = createFormattedFilterBarValues(filterBarValues);
-        console.log("Create date:");
-        console.log(createDateFromDayValue(filterBarValues.asOfDate));
+        const formattedFilterBarValues = formatFilterBarValuesForServer(filterBarValues);
         const formattedEndDate = getPriorMonthEnd(createDateFromDayValue(filterBarValues.asOfDate));
-        console.log(formattedEndDate);
-        console.log("HERE");
         
         const getDbHistoricalHoldings = async() => {
             const url = PtrAppApiStack.PtrAppApiEndpoint + "GetHoldings";
-            const body = { userId: 7493728439, queryType: "historical", startDate: "2011-12-31", endDate: createDateStringFromDate(formattedEndDate),
+            const body = { userId: 7493728439, queryType: "historical", endDate: createDateStringFromDate(formattedEndDate),
                 filters: formattedFilterBarValues };
             const postResultJSON = await fetchData(url, body, appUserAttributes!.jwtToken);
-
-            console.log("historical Results");
-            console.log(postResultJSON);
 
             if(!ignoreResults) {
                 setDbHistoricalHoldings(postResultJSON);

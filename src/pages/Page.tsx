@@ -8,8 +8,6 @@ import { IFilterBarValues, filterBarValuesInit } from '../components/FilterBar';
 export const Page: React.FC = () => {
     const [filterBarValues, setFilterBarValues] = useState<IFilterBarValues>(filterBarValuesInit);
 
-    console.log("IN PAGE");
-    
     return (
         <div className='page'>
             <div className='page--header'>
