@@ -6,13 +6,14 @@ import { SortSelector } from '../SortSelector';
 import { AggregateValues } from '../../utils/calcs';
 import { HoldingGroupList } from './HoldingGroupList';
 import { compareDates } from '../../utils/dates';
+import { HoldingViewPlaceholder } from './HoldingViewPlaceholder';
 
 
 interface IHoldingView {
   startDate: Date,
   asOfDate: Date,
   scope: string,
-  holdings: IHolding[],
+  holdings: IHolding[] | null,
 }
 
 // Used to aggregate calculations to determine the aggregate gain/loss for a grouping
@@ -45,6 +46,10 @@ export interface IHolding {
 export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, scope, holdings }) => {
   const [sortOrder, setSortOrder] = useState<DropdownListOptionsType>([holdingsSortOrderOptions[0]]);
   const [sortDirection, setSortDirection] = useState<string>("asc");
+
+  if(holdings === null) {
+    return <HoldingViewPlaceholder />
+  }
 
   const handleHoldingActionButtonClick = () => {
     alert("Show transactions for holding.");
@@ -85,9 +90,6 @@ export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, scope
 const createHoldingGroups = (startDate: Date, asOfDate: Date, holdings: IHolding[]): { [index: string]: IHoldingGroup } => {
   let gh: { [index: string]: IHoldingGroup } = {};
   const groupedHoldings = holdings.reduce((gh, item) => {
-    if(item.securityName === "Brookside LXV") {
-      console.log(item);
-    }
     if(!gh[item.securityId]) {
       gh[item.securityId] = {
         ...item,

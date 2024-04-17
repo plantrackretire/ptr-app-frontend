@@ -8,6 +8,7 @@
   --green: #0DB800;
   --red: #B80000;
   --light-grey: #F2F2F2;
+  --light-grey2: #F9F9F9;
   --medium-grey: #949494;
   --dark-grey: #4B4B4B;
   --outer-padding: .75em;
@@ -36,6 +37,10 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 html {
@@ -109,43 +114,46 @@ a:hover {
 }
 .button-el {
   padding: 0;
+}
+.button-el:not(.button-el--disabled) {
   cursor: pointer;
 }
 .button-el--visual {
   padding: .5em 1.5em .5em 1.5em;
   background-color: var(--light-grey);
+  border: 1px solid transparent;
 }
-.button-el--visual:not(.enabled) {
-  color: var(--medium-grey) !important;
-  fill: var(--medium-grey) !important;
-}
-.button-el--visual.enabled {
+.button-el--visual:not(.button-el--disabled) {
   cursor: pointer;
   border: 1px solid var(--dark-active-color);
   color: var(--blue) !important;
   fill: var(--blue) !important;
 }
-.button-el:hover {
+.button-el:hover:not(.button-el--disabled) {
   color: var(--active-color) !important;
   fill: var(--active-color) !important;
 }
-.button-el--visual.enabled:hover {
+.button-el--visual.enabled:hover:not(.button-el--disabled) {
   background-color: var(--dark-active-color);
   color: white !important;
   fill: white !important;
 }
-.button-el:hover:active,
-.button-el--visual.enabled:hover:active {
+.button-el:hover:active:not(.button-el--disabled),
+.button-el--visual.enabled:hover:active:not(.button-el--disabled) {
   font-weight: 600 !important;
 }
-.button-el:hover:active svg,
-.button-el--visual.enabled:hover:active svg {
+.button-el:hover:active:not(.button-el--disabled) svg,
+.button-el--visual.enabled:hover:active:not(.button-el--disabled) svg {
   transform: scale(1.1);
 }
 .active {
   color: var(--active-color) !important;
   font-weight: 800 !important;
   fill: var(--active-color) !important;
+}
+.button-el--disabled {
+  color: var(--medium-grey);
+  fill: var(--medium-grey);
 }
 
 ul {
@@ -262,6 +270,32 @@ tr.basic-table--sub-row:has(+ :not(.basic-table--sub-row)) td {
   overflow: hidden;
 }
 
+/* Used to display placeholders while data is loading */
+.placeholder {
+  width: 100%;
+  background-color: var(--light-grey);
+  animation: placeholder-glow linear 2s infinite;
+}
+.placeholder-heading1 {
+  min-height: 3em;
+}
+.placeholder-heading2 {
+  min-height: 2em;
+}
+.placeholder--indented {
+  width: 97%;
+  margin-left: 3%;
+}
+@-webkit-keyframes placeholder-glow { 
+  0% { background-color:var(--light-grey); }
+  50% { background-color:var(--light-grey2); }
+  100% { background-color:var(--light-grey); } 
+} 
+@keyframes placeholder-glow { 
+  0% { background-color:var(--light-grey); }
+  50% { background-color:var(--light-grey2); }
+  100% { background-color:var(--light-grey); } 
+}
 
 @media (prefers-color-scheme: light) {
   :root {

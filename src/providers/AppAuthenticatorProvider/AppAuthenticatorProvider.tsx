@@ -73,7 +73,9 @@ const AppAuthenticator = ({children}: AuthenticatorProps) => {
           { children }
         </div>
       :
-        <h1>Logging In...</h1>
+        <div className="app-authentication-provider--placeholder">
+          <h1>Logging In...</h1>
+        </div>
       }
     </AuthenticatorContext.Provider>
   );

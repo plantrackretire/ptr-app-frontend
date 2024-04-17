@@ -21,10 +21,12 @@
 }
 
 .filterbar--apply {
-  width: 100%;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .25em;
 }
-
-.filterbar .de-emphasize {
-  font-size: .85em;
+.filterbar--apply .button-el--visual {
+  width: 50%;
 }

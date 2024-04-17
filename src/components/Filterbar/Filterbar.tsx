@@ -164,6 +164,11 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
   const hanldeApplyClicked = () => {
     setAppliedFilterBarValues(filterBarValues);
   }
+  const hanldeResetClicked = () => {
+    if(!isEqual(appliedFilterBarValues, filterBarValues)) {
+      setFilterBarValues(appliedFilterBarValues);
+    }
+  }
 
   let isApplyEnabled = false;
   if(!isEqual(appliedFilterBarValues, filterBarValues)) {
@@ -259,8 +264,12 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
           />
         </div> */}
         <div className="filterbar--apply">
-          <button className={"button-el--visual" + (isApplyEnabled ? " enabled" : "")} onClick={isApplyEnabled ? () => hanldeApplyClicked() : undefined}>
+          <button className={"button-el--visual" + (isApplyEnabled ? "" : " button-el--disabled")} onClick={isApplyEnabled ? () => hanldeApplyClicked() : undefined}>
             Apply
+          </button>
+          <button className={"button-el" + (isApplyEnabled ? "" : " button-el--disabled")} 
+            onClick={isApplyEnabled ? () => hanldeResetClicked() : undefined}>
+            <small>Reset</small>
           </button>
         </div>
       </div>
@@ -518,7 +527,6 @@ export const formatFilterBarValuesForServer = (filterBarValues: IFilterBarValues
   }
   if((filterBarValues.assetClasses.length) > 0 && (filterBarValues.assets.length <= 0)) {
     formattedFilterBarValues.assetClasses = filterBarValues.assetClasses.flatMap(el => (el.filter as string)!.split(',').map(Number));
-    console.log(formattedFilterBarValues.assetClasses);
   }
 
   return formattedFilterBarValues;

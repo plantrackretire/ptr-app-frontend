@@ -6,13 +6,14 @@ import { IHolding } from '../HoldingView';
 import { AggregateValues } from '../../utils/calcs';
 import { SortSelector } from '../SortSelector';
 import { DropdownListOptionsType } from '../DropdownList';
+import { AccountViewPlaceholder } from './AccountViewPlaceholder';
 
 
 interface IAccountView {
   startDate: Date,
   asOfDate: Date,
-  accounts: { [index: number]: IAccount },
-  holdings: IHolding[],
+  accounts: { [index: number]: IAccount } | null,
+  holdings: IHolding[] | null,
   filterType: string,
   filterValue: string,
   setFilterType: (type: string) => void,
@@ -43,6 +44,10 @@ export const AccountView: React.FC<IAccountView> = ({ startDate, asOfDate, accou
   filterType, filterValue, setFilterType, setFilterValue }) => {
   const [sortOrder, setSortOrder] = useState<DropdownListOptionsType>([accountSortOrderOptions[0]]);
   const [sortDirection, setSortDirection] = useState<string>("asc");
+
+  if(holdings === null || accounts === null) {
+    return <AccountViewPlaceholder />
+  }
 
   const accountTypeCategoryGroups = createAccountTypeCategoryGroups(startDate, asOfDate, holdings, accounts);
 

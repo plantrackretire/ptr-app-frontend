@@ -1,4 +1,12 @@
 
+.app-authentication-provider--placeholder {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    margin-top: 5em;
+}
+
 .amplify-tabs__item {
     color: var(--default-color) !important;
 } 

@@ -1,88 +1,36 @@
 import './Networth.css';
-import { useContext, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { AccountView, IAccount } from '../../components/AccountView';
 import { HoldingView, IHolding } from '../../components/HoldingView';
 import { NetworthChart } from '../../components/NetworthChart';
-import { PtrAppApiStack } from '../../../../ptr-app-backend/cdk-outputs.json';
-import { AuthenticatorContext } from '../../providers/AppAuthenticatorProvider';
-import { createDateFromDayValue, createDateStringFromDate, createLocalDateFromDateTimeString, getBeginningOfYear, getPriorMonthEnd } from '../../utils/dates';
-import { fetchData } from '../../utils/general';
-import { IFilterBarValues, formatFilterBarValuesForServer } from '../../components/FilterBar';
+import { createDateFromDayValue, getBeginningOfYear } from '../../utils/dates';
+import { IFilterBarValues } from '../../components/FilterBar';
 
 
 interface INetworth {
     filterBarValues: IFilterBarValues,
+    dbHoldings: IHolding[] | null,
+    dbAccounts: {[index: number]: IAccount} | null,
+    dbHistoricalHoldings: { [index: string]: [] } | null,
 }
 
-export const Networth: React.FC<INetworth> = ({ filterBarValues }) => {
+export const Networth: React.FC<INetworth> = ({ filterBarValues, dbHoldings, dbAccounts, dbHistoricalHoldings }) => {
     const [holdingsFilterType, setHoldingsFilterType] = useState<string>("All");
     const [holdingsFilterValue, setHoldingsFilterValue] = useState<string>("All");
-    const [dbHoldings, setDbHoldings] = useState<[] | null>(null);
-    const [dbAccounts, setDbAccounts] = useState<{[index: number]: IAccount} | null>(null);
-    const [dbHistoricalHoldings, setDbHistoricalHoldings] = useState<{ [index: string]: [] } | null>(null);
-    const appUserAttributes = useContext(AuthenticatorContext);
 
-    useEffect(() => {
-        // This avoids race conditions by ignoring results from stale calls
-        let ignoreResults = false;
-
-        const formattedFilterBarValues = formatFilterBarValuesForServer(filterBarValues);
-        const formattedEndDate = getPriorMonthEnd(createDateFromDayValue(filterBarValues.asOfDate));
-        const beginningOfYear = getBeginningOfYear(formattedEndDate);
-
-        const getDbHoldings = async() => {
-            const url = PtrAppApiStack.PtrAppApiEndpoint + "GetHoldings";
-            const body = { userId: 7493728439, queryType: "asOf", startDate: createDateStringFromDate(beginningOfYear), 
-                endDate: createDateStringFromDate(formattedEndDate), filters: formattedFilterBarValues };
-            const postResultJSON = await fetchData(url, body, appUserAttributes!.jwtToken);
-
-            createDates(postResultJSON.holdings);
-            const accountMapping = createAccountMapping(postResultJSON.accounts);
-                    
-            if(!ignoreResults) {
-                setDbHoldings(postResultJSON.holdings);
-                setDbAccounts(accountMapping);
-            }
+    let filteredHoldings: (IHolding[] | null) = dbHoldings === null ? null : [];
+    if(dbHoldings !== null && dbAccounts !== null) {
+        if(!(holdingsFilterType === "All")) {
+            if(dbHoldings)
+                filteredHoldings = dbHoldings.filter((record) => 
+                    applyFilterToRecord(record, dbAccounts ? dbAccounts : {}, holdingsFilterType, holdingsFilterValue)
+                );
+            else
+                filteredHoldings = [];
+        } else {
+            if(dbHoldings)
+                filteredHoldings = dbHoldings;
         }
-
-        getDbHoldings();
-    
-        return () => { ignoreResults = true };
-    }, [filterBarValues])
-    useEffect(() => {
-        // This avoids race conditions by ignoring results from stale calls
-        let ignoreResults = false;
-
-        const formattedFilterBarValues = formatFilterBarValuesForServer(filterBarValues);
-        const formattedEndDate = getPriorMonthEnd(createDateFromDayValue(filterBarValues.asOfDate));
-        
-        const getDbHistoricalHoldings = async() => {
-            const url = PtrAppApiStack.PtrAppApiEndpoint + "GetHoldings";
-            const body = { userId: 7493728439, queryType: "historical", endDate: createDateStringFromDate(formattedEndDate),
-                filters: formattedFilterBarValues };
-            const postResultJSON = await fetchData(url, body, appUserAttributes!.jwtToken);
-
-            if(!ignoreResults) {
-                setDbHistoricalHoldings(postResultJSON);
-            }
-        }
-
-        getDbHistoricalHoldings();
-    
-        return () => { ignoreResults = true };
-    }, [filterBarValues])
-    
-    let filteredHoldings: IHolding[] = [];
-    if(!(holdingsFilterType === "All")) {
-        if(dbHoldings)
-            filteredHoldings = dbHoldings.filter((record) => 
-                applyFilterToRecord(record, dbAccounts ? dbAccounts : {}, holdingsFilterType, holdingsFilterValue)
-            );
-        else
-            filteredHoldings = [];
-    } else {
-        if(dbHoldings)
-            filteredHoldings = dbHoldings;
     }
 
     let holdingsFilterScope = '';
@@ -93,18 +41,19 @@ export const Networth: React.FC<INetworth> = ({ filterBarValues }) => {
 
     const asOfDate = createDateFromDayValue(filterBarValues.asOfDate);
     const startDate = getBeginningOfYear(asOfDate);
+    
     return (
         <div className='networth scrollable'>
             <div className='networth--main scrollable'>
                 <NetworthChart 
-                    labels={dbHistoricalHoldings ? dbHistoricalHoldings['labels'] : []} 
-                    balances={dbHistoricalHoldings ? dbHistoricalHoldings['values'] : []} 
+                    labels={dbHistoricalHoldings ? dbHistoricalHoldings['labels'] : null} 
+                    balances={dbHistoricalHoldings ? dbHistoricalHoldings['values'] : null} 
                 />
                 <AccountView 
                     startDate={startDate}
                     asOfDate={asOfDate}
-                    accounts={dbAccounts ? dbAccounts : {}}
-                    holdings={dbHoldings ? dbHoldings : []}
+                    accounts={dbAccounts}
+                    holdings={dbHoldings}
                     filterType={holdingsFilterType}
                     filterValue={holdingsFilterValue}
                     setFilterType={setHoldingsFilterType}
@@ -112,7 +61,12 @@ export const Networth: React.FC<INetworth> = ({ filterBarValues }) => {
                 />
             </div>
             <div className='networth--secondary scrollable'>
-                <HoldingView startDate={startDate} asOfDate={asOfDate} holdings={filteredHoldings!} scope={holdingsFilterScope} />
+                <HoldingView 
+                    startDate={startDate} 
+                    asOfDate={asOfDate} 
+                    holdings={filteredHoldings} 
+                    scope={holdingsFilterScope} 
+                />
             </div>
         </div>
     );
@@ -129,30 +83,6 @@ const applyFilterToRecord = (record: IHolding, accounts: {[index: number]: IAcco
             console.log("INVALID holdingsFilterType");
         }
 };
-
-const createDates = (holdings: IHolding[]) => {
-    holdings.forEach((holding) => {
-        holding.holdingDate = createLocalDateFromDateTimeString(holding.holdingDate as unknown as string)
-        if('lastQuantityUpdateDate' in holding)
-            holding.lastQuantityUpdateDate = createLocalDateFromDateTimeString(holding.lastQuantityUpdateDate! as unknown as string);
-        if('lastPriceUpdateDate' in holding) {
-            holding.lastPriceUpdateDate = createLocalDateFromDateTimeString(holding.lastPriceUpdateDate! as unknown as string);
-        }
-        if('startDatePositionDate' in holding)
-            holding.startDatePositionDate = createLocalDateFromDateTimeString(holding.startDatePositionDate! as unknown as string);
-    })
-};
-
-const createAccountMapping = (accountsArray: IAccount[]): {[index: number]: IAccount} => {
-    const accountMapping: {[index: number]: IAccount} = {};
-
-    accountsArray.forEach((account) => {
-        (accountMapping as {[index: number]: IAccount})[account.accountId] = account;
-    });
-
-    return accountMapping;
-};
-
 
 
 const holdings: IHolding[] = [

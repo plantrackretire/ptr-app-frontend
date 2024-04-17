@@ -7,6 +7,10 @@ import { adjustDateByYear, calcDiffInYears, createDateFromString } from '../../u
 import { AppColors, AppFonts, ConfigContext, IConfigContext } from '../../providers/ConfigProvider';
 import { formatBalance, formatChangePercentage, getTextWidth, hexToRgb } from '../../utils/general';
 import { NetworthChartTitle } from './NetworthChartTitle';
+import { NetworthChartOptions } from './NetworthChartOptions';
+import { NetworthChartPlaceholder } from './NetworthChartPlaceholder';
+
+export const defaultNetworthChartHeight = "350px";
 
 import {
   Chart as ChartJS,
@@ -23,7 +27,6 @@ import {
   Tick,
   ChartComponentLike,
 } from 'chart.js';
-import { NetworthChartOptions } from './NetworthChartOptions';
 
 
 ChartJS.register(
@@ -40,8 +43,8 @@ ChartJS.register(
 );
 
 interface INetworthChart {
-  labels: string[],
-  balances: number[],
+  labels: string[] | null,
+  balances: number[] | null,
 }
 
 const invalidValue: number = 0.000001234567890;
@@ -77,6 +80,10 @@ export const NetworthChart: React.FC<INetworthChart> = memo(({ labels, balances 
     }
   });
 
+  if(labels === null || balances === null) {
+    return <NetworthChartPlaceholder />
+  }
+
   // Filter data based on time period selected, and convert to percentages if percentage view selected
   const [filteredLabels, filteredBalances] = filterChartData(labels, balances, units, timePeriod);
   let dataLabels = filteredLabels;
@@ -90,7 +97,7 @@ export const NetworthChart: React.FC<INetworthChart> = memo(({ labels, balances 
   const options = createOptionsRecord(config!, units, yearValueType);
   const titlePercentageChange = calcPercentageChange(filteredLabels, filteredBalances); // Not using dataValues because they may be percentages
 
-  let chartHeight = "350px";
+  let chartHeight = defaultNetworthChartHeight;
   if(units === "Years") {
     const numYears = calcDiffInYears(new Date(labels[0]), new Date(labels[labels.length-1]));
     if(numYears > 8) {

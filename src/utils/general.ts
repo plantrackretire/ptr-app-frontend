@@ -10,6 +10,10 @@ export const fetchData = async (url: string, body: any, token: string) => {
   return postResultJSON;      
 }
 
+export function timeout(delay: number) {
+  return new Promise( res => setTimeout(res, delay) );
+}
+
 export const compareObjects = (obj1: any, obj2: any): boolean => {
   return JSON.stringify(obj1) === JSON.stringify(obj2);
 }
