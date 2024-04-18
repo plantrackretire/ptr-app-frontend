@@ -48,6 +48,9 @@ export const AccountView: React.FC<IAccountView> = ({ startDate, asOfDate, accou
   if(holdings === null || accounts === null) {
     return <AccountViewPlaceholder />
   }
+  if(holdings.length === 0) {
+    return ""
+  }
 
   const accountTypeCategoryGroups = createAccountTypeCategoryGroups(startDate, asOfDate, holdings, accounts);
 

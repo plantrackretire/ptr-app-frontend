@@ -2,7 +2,7 @@ import './FilterBar.css';
 import { SectionHeading, SectionHeadingSizeType } from '../SectionHeading';
 import { DateFilter } from './DateFilter';
 import { DropdownList } from '../DropdownList';
-import { DayValue, utils } from '@hassanmojab/react-modern-calendar-datepicker';
+import { DayValue, Day, utils } from '@hassanmojab/react-modern-calendar-datepicker';
 // import { CheckboxGroup } from '../CheckboxGroup/CheckboxGroup';
 // import { HandleCheckBoxValueChangeType } from '../CheckboxGroup/Checkbox/Checkbox';
 import { useContext, useEffect, useState } from 'react';
@@ -10,7 +10,7 @@ import isEqual from 'lodash/isEqual';
 import { PtrAppApiStack } from '../../../../ptr-app-backend/cdk-outputs.json';
 import { AuthenticatorContext } from '../../providers/AppAuthenticatorProvider';
 import { fetchData } from '../../utils/general';
-import { createDateFromDayValue, createDateStringFromDate, getBeginningOfYear, getPriorMonthEnd } from '../../utils/dates';
+import { createDateFromDayValue, createDateStringFromDate, createDayFromDate, createLocalDateFromDateTimeString, getBeginningOfYear, getPriorMonthEnd } from '../../utils/dates';
 
 
 // Account Type Category does not appear here because they appear together with Account Types in account type filter (distinguished by level: 0 and 1).
@@ -31,6 +31,11 @@ export interface IFilterableFilterBarValues {
 export interface IFilterBarValues extends IFilterableFilterBarValues {
   asOfDate: DayValue,
 };
+
+export interface IActivityRange {
+  startDate: Day,
+  endDate: Day,
+}
 
 interface IAssociations {
   accountTypes: { [index: number]: number },
@@ -69,6 +74,10 @@ export interface IServerFilterValues {
   tags: number[],
 }
 
+export const activityRangeInit = {
+  startDate: utils('en').getToday(),
+  endDate: utils('en').getToday(),
+}
 export const filterBarValuesInit = {
   asOfDate: utils('en').getToday(),
   accountTypes: [],
@@ -89,10 +98,36 @@ export const filterBarOptionsInit = {
 // When apply button is pressed filterBarValues are fed upstream to apply to data retreival and will come back in appliedFilterBarValues.
 // filterBarOptions - choices for each filter, loaded from db based on asOfDate, further filtered based on values of other filters.
 export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setAppliedFilterBarValues }) => {
+  const [activityRange, setActivityRange] = useState<IActivityRange>(activityRangeInit);
   const [filterBarValues, setFilterBarValues] = useState<IFilterBarValues>(filterBarValuesInit);
   const [filterBarOptions, setFilterBarOptions] = useState<IFilterBarOptions>(filterBarOptionsInit);
   const appUserAttributes = useContext(AuthenticatorContext);
 
+  useEffect(() => {
+    // This avoids race conditions by ignoring results from stale calls
+    let ignoreResults = false;
+
+    const getDbActivityRange = async() => {
+      const url = PtrAppApiStack.PtrAppApiEndpoint + "GetRefData";
+      const body = { userId: 7493728439, queryType: "activityRange" };
+      const postResultJSON = await fetchData(url, body, appUserAttributes!.jwtToken);
+
+      if(!ignoreResults) {
+        if(!postResultJSON) {
+          setActivityRange(activityRangeInit);
+        } else {
+          setActivityRange({
+            startDate: createDayFromDate(createLocalDateFromDateTimeString(postResultJSON.startDate as unknown as string)),
+            endDate: createDayFromDate(createLocalDateFromDateTimeString(postResultJSON.endDate as unknown as string)),
+          });
+        }
+      }
+    }
+
+    getDbActivityRange();
+
+    return () => { ignoreResults = true };
+  }, []);
   useEffect(() => {
     // This avoids race conditions by ignoring results from stale calls
     let ignoreResults = false;
@@ -125,7 +160,7 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
     getDbFilterBarOptions();
 
     return () => { ignoreResults = true };
-  }, [filterBarValues.asOfDate])
+  }, [filterBarValues.asOfDate]);
 
   const handleFiltersClearButtonClick = () => { setFilterBarValues(filterBarValuesInit); };
   const handleAsOfDateClearButtonClick = () => setFilterBarValues({ ...filterBarValues, asOfDate: utils('en').getToday() });
@@ -196,6 +231,8 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
             selectedDay={filterBarValues.asOfDate}
             setSelectedDay={handleAsOfDateChange}
             inputLabel='As of:'
+            minimumDate={activityRange.startDate}
+            maximumDate={activityRange.endDate}
           />
         </div>
         <div className='filterbar--filter'>

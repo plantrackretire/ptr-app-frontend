@@ -83,6 +83,9 @@ export const NetworthChart: React.FC<INetworthChart> = memo(({ labels, balances 
   if(labels === null || balances === null) {
     return <NetworthChartPlaceholder />
   }
+  if(balances.length === 1 && balances[0] === 0) {
+    return <div className="networth-chart--no-data"><h1>No data found, please adjust your filters.</h1></div>
+  }
 
   // Filter data based on time period selected, and convert to percentages if percentage view selected
   const [filteredLabels, filteredBalances] = filterChartData(labels, balances, units, timePeriod);

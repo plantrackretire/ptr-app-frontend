@@ -1,10 +1,10 @@
 export const fetchData = async (url: string, body: any, token: string) => {
   const postResult = await fetch(url, {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: {
-          'Authorization': token,
-      }
+    method: 'POST',
+    body: JSON.stringify(body),
+    headers: {
+        'Authorization': token,
+    }
   });
   const postResultJSON = await postResult.json();  
   return postResultJSON;      

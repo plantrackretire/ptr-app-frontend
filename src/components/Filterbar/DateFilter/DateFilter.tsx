@@ -1,7 +1,7 @@
 import './DateFilter.css';
 import { DateSelector } from '../../DateSelector';
 import { DropdownList, DropdownListOptionsType } from '../../DropdownList';
-import { DayValue } from '@hassanmojab/react-modern-calendar-datepicker';
+import { DayValue, Day } from '@hassanmojab/react-modern-calendar-datepicker';
 import { calcDate, compareDayValues, getPrecannedDateValue, precannedDates } from '../../../utils/dates';
 
 
@@ -9,9 +9,11 @@ interface IDateFilter {
   selectedDay: DayValue,
   setSelectedDay: ((value: DayValue) => void),
   inputLabel: string,
+  minimumDate?: Day,
+  maximumDate?: Day,
 }
 
-export const DateFilter: React.FC<IDateFilter> = ({ selectedDay, setSelectedDay, inputLabel }) => {
+export const DateFilter: React.FC<IDateFilter> = ({ selectedDay, setSelectedDay, inputLabel, minimumDate, maximumDate }) => {
   // When precanned date is selected the date is set accordingly
   const handleDrPrecannedDateValueChange = (newValue: DropdownListOptionsType) => {
     if(newValue.length > 0) {
@@ -34,7 +36,12 @@ export const DateFilter: React.FC<IDateFilter> = ({ selectedDay, setSelectedDay,
       />
       <div className='datefilter--date'>
         <span>{inputLabel}</span>
-        <DateSelector selectedDay={selectedDay} handleSelectedDayChange={setSelectedDay} />
+        <DateSelector 
+          selectedDay={selectedDay} 
+          handleSelectedDayChange={setSelectedDay} 
+          minimumDate={minimumDate}
+          maximumDate={maximumDate}
+        />
       </div>
     </div>
   );

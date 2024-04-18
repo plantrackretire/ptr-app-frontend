@@ -50,6 +50,9 @@ export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, scope
   if(holdings === null) {
     return <HoldingViewPlaceholder />
   }
+  if(holdings.length === 0) {
+    return ""
+  }
 
   const handleHoldingActionButtonClick = () => {
     alert("Show transactions for holding.");

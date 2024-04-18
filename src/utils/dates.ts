@@ -1,4 +1,4 @@
-import { DayValue, utils } from "@hassanmojab/react-modern-calendar-datepicker";
+import { DayValue, Day, utils } from "@hassanmojab/react-modern-calendar-datepicker";
 import { DropdownListOptionsType } from "../components/DropdownList";
 
 const monthAbbreviations = [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ];
@@ -71,6 +71,15 @@ export const createDateFromDayValue = (dt: DayValue): Date => {
 
     return new Date(dt.year, dt.month-1, dt.day);
 };
+
+export const createDayFromDate = (dt: Date): Day => {
+    if(!dt) {
+        const today = new Date();
+        return { year: today.getFullYear(), month: today.getMonth()+1, day: today.getDate() };
+    }
+
+    return { year: dt.getFullYear(), month: dt.getMonth()+1, day: dt.getDate() };
+}
 
 export const createDateStringFromDayValue = (dt: DayValue): string => {
     if(!dt) return "";
