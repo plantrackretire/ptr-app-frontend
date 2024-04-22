@@ -2,10 +2,12 @@ import './AppAuthenticatorProvider.css';
 import { ReactElement, createContext, useEffect, useState } from 'react';
 import { Amplify } from 'aws-amplify';
 import { Authenticator, Flex, Text, useAuthenticator } from '@aws-amplify/ui-react';
-import { fetchUserAttributes, fetchAuthSession } from '@aws-amplify/auth';
+import { fetchUserAttributes } from '@aws-amplify/auth';
 import '@aws-amplify/ui-react/styles.css';
 import config from '../../../../ptr-app-backend/cdk-outputs.json'
-import { MouseEventHandler } from 'react';
+import { fetchData, getUserToken } from '../../utils/general';
+import { useModalContext } from '../Modal';
+import { PtrAppApiStack } from '../../../../ptr-app-backend/cdk-outputs.json';
 
 Amplify.configure({
   Auth: {
@@ -17,13 +19,13 @@ Amplify.configure({
 });
 
 interface IAuthenticatorContext {
-  userid: string,
-  username: string,
+  authUserId: string,
+  authUsername: string,
+  userId: string | null,
   email: string,
-  family_name: string,
-  given_name: string,
-  jwtToken: string,
-  signOutFunction: MouseEventHandler | undefined
+  familyName: string,
+  givenName: string,
+  signOutFunction: () => void | undefined
 }
 
 export const AuthenticatorContext = createContext<IAuthenticatorContext | null>(null);
@@ -35,26 +37,30 @@ interface AuthenticatorProps {
 const AppAuthenticator = ({children}: AuthenticatorProps) => {
   const { user, signOut } = useAuthenticator((context) => [context.user]); // Passed in function limits changes that cause re-render
   const [appUserAttributes, setAppUserAttributes] = 
-    useState({userid: '', username: '', email: '', family_name: '', given_name: '', jwtToken: '', signOutFunction: signOut })
-  
+    useState<IAuthenticatorContext>({authUserId: '', authUsername: '', userId: null, email: '', familyName: '', givenName: '', signOutFunction: signOut })
+  const modalContext = useModalContext();
+
   useEffect(() => {
     // This avoids race conditions by ignoring results from stale calls
     let ignoreResults = false;
 
-    if(appUserAttributes.username !== user.username) {
+    if(appUserAttributes.authUsername !== user.username) {
       const getUserAttributes = async() => {
-        const attributes = await fetchUserAttributes();
+        const authAttributes = await fetchUserAttributes();
 
-        const jwtToken = (await fetchAuthSession()).tokens?.idToken?.toString() as string;
-      
+        // Use auth user id to load app user id.
+        const url = PtrAppApiStack.PtrAppApiEndpoint + "GetRefData";
+        const token = await getUserToken(appUserAttributes!.signOutFunction!, modalContext);
+        const appAttributes = await fetchData(url, { userId: user.userId, queryType: "getAuthUser" }, token)
+
         if(!ignoreResults) {
           setAppUserAttributes({
-            userid: user.userId,
-            username: user.username,
-            email: attributes.email || '',
-            family_name: attributes.family_name || '',
-            given_name: attributes.given_name || '',
-            jwtToken: jwtToken,
+            authUserId: user.userId,
+            authUsername: user.username,
+            userId: appAttributes.userId,
+            email: authAttributes.email || '',
+            familyName: authAttributes.family_name || '',
+            givenName: authAttributes.given_name || '',
             signOutFunction: signOut
           })
         }
@@ -64,11 +70,11 @@ const AppAuthenticator = ({children}: AuthenticatorProps) => {
     }
 
     return () => { ignoreResults = true };
-  }, [user.username])
+  }, [user.username]);
   
   return (
     <AuthenticatorContext.Provider value={appUserAttributes}>
-      { appUserAttributes.userid ?
+      { appUserAttributes.userId ?
         <div>
           { children }
         </div>
@@ -88,7 +94,7 @@ export const AppAuthenticatorProvider = ({children}: AuthenticatorProps) => {
   };  
 
   return (
-    <Authenticator components={components} formFields={formFields} hideSignUp={false}>
+    <Authenticator components={components} formFields={formFields} hideSignUp={true}>
       <AppAuthenticator>
         { children }
       </AppAuthenticator>

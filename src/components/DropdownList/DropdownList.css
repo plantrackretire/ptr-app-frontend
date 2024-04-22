@@ -8,14 +8,38 @@
     }
 }
 
-/* *** Set --react-dropdown-select-handle-width to width of droplist element in parent, used to manage width when text overflows */
+/* *** Set --react-dropdown-select-handle-width to width or min-width of droplist element in parent, used to manage width when text overflows */
 .react-dropdown-select-content span {
     max-width: calc(var(--react-dropdown-select-handle-width) - 17px); /* used to controls size of dropdown when text overflows */
     overflow: hidden;
     text-overflow:ellipsis !important;
 }
 
+.dropdown-list--item {
+    padding: .5em;
+    color: #555;
+    cursor: pointer;
+    position: relative;
+}
+.dropdown-list--item:hover:not(.dropdown-list--selected) {
+    background: var(--light-grey);
+}
+.dropdown-list--selected {
+    background-color: var(--blue);
+    color: white;
+}
+
 /* For reference: */
+
+/* To add an arrow icon to the left of each item */
+/* .dropdown-list--item:not(.dropdown-list--root)::before {
+    position: absolute;
+    top: .6em;
+    margin-left: -1.1em;
+    font-size: .9em;
+    content: "►";
+} */
+
 /* Set style for the current input item in the droplist, use !important to override library */
 /* .react-dropdown-select-item.react-dropdown-select-item-selected,
 .react-dropdown-select-item.react-dropdown-select-item-active {

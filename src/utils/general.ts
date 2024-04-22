@@ -1,14 +1,56 @@
+import { fetchAuthSession } from "@aws-amplify/auth";
+import { ModalContextType, ModalType } from "../providers/Modal";
+
+
 export const fetchData = async (url: string, body: any, token: string) => {
-  const postResult = await fetch(url, {
-    method: 'POST',
-    body: JSON.stringify(body),
-    headers: {
-        'Authorization': token,
-    }
-  });
-  const postResultJSON = await postResult.json();  
-  return postResultJSON;      
+  let postResult = null;
+  try {
+    postResult = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: {
+          'Authorization': token,
+      }
+    });
+
+    const postResultJSON = await postResult.json();
+    return postResultJSON;      
+  } catch(err) {
+    // TODO: Throw exception?
+    console.log("Failed fetching data for " + url);
+    console.log(body);
+    console.log(err);
+  }
+
+  return null;
 }
+
+export const getUserToken = async (signOut: (() => void), modalContext: ModalContextType, test?: number) => {
+  let jwtToken = '';
+  try {
+    jwtToken = (await fetchAuthSession()).tokens?.idToken?.toString() as string;
+    if(test) jwtToken = '';
+  } catch (err) {
+    // TODO: Throw exception?
+    console.log("Error getting token");
+    console.log(err);
+    await modalContext.showConfirmation(
+      ModalType.confirm,
+      'Error loading user session, please login again.',
+    );
+    signOut();
+  }
+
+  if(!jwtToken || jwtToken.length <= 0) {
+    await modalContext.showConfirmation(
+      ModalType.confirm,
+      'Session has expired, Please login again.',
+    );
+    signOut();
+  }
+
+  return jwtToken;
+};
 
 export function timeout(delay: number) {
   return new Promise( res => setTimeout(res, delay) );

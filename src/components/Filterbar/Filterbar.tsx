@@ -5,12 +5,13 @@ import { DropdownList } from '../DropdownList';
 import { DayValue, Day, utils } from '@hassanmojab/react-modern-calendar-datepicker';
 // import { CheckboxGroup } from '../CheckboxGroup/CheckboxGroup';
 // import { HandleCheckBoxValueChangeType } from '../CheckboxGroup/Checkbox/Checkbox';
-import { useContext, useEffect, useState } from 'react';
+import { Fragment, useContext, useEffect, useState } from 'react';
 import isEqual from 'lodash/isEqual';
 import { PtrAppApiStack } from '../../../../ptr-app-backend/cdk-outputs.json';
 import { AuthenticatorContext } from '../../providers/AppAuthenticatorProvider';
-import { fetchData } from '../../utils/general';
+import { fetchData, getUserToken } from '../../utils/general';
 import { createDateFromDayValue, createDateStringFromDate, createDayFromDate, createLocalDateFromDateTimeString, getBeginningOfYear, getPriorMonthEnd } from '../../utils/dates';
+import { ModalType, useModalContext } from '../../providers/Modal';
 
 
 // Account Type Category does not appear here because they appear together with Account Types in account type filter (distinguished by level: 0 and 1).
@@ -75,7 +76,7 @@ export interface IServerFilterValues {
 }
 
 export const activityRangeInit = {
-  startDate: utils('en').getToday(),
+  startDate: createDayFromDate(getBeginningOfYear(new Date())),
   endDate: utils('en').getToday(),
 }
 export const filterBarValuesInit = {
@@ -102,6 +103,7 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
   const [filterBarValues, setFilterBarValues] = useState<IFilterBarValues>(filterBarValuesInit);
   const [filterBarOptions, setFilterBarOptions] = useState<IFilterBarOptions>(filterBarOptionsInit);
   const appUserAttributes = useContext(AuthenticatorContext);
+  const modalContext = useModalContext();
 
   useEffect(() => {
     // This avoids race conditions by ignoring results from stale calls
@@ -109,8 +111,12 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
 
     const getDbActivityRange = async() => {
       const url = PtrAppApiStack.PtrAppApiEndpoint + "GetRefData";
-      const body = { userId: 7493728439, queryType: "activityRange" };
-      const postResultJSON = await fetchData(url, body, appUserAttributes!.jwtToken);
+      const body = { userId: appUserAttributes!.userId, queryType: "activityRange" };
+      const token = await getUserToken(appUserAttributes!.signOutFunction!, modalContext);
+      const postResultJSON = await fetchData(url, body, token);
+      if(postResultJSON === null) {
+        setActivityRange(activityRangeInit);
+      }
 
       if(!ignoreResults) {
         if(!postResultJSON) {
@@ -128,6 +134,7 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
 
     return () => { ignoreResults = true };
   }, []);
+
   useEffect(() => {
     // This avoids race conditions by ignoring results from stale calls
     let ignoreResults = false;
@@ -137,9 +144,21 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
       const asOfDate = createDateFromDayValue(filterBarValues.asOfDate);
       const startDate = getBeginningOfYear(asOfDate);
       const endDate = getPriorMonthEnd(asOfDate);
-      const body = { userId: 7493728439, queryType: "filterBarOptions", startDate: createDateStringFromDate(startDate), 
+
+      const body = { userId: appUserAttributes!.userId, queryType: "filterBarOptions", startDate: createDateStringFromDate(startDate), 
         endDate: createDateStringFromDate(endDate) };
-      const postResultJSON = await fetchData(url, body, appUserAttributes!.jwtToken);
+      
+      const token = await getUserToken(appUserAttributes!.signOutFunction!, modalContext, filterBarValues.accountTypes.length > 0 ? 1 : 0);
+      const postResultJSON = await fetchData(url, body, token);
+      if(postResultJSON === null) {
+        await modalContext.showConfirmation(
+            ModalType.confirm,
+            'Error retreiving reference data, please try again.',
+        );
+        setFilterBarOptions(filterBarOptionsInit);
+        setFilterBarValues(filterBarValuesInit);
+        return () => { ignoreResults = true };
+      }
 
       if(!ignoreResults) {
         const newFilterBarOptions: IFilterBarOptions = {
@@ -199,7 +218,7 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
   const hanldeApplyClicked = () => {
     setAppliedFilterBarValues(filterBarValues);
   }
-  const hanldeResetClicked = () => {
+  const hanldeResetClicked = async () => {
     if(!isEqual(appliedFilterBarValues, filterBarValues)) {
       setFilterBarValues(appliedFilterBarValues);
     }
@@ -213,6 +232,7 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
   const preparedFilterBarOptions = filterAndSortOptions(filterBarOptions, filterBarValues);
 
   return (
+    <Fragment>
     <div className='filterbar'>
       <SectionHeading 
         size={SectionHeadingSizeType.medium} 
@@ -232,7 +252,7 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
             setSelectedDay={handleAsOfDateChange}
             inputLabel='As of:'
             minimumDate={activityRange.startDate}
-            maximumDate={activityRange.endDate}
+            maximumDate={createDayFromDate(new Date())}
           />
         </div>
         <div className='filterbar--filter'>
@@ -311,6 +331,7 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
         </div>
       </div>
     </div>
+    </Fragment>
   );
 };
 

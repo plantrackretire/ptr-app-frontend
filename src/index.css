@@ -133,23 +133,24 @@ a:hover {
   color: var(--active-color) !important;
   fill: var(--active-color) !important;
 }
-.button-el--visual.enabled:hover:not(.button-el--disabled) {
+.button-el--visual:hover:not(.button-el--disabled) {
   background-color: var(--dark-active-color);
   color: white !important;
   fill: white !important;
 }
 .button-el:hover:active:not(.button-el--disabled),
-.button-el--visual.enabled:hover:active:not(.button-el--disabled) {
+.button-el--visual:hover:active:not(.button-el--disabled) {
   font-weight: 600 !important;
 }
 .button-el:hover:active:not(.button-el--disabled) svg,
-.button-el--visual.enabled:hover:active:not(.button-el--disabled) svg {
+.button-el--visual:hover:active:not(.button-el--disabled) svg {
   transform: scale(1.1);
 }
 .active {
   color: var(--active-color) !important;
   font-weight: 800 !important;
   fill: var(--active-color) !important;
+  cursor: initial !important;
 }
 .button-el--disabled {
   color: var(--medium-grey);

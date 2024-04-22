@@ -121,8 +121,8 @@ export const compareDates = (date1: Date, date2: Date): number => {
 // -1 if dayValue1 < dayValue2, 1 if dayValue1 > dayValue2, 0 if dayValue1 == dayValue2
 export const compareDayValues = (dayValue1: DayValue, dayValue2: DayValue): number => {
     if(!dayValue1 || !dayValue2) {
-        console.log("Invalid date");
         // TODO: Throw exception
+        console.log("Invalid date");
         return -1;
     }
     if(dayValue1.year < dayValue2.year)

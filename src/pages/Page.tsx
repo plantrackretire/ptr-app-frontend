@@ -7,9 +7,10 @@ import { IFilterBarValues, filterBarValuesInit, formatFilterBarValuesForServer }
 import { AuthenticatorContext } from '../providers/AppAuthenticatorProvider';
 import { IAccount } from '../components/AccountView';
 import { createDateFromDayValue, createDateStringFromDate, createLocalDateFromDateTimeString, getBeginningOfYear, getPriorMonthEnd } from '../utils/dates';
-import { fetchData } from '../utils/general';
+import { fetchData, getUserToken } from '../utils/general';
 import { PtrAppApiStack } from '../../../ptr-app-backend/cdk-outputs.json';
 import { IHolding } from '../components/HoldingView';
+import { ModalType, useModalContext } from '../providers/Modal';
 
 export const Page: React.FC = () => {
     const [filterBarValues, setFilterBarValues] = useState<IFilterBarValues>(filterBarValuesInit);
@@ -17,6 +18,7 @@ export const Page: React.FC = () => {
     const [dbAccounts, setDbAccounts] = useState<{[index: number]: IAccount} | null>(null);
     const [dbHistoricalHoldings, setDbHistoricalHoldings] = useState<{ [index: string]: [] } | null>(null);
     const appUserAttributes = useContext(AuthenticatorContext);
+    const modalContext = useModalContext();
 
     // Executes multiple queries in parallel and processes results when all have returned.
     // If significant different in response time of queries can split each into their own useEffect call, which will allow them to execute
@@ -31,15 +33,27 @@ export const Page: React.FC = () => {
 
         const getData = async() => {
             const url = PtrAppApiStack.PtrAppApiEndpoint + "GetHoldings";
-            const bodyHoldings = { userId: 7493728439, queryType: "asOf", startDate: createDateStringFromDate(beginningOfYear), 
+            const bodyHoldings = { userId: appUserAttributes!.userId, queryType: "asOf", startDate: createDateStringFromDate(beginningOfYear), 
                 endDate: createDateStringFromDate(formattedEndDate), filters: formattedFilterBarValues };
-            const bodyHistoricalHoldings = { userId: 7493728439, queryType: "historical", endDate: createDateStringFromDate(formattedEndDate),
+            const bodyHistoricalHoldings = { userId: appUserAttributes!.userId, queryType: "historical", endDate: createDateStringFromDate(formattedEndDate),
                 filters: formattedFilterBarValues };
 
+            const token = await getUserToken(appUserAttributes!.signOutFunction!, modalContext);
+
             const results = await Promise.all([
-                fetchData(url, bodyHoldings, appUserAttributes!.jwtToken),
-                fetchData(url, bodyHistoricalHoldings, appUserAttributes!.jwtToken),
+                fetchData(url, bodyHoldings, token),
+                fetchData(url, bodyHistoricalHoldings, token),
             ]);
+            if(results === null) {
+                await modalContext.showConfirmation(
+                    ModalType.confirm,
+                    'Error retreiving data, please try again.',
+                );
+                setDbHoldings([]);
+                setDbAccounts({});
+                setDbHistoricalHoldings({});
+                return () => { ignoreResults = true };
+            }
             const resultsHoldings = results[0];
             const resultsHistoricalHoldings = results[1];
             

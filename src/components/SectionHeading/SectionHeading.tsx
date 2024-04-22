@@ -25,29 +25,33 @@ interface ISectionHeading {
 export const SectionHeading: React.FC<ISectionHeading> = ({ label, subLabel, size, handleActionButtonClick, handleClearButtonClick, 
   isClearAll, actionText, isActive }) => {
   const activeClass = isActive ? " active" : "";
-  let heading = <h4 className={"button-el" + activeClass}>{label}</h4>;
+  let heading = <h4 className={activeClass}>{label}</h4>;
   let subHeading = <small className="section-heading--sub-heading">{subLabel}</small>;
 
   switch(size) {
-    case SectionHeadingSizeType.tiny: heading = <small className={"button-el" + activeClass}>{label}</small>; break;
-    case SectionHeadingSizeType.regular: heading = <span className={"button-el" + activeClass}>{label}</span>; break;
-    case SectionHeadingSizeType.medium: heading = <h3 className={"button-el" + activeClass}>{label}</h3>; break;
-    case SectionHeadingSizeType.large: heading = <h2 className={"button-el" + activeClass}>{label}</h2>; break;
+    case SectionHeadingSizeType.tiny: heading = <small className={activeClass}>{label}</small>; break;
+    case SectionHeadingSizeType.regular: heading = <span className={activeClass}>{label}</span>; break;
+    case SectionHeadingSizeType.medium: heading = <h3 className={activeClass}>{label}</h3>; break;
+    case SectionHeadingSizeType.large: heading = <h2 className={activeClass}>{label}</h2>; break;
   }
   const sizeClass = " section-heading--size-" + SectionHeadingSizeType[size];
 
   return (
     <div>
       <div className="section-heading">
-        <button className="section-heading--main-heading button-el" onClick={handleActionButtonClick}>
-          {heading}
-          { 
-            handleActionButtonClick && 
-            <div className={"section-heading--action-button" + sizeClass + activeClass}>
-              <ActionButton title={actionText} />
+        {
+          handleActionButtonClick ?
+            <button className="section-heading--main-heading button-el" onClick={handleActionButtonClick}>
+              {heading}
+              <div className={"section-heading--action-button" + sizeClass + activeClass}>
+                <ActionButton title={actionText} />
+              </div>
+            </button>
+          :
+            <div className="section-heading--main-heading">
+              {heading}
             </div>
-          }
-        </button>
+        }
         { 
           handleClearButtonClick && 
           <div className={"section-heading--clear-button" + sizeClass + activeClass}>
