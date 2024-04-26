@@ -1,0 +1,7 @@
+.basic-table--col-headings--button {
+    width: 100%;
+}
+
+.basic-table--col-headings--button span:nth-child(2) {
+    margin-left: .5em;
+}

@@ -1,0 +1,73 @@
+/* Following settings cover tables of data. */
+/* For column headings use class basic-table--col-headings on thead. */
+/* For highlighted group headings use thead without basic-table--col-headings class. */
+/* For indented child rows use basic-table--sub-row on tr, first column (td) should be <br/> to show child set into the parent. */
+/* With col headings and group headings structure should be: */
+/*    <table><thead className="basic-table--col-headings"><thead><tbody><thead><tbody></table>... */
+.basic-table {
+    width: 100%;
+    border-spacing: 0 0; /* Along with separate setting above this allows for cell and row spacing when non-zero */
+}
+.basic-table th,
+.basic-table td {
+    vertical-align: top;
+    text-wrap: balance;
+}
+.basic-table th {
+    padding-top: .6em;
+    padding-bottom: .6em;
+    padding-right: .5em;
+    font-weight: 400;
+    background-color: var(--light-grey);
+}
+.basic-table tr:not(.basic-table--sub-row) td {
+    padding-top: .6em;
+    padding-bottom: .6em;
+    padding-right: .5em;
+    border-bottom: 1px solid var(--light-grey);
+}
+/* col-headings are for sortable column labels */
+.basic-table--col-headings tr {
+    padding-bottom: .5em;
+}
+.basic-table--col-headings th {
+    border-bottom: .5em solid var(--app-background-color); /* Create gap between col headings and rows */
+    background-color: var(--medium-grey);
+    color: white;
+}
+/* sub-row assumes content start one column in (first column blank for sub-rows and second slightly indented */
+.basic-table--sub-row td:not(:first-child) {
+    padding-top: .25em;
+    padding-bottom: .25em;
+    padding-right: .5em;
+    background-color: var(--light-grey);
+    border-bottom: 1px solid var(--app-background-color);
+}
+.basic-table th:first-child,
+.basic-table td:first-child { 
+    padding-left: .5em; 
+}
+.basic-table thead:not(.basic-table--col-headings) + tbody td:first-child { padding-left: 1em; }
+.basic-table tbody tr:last-child td { border-bottom: 0; }
+.basic-table--sub-row td:nth-child(2) { padding-left: 1em; }
+tr.basic-table--sub-row:has(+ :not(.basic-table--sub-row)) td {
+    border-bottom: 1px solid var(--light-grey);
+}
+/* Use class basic-table--clickable-rows on table element to have rows behave as buttons */
+.basic-table--clickable-rows tr:not(.basic-table--sub-row):hover td {
+    background-color: var(--light-grey);
+    cursor: pointer;
+}
+.basic-table--clickable-rows thead:not(.basic-table--col-headings) tr:hover th,
+.basic-table--clickable-rows tr.basic-table--sub-row:hover td:not(:first-child) {
+    background-color: var(--medium-grey) !important;
+    color: white;
+    cursor: pointer;
+}
+.basic-table--clickable-rows thead:not(.basic-table--col-headings) tr:hover th [class*="color-modifier"],
+.basic-table--clickable-rows tr.basic-table--sub-row:hover td:not(:first-child) [class*="color-modifier"],
+.basic-table--clickable-rows tr.basic-table--sub-row:hover .two-line :nth-child(2),
+.basic-table--clickable-rows thead:not(.basic-table--col-headings) tr:hover th .active,
+.basic-table--clickable-rows tr.basic-table--sub-row:hover td:not(:first-child) .active {
+    color: white !important;
+}

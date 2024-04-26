@@ -1,7 +1,8 @@
-import './HoldingRec.css';
 import { ColoredPercentage } from '../../../ColoredPercentage';
 import { formatBalance, formatPrice, formatQuantity } from '../../../../utils/general';
 import { IHolding } from '../..';
+import { BasicTableRow } from '../../../BasicTable/BasicTableRow';
+import './HoldingRec.css';
 
 
 interface IHoldingRec {
@@ -11,20 +12,20 @@ interface IHoldingRec {
 
 export const HoldingRec: React.FC<IHoldingRec> = ({ holding, handleHoldingActionButtonClick }) => {
   return (
-    <tr onClick={handleHoldingActionButtonClick}>
+    <BasicTableRow handleRowClick={handleHoldingActionButtonClick}>
       <td>
         <span>{holding.securityShortName}</span>
       </td>
       <td>
-        <div className="basic-table--two-line">
+        <div className="two-line">
           <span>{holding.securityName}</span>
           <small>
             { holding.accountName }
           </small>
         </div>
       </td>
-      <td className='basic-table--nowrap'>
-        <div className="basic-table--two-line">
+      <td className='nowrap'>
+        <div className="two-line">
           <span>{formatPrice(holding.price)}</span>
           <small>
             {
@@ -35,8 +36,8 @@ export const HoldingRec: React.FC<IHoldingRec> = ({ holding, handleHoldingAction
           </small>
         </div>
       </td>
-      <td className='basic-table--nowrap'>
-        <div className="basic-table--two-line">
+      <td className='nowrap'>
+        <div className="two-line">
           <span>{formatQuantity(holding.quantity)}</span>
           <small>
             {
@@ -47,8 +48,8 @@ export const HoldingRec: React.FC<IHoldingRec> = ({ holding, handleHoldingAction
           </small>
         </div>
       </td>
-      <td className='basic-table--nowrap'>
-        <div className="basic-table--two-line">
+      <td className='nowrap'>
+        <div className="two-line">
           { formatBalance(holding.balance) }
           { !('changeInValue' in holding) ?
               <small>Multi</small> 
@@ -59,6 +60,6 @@ export const HoldingRec: React.FC<IHoldingRec> = ({ holding, handleHoldingAction
           }
         </div>
       </td>
-    </tr>
+    </BasicTableRow>
   );
 };

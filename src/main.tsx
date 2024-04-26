@@ -1,6 +1,6 @@
+import './index.css';
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import './index.css';
 import { AppAuthenticatorProvider } from './providers/AppAuthenticatorProvider';
 import App from './App';
 import { ConfigProvider } from './providers/ConfigProvider';

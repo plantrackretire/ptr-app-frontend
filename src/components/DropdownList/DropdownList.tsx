@@ -1,5 +1,5 @@
-import './DropdownList.css';
 import Select from "react-dropdown-select";
+import './DropdownList.css';
 
 
 export type DropdownListOptionsType = {value: number; label: string;}[];

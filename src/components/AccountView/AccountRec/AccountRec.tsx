@@ -1,7 +1,8 @@
-import './AccountRec.css';
 import { IAccount } from '..';
 import { ColoredPercentage } from '../../ColoredPercentage';
 import { formatBalance } from '../../../utils/general';
+import { BasicTableRow } from '../../BasicTable/BasicTableRow';
+import './AccountRec.css';
 
 
 interface IAccountRec {
@@ -13,9 +14,9 @@ interface IAccountRec {
 export const AccountRec: React.FC<IAccountRec> = ({ account, handleAccountTypeCategoryButtonClick, isActive }) => {
   const changeInValuePercentage: number | null | string = account.aggValues!.calcChangeInValuePercentage();
   return (
-    <tr className="account-rec"  onClick={handleAccountTypeCategoryButtonClick}>
+    <BasicTableRow handleRowClick={handleAccountTypeCategoryButtonClick}>
       <td>
-        <div className='basic-table--two-line'>
+        <div className='two-line'>
           <div className={isActive ? "active" : ""}>
             {account.accountName + " | " + account.accountCustodian}
           </div>
@@ -32,6 +33,6 @@ export const AccountRec: React.FC<IAccountRec> = ({ account, handleAccountTypeCa
       <td>
         { formatBalance(account.aggValues!.getAggregateEndValue()) }
       </td>
-    </tr>
+    </BasicTableRow>
   );
 };

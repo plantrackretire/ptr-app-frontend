@@ -1,8 +1,8 @@
-import './DateFilter.css';
 import { DateSelector } from '../../DateSelector';
 import { DropdownList, DropdownListOptionsType } from '../../DropdownList';
 import { DayValue, Day } from '@hassanmojab/react-modern-calendar-datepicker';
 import { calcDate, compareDayValues, getPrecannedDateValue, precannedDates } from '../../../utils/dates';
+import './DateFilter.css';
 
 
 interface IDateFilter {

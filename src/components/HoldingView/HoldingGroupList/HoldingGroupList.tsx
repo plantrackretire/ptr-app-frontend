@@ -1,41 +1,65 @@
-import './HoldingGroupList.css';
 import { IHolding, IHoldingGroup } from '..';
 import { Fragment } from 'react';
 import { HoldingRec } from './HoldingRec';
 import { AccountHolding } from './AccountHolding';
+import { BasicTable } from '../../BasicTable';
+import { BasicTableBody } from '../../BasicTable/BasicTableBody';
+import { BasicTableColHeadings } from '../../BasicTable/BasicTableColHeadings';
+import './HoldingGroupList.css';
 
 
 interface IHoldingGroupList {
   holdingGroups: IHoldingGroup[],
   handleHoldingActionButtonClick: () => void,
   accountHoldingSortFunction: (a: IHolding, b: IHolding) => number,
+  sortColumn: string,
+  sortDirection: string,
+  setSortColumn:(value: string) => void,
+  setSortDirection:(value: string) => void,
 }
 
-export const HoldingGroupList: React.FC<IHoldingGroupList> = ({ holdingGroups, handleHoldingActionButtonClick, accountHoldingSortFunction }) => {
+export const HoldingGroupList: React.FC<IHoldingGroupList> = ({ holdingGroups, handleHoldingActionButtonClick, accountHoldingSortFunction,
+  sortColumn, sortDirection, setSortColumn, setSortDirection
+  }) => {
   return (
-    <table className="holding-group-list basic-table basic-table--clickable-rows" width="100%">
-      <tbody>
-        {
-          holdingGroups.map((holdingGroup) => (
-            <Fragment key={holdingGroup.holdingId}>
-              <HoldingRec
-                holding={holdingGroup}
-                handleHoldingActionButtonClick={handleHoldingActionButtonClick}
-              />
-              {
-                holdingGroup.holdings.length > 1 && 
-                holdingGroup.holdings.sort(accountHoldingSortFunction).map((accountHolding) => (
-                  <AccountHolding
-                    key={accountHolding.accountId}
-                    accountHolding={accountHolding}
-                    handleHoldingActionButtonClick={handleHoldingActionButtonClick}
-                  />
-                ))
-              }
-            </Fragment>
-          ))
-        }
-      </tbody>
-    </table>
+    <div className="holding-group-list">
+      <BasicTable areRowsClickable={true}>
+        <BasicTableColHeadings
+          headingSet={[
+            { name: "Ticker", sortColumn: "securityShortName" },
+            { name: "Name", sortColumn: "securityName" },
+            { name: "Price", sortColumn: "price" },
+            { name: "Quantity", sortColumn: "quantity" },
+            { name: "Value", sortColumn: "balance" },
+          ]}
+          sortColumn={sortColumn}
+          sortDirection={sortDirection}
+          setSortColumn={setSortColumn}
+          setSortDirection={setSortDirection}
+        />
+        <BasicTableBody>
+          {
+            holdingGroups.map((holdingGroup) => (
+              <Fragment key={holdingGroup.holdingId}>
+                <HoldingRec
+                  holding={holdingGroup}
+                  handleHoldingActionButtonClick={handleHoldingActionButtonClick}
+                />
+                {
+                  holdingGroup.holdings.length > 1 && 
+                  holdingGroup.holdings.sort(accountHoldingSortFunction).map((accountHolding) => (
+                    <AccountHolding
+                      key={accountHolding.accountId}
+                      accountHolding={accountHolding}
+                      handleHoldingActionButtonClick={handleHoldingActionButtonClick}
+                    />
+                  ))
+                }
+              </Fragment>
+            ))
+          }
+        </BasicTableBody>
+      </BasicTable>
+    </div>
   );
 };

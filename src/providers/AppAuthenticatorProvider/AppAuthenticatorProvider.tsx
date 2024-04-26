@@ -1,4 +1,3 @@
-import './AppAuthenticatorProvider.css';
 import { ReactElement, createContext, useEffect, useState } from 'react';
 import { Amplify } from 'aws-amplify';
 import { Authenticator, Flex, Text, useAuthenticator } from '@aws-amplify/ui-react';
@@ -8,6 +7,7 @@ import config from '../../../../ptr-app-backend/cdk-outputs.json'
 import { fetchData, getUserToken } from '../../utils/general';
 import { useModalContext } from '../Modal';
 import { PtrAppApiStack } from '../../../../ptr-app-backend/cdk-outputs.json';
+import './AppAuthenticatorProvider.css';
 
 Amplify.configure({
   Auth: {

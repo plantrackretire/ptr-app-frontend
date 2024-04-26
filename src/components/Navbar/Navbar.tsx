@@ -1,9 +1,9 @@
-import './Navbar.css';
 import { Navlist } from '../Navlist';
 import { PiggyBankIcon } from '../../assets/PiggyBankIcon';
 import { PieChartIcon } from '../../assets/PieChartIcon';
 import { PerformanceChartIcon } from '../../assets/PerformanceChartIcon';
 import { FilterBar, IFilterBarValues } from '../FilterBar';
+import './Navbar.css';
 
 
 interface INavbar {

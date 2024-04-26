@@ -1,6 +1,0 @@
-.account-type-category-heading th:first-child {
-    text-align: left;
-}
-.account-type-category-heading th:not(:first-child) {
-    text-align: right;
-}

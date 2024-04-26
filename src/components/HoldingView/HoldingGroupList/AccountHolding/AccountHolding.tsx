@@ -1,7 +1,8 @@
-import './AccountHolding.css';
 import { IHolding } from '../..';
 import { ColoredPercentage } from '../../../ColoredPercentage';
 import { formatBalance, formatQuantity } from '../../../../utils/general';
+import { BasicTableSubRow } from '../../../BasicTable/BasicTableSubRow';
+import './AccountHolding.css';
 
 
 interface IAccountHolding {
@@ -11,14 +12,14 @@ interface IAccountHolding {
 
 export const AccountHolding: React.FC<IAccountHolding> = ({ accountHolding, handleHoldingActionButtonClick }) => {
   return (
-    <tr key={accountHolding.holdingId} className="basic-table--sub-row" onClick={handleHoldingActionButtonClick}>
+    <BasicTableSubRow handleRowClick={handleHoldingActionButtonClick}>
       <td><br /></td>
       <td>
         <small>{accountHolding.accountName}</small>
       </td>
       <td><br /></td>
       <td>
-        <div className="basic-table--two-line">
+        <div className="two-line">
           <span>{formatQuantity(accountHolding.quantity)}</span>
           <small>
             {
@@ -30,7 +31,7 @@ export const AccountHolding: React.FC<IAccountHolding> = ({ accountHolding, hand
         </div>
       </td>
       <td>
-        <div className="basic-table--two-line">
+        <div className="two-line">
           <span>{ formatBalance(accountHolding.balance) }</span>
           { !('changeInValue' in accountHolding) ?
               <small>Multi</small> 
@@ -41,6 +42,6 @@ export const AccountHolding: React.FC<IAccountHolding> = ({ accountHolding, hand
           }
         </div>
       </td>
-    </tr>
+    </BasicTableSubRow>
   );
 };

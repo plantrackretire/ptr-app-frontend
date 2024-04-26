@@ -1,6 +1,6 @@
-import './NetworthChartTitle.css';
 import { formatBalance } from '../../../utils/general';
 import { ColoredPercentage } from '../../ColoredPercentage';
+import './NetworthChartTitle.css';
 
 
 interface INetworthChartTitle {

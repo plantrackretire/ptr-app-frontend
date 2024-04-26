@@ -1,6 +1,6 @@
-import './ClearButton.css';
 import { ClearIcon } from '../../assets/ClearIcon';
 import { Fragment, MouseEventHandler } from 'react';
+import './ClearButton.css';
 
 interface IClearButton {
   handleClearButtonClick: MouseEventHandler<HTMLButtonElement>,

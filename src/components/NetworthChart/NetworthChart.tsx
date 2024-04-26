@@ -1,4 +1,3 @@
-import './NetworthChart.css';
 import { Fragment, useEffect, useState, memo, useContext } from 'react';
 import { Line, Bar } from 'react-chartjs-2';
 import annotationPlugin from "chartjs-plugin-annotation";
@@ -9,6 +8,8 @@ import { formatBalance, formatChangePercentage, getTextWidth, hexToRgb } from '.
 import { NetworthChartTitle } from './NetworthChartTitle';
 import { NetworthChartOptions } from './NetworthChartOptions';
 import { NetworthChartPlaceholder } from './NetworthChartPlaceholder';
+import './NetworthChart.css';
+
 
 export const defaultNetworthChartHeight = "350px";
 
@@ -235,7 +236,8 @@ const createOptionsRecord = (config: IConfigContext, units: string, yearValueTyp
       backgroundColor: config?.getColor(AppColors.darkGrey),
       callbacks: {
         label: function(tooltipItem: any) { return tooltipItem.dataset.label + ': ' + formatBalance(tooltipItem.raw); },
-      }
+      },
+      padding: 10,
     };
     options.scales.y.ticks ={
       // Include a dollar sign in the ticks

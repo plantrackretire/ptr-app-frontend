@@ -1,5 +1,5 @@
-import '../NetworthChart.css';
 import { defaultNetworthChartHeight } from '..';
+import '../NetworthChart.css';
 
 
 export const NetworthChartPlaceholder: React.FC = () => {

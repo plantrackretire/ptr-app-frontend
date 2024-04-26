@@ -129,9 +129,13 @@ a:hover {
   color: var(--blue) !important;
   fill: var(--blue) !important;
 }
-.button-el:hover:not(.button-el--disabled) {
+.button-el:hover:not(.button-el--disabled):not(.light) {
   color: var(--active-color) !important;
   fill: var(--active-color) !important;
+}
+.button-el.light:hover:not(.button-el--disabled) {
+  color: var(--light-active-color) !important;
+  fill: var(--light-active-color) !important;
 }
 .button-el--visual:hover:not(.button-el--disabled) {
   background-color: var(--dark-active-color);
@@ -152,6 +156,18 @@ a:hover {
   fill: var(--active-color) !important;
   cursor: initial !important;
 }
+.active-clickable {
+  color: var(--active-color) !important;
+  font-weight: 800 !important;
+  fill: var(--active-color) !important;
+}
+.active-light {
+  font-weight: 800 !important;
+  cursor: initial !important;
+}
+.active-light-clickable {
+  font-weight: 800 !important;
+}
 .button-el--disabled {
   color: var(--medium-grey);
   fill: var(--medium-grey);
@@ -169,6 +185,23 @@ ul {
 }
 .scrollable::-webkit-scrollbar {
   display: none;
+}
+
+/* Use nowrap on td elements to force no wrapping of text. */
+/* Set width or max-width to have ellipse show when content exceeds width. */
+.nowrap {
+  white-space: nowrap;
+  text-overflow: ellipsis !important;
+  overflow: hidden;
+}
+
+/* Create content with two lines, with second line de-emphasized */
+.two-line {
+  display: flex;
+  flex-direction: column;
+}
+.two-line :nth-child(2) {
+  color: var(--medium-grey);
 }
 
 /* Sometimes browsers (safari) clip a pixel on bottom and/or left (probably rounding error) */
@@ -198,79 +231,6 @@ svg {
   margin-left: auto;
 }
 
-/* Following settings cover tables of data */
-/* basic-table--sub-row is for child rows to a parent, first column should be <br/> to show child set into the parent */
-/* With heading should structure as: <table><thead><tbody><thead><tbody><table>..., without heading: <table><tbody><table> */
-.basic-table {
-  width: 100%;
-  border-spacing: 0 0; /* Along with separate setting above this allows for cell and row spacing when non-zero */
-}
-.basic-table th,
-.basic-table td {
-  vertical-align: top;
-  text-wrap: balance;
-}
-.basic-table th {
-  padding-top: .6em;
-  padding-bottom: .6em;
-  padding-right: .5em;
-  font-weight: 400;
-  background-color: var(--light-grey);
-}
-.basic-table tr:not(.basic-table--sub-row) td {
-  padding-top: .6em;
-  padding-bottom: .6em;
-  padding-right: .5em;
-  border-bottom: 1px solid var(--light-grey);
-}
-/* sub-row assumes content start one column in (first column blank for sub-rows and second slightly indented */
-.basic-table--sub-row td:not(:first-child) {
-  padding-top: .25em;
-  padding-bottom: .25em;
-  padding-right: .5em;
-  background-color: var(--light-grey);
-  border-bottom: 1px solid var(--app-background-color);
-}
-.basic-table th:first-child { padding-left: .5em; }
-.basic-table thead + tbody td:first-child { padding-left: 1em; }
-.basic-table tbody tr:last-child td { border-bottom: 0; }
-.basic-table--two-line {
-  display: flex;
-  flex-direction: column;
-}
-.basic-table--two-line :nth-child(2) {
-  color: var(--medium-grey);
-}
-.basic-table--sub-row td:nth-child(2) { padding-left: 1em; }
-tr.basic-table--sub-row:has(+ :not(.basic-table--sub-row)) td {
-  border-bottom: 1px solid var(--light-grey);
-}
-/* Use class basic-table--clickable-rows to have rows behave as buttons */
-.basic-table--clickable-rows tr:not(.basic-table--sub-row):hover td {
-  background-color: var(--light-grey);
-  cursor: pointer;
-}
-.basic-table--clickable-rows tr:hover th,
-.basic-table--clickable-rows tr.basic-table--sub-row:hover td:not(:first-child) {
-  background-color: var(--medium-grey) !important;
-  color: white;
-  cursor: pointer;
-}
-.basic-table--clickable-rows tr:hover th [class*="color-modifier"],
-.basic-table--clickable-rows tr.basic-table--sub-row:hover td:not(:first-child) [class*="color-modifier"],
-.basic-table--clickable-rows tr.basic-table--sub-row:hover .basic-table--two-line :nth-child(2),
-.basic-table--clickable-rows tr:hover th .active,
-.basic-table--clickable-rows tr.basic-table--sub-row:hover td:not(:first-child) .active {
-  color: white !important;
-}
-/* Use basic-table--nowrap on td elements to force no wrapping of text. */
-/* Set width or max-width to have ellipse show when content exceeds width. */
-.basic-table--nowrap {
-  white-space: nowrap;
-  text-overflow: ellipsis !important;
-  overflow: hidden;
-}
-
 /* Used to display placeholders while data is loading */
 .placeholder {
   width: 100%;
@@ -297,6 +257,28 @@ tr.basic-table--sub-row:has(+ :not(.basic-table--sub-row)) td {
   50% { background-color:var(--light-grey2); }
   100% { background-color:var(--light-grey); } 
 }
+
+/* Styling for two columns of content with divider lines */
+.content-two-col {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.content-two-col > div:not(:last-child) {
+  border-right: 1px solid var(--light-grey);
+}
+
+.content-two-col--col {
+  padding: var(--outer-padding);
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+}
+.content-two-col--col > div:not(:last-child) {
+  padding-bottom: 2em;
+  border-bottom: 1px solid var(--light-grey);
+}
+
 
 @media (prefers-color-scheme: light) {
   :root {

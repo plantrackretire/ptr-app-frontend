@@ -1,4 +1,3 @@
-import './AccountView.css';
 import { SectionHeading, SectionHeadingSizeType } from '../SectionHeading';
 import { useState } from 'react';
 import { AccountTypeCategoryList } from './AccountTypeCategoryList';
@@ -7,6 +6,7 @@ import { AggregateValues } from '../../utils/calcs';
 import { SortSelector } from '../SortSelector';
 import { DropdownListOptionsType } from '../DropdownList';
 import { AccountViewPlaceholder } from './AccountViewPlaceholder';
+import './AccountView.css';
 
 
 interface IAccountView {
@@ -42,8 +42,8 @@ export interface IAccount {
 
 export const AccountView: React.FC<IAccountView> = ({ startDate, asOfDate, accounts, holdings,
   filterType, filterValue, setFilterType, setFilterValue }) => {
-  const [sortOrder, setSortOrder] = useState<DropdownListOptionsType>([accountSortOrderOptions[0]]);
-  const [sortDirection, setSortDirection] = useState<string>("asc");
+    const [sortColumn, setSortColumn] = useState<string>("name");
+    const [sortDirection, setSortDirection] = useState<string>("asc");
 
   if(holdings === null || accounts === null) {
     return <AccountViewPlaceholder />
@@ -54,8 +54,8 @@ export const AccountView: React.FC<IAccountView> = ({ startDate, asOfDate, accou
 
   const accountTypeCategoryGroups = createAccountTypeCategoryGroups(startDate, asOfDate, holdings, accounts);
 
-  const sortFunctionsFirstLevel = sortFunctionSetFirstLevel[sortOrder[0].value][sortDirection];
-  const sortFunctionsSecondLevel = sortFunctionSetSecondLevel[sortOrder[0].value][sortDirection];
+  const sortFunctionsFirstLevel = sortFunctionSetFirstLevel[sortColumn][sortDirection];
+  const sortFunctionsSecondLevel = sortFunctionSetSecondLevel[sortColumn][sortDirection];
   const accountTypeCategoryGroupsSorted = Object.values(accountTypeCategoryGroups).sort(sortFunctionsFirstLevel);
 
   return (
@@ -68,13 +68,6 @@ export const AccountView: React.FC<IAccountView> = ({ startDate, asOfDate, accou
           handleActionButtonClick={() => { setFilterType("All"); setFilterValue("All"); }}
           isActive={filterType === "All" ? true : false}
         />
-        <SortSelector
-          sortOrderOptions={accountSortOrderOptions}
-          sortOrder={sortOrder}
-          sortDirection={sortDirection}
-          setSortOrder={setSortOrder}
-          setSortDirection={setSortDirection}
-        />
       </div>
       <AccountTypeCategoryList
         accountTypeCategoryGroups={accountTypeCategoryGroupsSorted}
@@ -83,6 +76,10 @@ export const AccountView: React.FC<IAccountView> = ({ startDate, asOfDate, accou
         filterValue={filterValue}
         setFilterType={setFilterType}
         setFilterValue={setFilterValue}
+        sortColumn={sortColumn}
+        sortDirection={sortDirection}
+        setSortColumn={setSortColumn}
+        setSortDirection={setSortDirection}
       />
     </div>
   );
@@ -134,15 +131,22 @@ const createAccountTypeCategoryGroups = (startDate: Date, asOfDate: Date,
   return accountTypeCategoryGroups;
 }
 
-const sortFunctionSetFirstLevel: { [index: number]: { [index: string]: (a: IAccountTypeCategoryGroup, b: IAccountTypeCategoryGroup) => number } } = {
-  1: 
+const sortFunctionSetFirstLevel: { [index: string]: { [index: string]: (a: IAccountTypeCategoryGroup, b: IAccountTypeCategoryGroup) => number } } = {
+  'name': 
     {
       'asc': (a: IAccountTypeCategoryGroup,b: IAccountTypeCategoryGroup) => 
         a.accountTypeCategory.accountTypeCategoryName >= b.accountTypeCategory.accountTypeCategoryName ? 1 : -1,
       'desc': (a: IAccountTypeCategoryGroup,b: IAccountTypeCategoryGroup) => 
         a.accountTypeCategory.accountTypeCategoryName <= b.accountTypeCategory.accountTypeCategoryName ? 1 : -1,
     },
-  2: 
+  'change': 
+  {
+    'asc': (a: IAccountTypeCategoryGroup,b: IAccountTypeCategoryGroup) => 
+      (a.accountTypeCategory.aggValues.calcChangeInValuePercentage() || 0) >= (b.accountTypeCategory.aggValues.calcChangeInValuePercentage() || 0) ? 1 : -1,
+    'desc': (a: IAccountTypeCategoryGroup,b: IAccountTypeCategoryGroup) => 
+      (a.accountTypeCategory.aggValues.calcChangeInValuePercentage() || 0) <= (b.accountTypeCategory.aggValues.calcChangeInValuePercentage() || 0) ? 1 : -1,
+  },
+  'balance': 
   {
     'asc': (a: IAccountTypeCategoryGroup,b: IAccountTypeCategoryGroup) => 
       a.accountTypeCategory.aggValues.getAggregateEndValue() >= b.accountTypeCategory.aggValues.getAggregateEndValue() ? 1 : -1,
@@ -151,13 +155,18 @@ const sortFunctionSetFirstLevel: { [index: number]: { [index: string]: (a: IAcco
   },
 };
 
-const sortFunctionSetSecondLevel: { [index: number]: { [index: string]: (a: IAccount, b: IAccount) => number } } = {
-  1: 
+const sortFunctionSetSecondLevel: { [index: string]: { [index: string]: (a: IAccount, b: IAccount) => number } } = {
+  'name': 
     {
       'asc': (a: IAccount,b: IAccount) => a.accountName >= b.accountName ? 1 : -1,
       'desc': (a: IAccount,b: IAccount) => a.accountName <= b.accountName ? 1 : -1,
     },
-  2: 
+  'change': 
+  {
+    'asc': (a: IAccount,b: IAccount) => (a.aggValues!.calcChangeInValuePercentage() || 0) >= (b.aggValues!.calcChangeInValuePercentage() || 0) ? 1 : -1,
+    'desc': (a: IAccount,b: IAccount) => (a.aggValues!.calcChangeInValuePercentage() || 0) <= (b.aggValues!.calcChangeInValuePercentage() || 0) ? 1 : -1,
+  },
+  'balance': 
   {
     'asc': (a: IAccount,b: IAccount) => a.aggValues!.getAggregateEndValue()! >= b.aggValues!.getAggregateEndValue()! ? 1 : -1,
     'desc': (a: IAccount,b: IAccount) => a.aggValues!.getAggregateEndValue()! <= b.aggValues!.getAggregateEndValue()! ? 1 : -1,

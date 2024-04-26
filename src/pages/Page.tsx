@@ -1,4 +1,3 @@
-import './Page.css';
 import { Header } from '../components/Header';
 import { Navbar } from '../components/Navbar';
 import { Networth } from './Networth';
@@ -11,6 +10,8 @@ import { fetchData, getUserToken } from '../utils/general';
 import { PtrAppApiStack } from '../../../ptr-app-backend/cdk-outputs.json';
 import { IHolding } from '../components/HoldingView';
 import { ModalType, useModalContext } from '../providers/Modal';
+import './Page.css';
+
 
 export const Page: React.FC = () => {
     const [filterBarValues, setFilterBarValues] = useState<IFilterBarValues>(filterBarValuesInit);

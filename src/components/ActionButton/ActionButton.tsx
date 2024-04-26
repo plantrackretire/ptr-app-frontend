@@ -1,6 +1,6 @@
-import './ActionButton.css';
 import { Fragment, MouseEventHandler } from 'react';
 import { ActionIcon } from '../../assets/ActionIcon';
+import './ActionButton.css';
 
 interface IActionButton {
   handleActionButtonClick?: MouseEventHandler<HTMLButtonElement>,

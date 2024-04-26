@@ -1,6 +1,6 @@
-import './SectionHeading.css';
 import { ClearButton } from '../ClearButton';
 import { ActionButton } from '../ActionButton';
+import './SectionHeading.css';
 
 
 export enum SectionHeadingSizeType {

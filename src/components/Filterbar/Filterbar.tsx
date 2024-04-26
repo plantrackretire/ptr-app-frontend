@@ -1,4 +1,3 @@
-import './FilterBar.css';
 import { SectionHeading, SectionHeadingSizeType } from '../SectionHeading';
 import { DateFilter } from './DateFilter';
 import { DropdownList } from '../DropdownList';
@@ -12,6 +11,7 @@ import { AuthenticatorContext } from '../../providers/AppAuthenticatorProvider';
 import { fetchData, getUserToken } from '../../utils/general';
 import { createDateFromDayValue, createDateStringFromDate, createDayFromDate, createLocalDateFromDateTimeString, getBeginningOfYear, getPriorMonthEnd } from '../../utils/dates';
 import { ModalType, useModalContext } from '../../providers/Modal';
+import './FilterBar.css';
 
 
 // Account Type Category does not appear here because they appear together with Account Types in account type filter (distinguished by level: 0 and 1).

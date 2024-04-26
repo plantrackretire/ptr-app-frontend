@@ -1,10 +1,10 @@
-import './Networth.css';
 import { useState } from 'react';
 import { AccountView, IAccount } from '../../components/AccountView';
 import { HoldingView, IHolding } from '../../components/HoldingView';
 import { NetworthChart } from '../../components/NetworthChart';
 import { createDateFromDayValue, getBeginningOfYear } from '../../utils/dates';
 import { IFilterBarValues } from '../../components/FilterBar';
+import './Networth.css';
 
 
 interface INetworth {
@@ -47,8 +47,8 @@ export const Networth: React.FC<INetworth> = ({ filterBarValues, dbHoldings, dbA
     const startDate = getBeginningOfYear(asOfDate);
     
     return (
-        <div className='networth scrollable'>
-            <div className='networth--main scrollable'>
+        <div className='content-two-col scrollable'>
+            <div className='content-two-col--col scrollable'>
                 <NetworthChart 
                     labels={dbHistoricalHoldings ? dbHistoricalHoldings['labels'] : null} 
                     balances={dbHistoricalHoldings ? dbHistoricalHoldings['values'] : null} 
@@ -64,7 +64,7 @@ export const Networth: React.FC<INetworth> = ({ filterBarValues, dbHoldings, dbA
                     setFilterValue={setHoldingsFilterValue}
                 />
             </div>
-            <div className='networth--secondary scrollable'>
+            <div className='content-two-col--col scrollable'>
                 <HoldingView 
                     startDate={startDate} 
                     asOfDate={asOfDate} 

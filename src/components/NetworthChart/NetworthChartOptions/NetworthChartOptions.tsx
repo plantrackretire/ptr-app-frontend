@@ -1,6 +1,6 @@
-import './NetworthChartOptions.css';
 import { Fragment } from 'react';
 import { calcDiffInYears } from '../../../utils/dates';
+import './NetworthChartOptions.css';
 
 
 interface INetworthChartOptions {

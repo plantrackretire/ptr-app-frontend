@@ -1,8 +1,8 @@
 import { useContext } from 'react';
-import './Header.css';
 import { UserIcon } from '../../assets/UserIcon';
 import { AuthenticatorContext } from '../../providers/AppAuthenticatorProvider';
 import { ModalType, useModalContext } from '../../providers/Modal';
+import './Header.css';
 
 
 export const Header: React.FC = () => {

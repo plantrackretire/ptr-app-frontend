@@ -1,8 +1,8 @@
-import './DateSelector.css';
 import '@hassanmojab/react-modern-calendar-datepicker/lib/DatePicker.css';
 import DatePicker, { DayValue, Day } from '@hassanmojab/react-modern-calendar-datepicker';
 import { getMonthName } from '../../utils/dates';
 import { Fragment } from 'react';
+import './DateSelector.css';
 
 interface IDateSelector {
   selectedDay: DayValue,

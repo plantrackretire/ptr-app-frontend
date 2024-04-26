@@ -1,5 +1,5 @@
-import './Modal.css';
 import React, {useContext, useRef, useState} from "react";
+import './Modal.css';
 
 
 export enum ModalType {

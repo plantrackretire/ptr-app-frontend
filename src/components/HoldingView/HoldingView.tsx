@@ -1,12 +1,10 @@
-import './HoldingView.css';
 import { SectionHeading, SectionHeadingSizeType } from '../SectionHeading';
-import { DropdownListOptionsType } from '../DropdownList';
 import { useState } from 'react';
-import { SortSelector } from '../SortSelector';
 import { AggregateValues } from '../../utils/calcs';
 import { HoldingGroupList } from './HoldingGroupList';
 import { compareDates } from '../../utils/dates';
 import { HoldingViewPlaceholder } from './HoldingViewPlaceholder';
+import './HoldingView.css';
 
 
 interface IHoldingView {
@@ -44,7 +42,7 @@ export interface IHolding {
 }
 
 export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, scope, holdings }) => {
-  const [sortOrder, setSortOrder] = useState<DropdownListOptionsType>([holdingsSortOrderOptions[0]]);
+  const [sortColumn, setSortColumn] = useState<string>("securityName");
   const [sortDirection, setSortDirection] = useState<string>("asc");
 
   if(holdings === null) {
@@ -60,7 +58,7 @@ export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, scope
 
   const holdingGroups = createHoldingGroups(startDate, asOfDate, holdings);
 
-  const sortFunctions = sortFunctionSet[sortOrder[0].value][sortDirection];
+  const sortFunctions = sortFunctionSet[sortColumn][sortDirection];
   const holdingGroupsSorted = Object.values(holdingGroups).sort(sortFunctions['firstLevel']);
   const accountHoldingSortFunction = sortFunctions['secondLevel'];
 
@@ -72,18 +70,15 @@ export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, scope
           label="Holdings"
           subLabel={scope} 
         />
-        <SortSelector
-          sortOrderOptions={holdingsSortOrderOptions}
-          sortOrder={sortOrder}
-          sortDirection={sortDirection}
-          setSortOrder={setSortOrder}
-          setSortDirection={setSortDirection}
-        />
       </div>
       <HoldingGroupList
         holdingGroups={holdingGroupsSorted}
         handleHoldingActionButtonClick={handleHoldingActionButtonClick}
         accountHoldingSortFunction={accountHoldingSortFunction}
+        sortColumn={sortColumn}
+        sortDirection={sortDirection}
+        setSortColumn={setSortColumn}
+        setSortDirection={setSortDirection}
       />
     </div>
   );
@@ -128,8 +123,21 @@ const createHoldingGroups = (startDate: Date, asOfDate: Date, holdings: IHolding
 }
 
 
-const sortFunctionSet: { [index: number]: { [index: string]: { [index: string]: (a: IHolding, b: IHolding) => number } } } = {
-  1: 
+const sortFunctionSet: { [index: string]: { [index: string]: { [index: string]: (a: IHolding, b: IHolding) => number } } } = {
+  securityShortName: 
+    {
+      'asc': 
+        {
+          'firstLevel': (a: IHolding,b: IHolding) => a.securityShortName >= b.securityShortName ? 1 : -1,
+          'secondLevel': (a: IHolding,b: IHolding) => a.accountName >= b.accountName ? 1 : -1,
+        },
+      'desc':
+        {
+          'firstLevel': (a: IHolding,b: IHolding) => a.securityShortName <= b.securityShortName ? 1 : -1,
+          'secondLevel': (a: IHolding,b: IHolding) => a.accountName <= b.accountName ? 1 : -1,
+        },
+  },
+  securityName: 
     {
       'asc': 
         {
@@ -142,7 +150,33 @@ const sortFunctionSet: { [index: number]: { [index: string]: { [index: string]: 
           'secondLevel': (a: IHolding,b: IHolding) => a.accountName <= b.accountName ? 1 : -1,
         },
   },
-  2: 
+  price: 
+    {
+      'asc': 
+        {
+          'firstLevel': (a: IHolding,b: IHolding) => a.price >= b.price ? 1 : -1,
+          'secondLevel': (a: IHolding,b: IHolding) => a.accountName >= b.accountName ? 1 : -1,
+        },
+      'desc':
+        {
+          'firstLevel': (a: IHolding,b: IHolding) => a.price <= b.price ? 1 : -1,
+          'secondLevel': (a: IHolding,b: IHolding) => a.accountName <= b.accountName ? 1 : -1,
+        },
+    },
+  quantity: 
+    {
+      'asc': 
+        {
+          'firstLevel': (a: IHolding,b: IHolding) => a.quantity >= b.quantity ? 1 : -1,
+          'secondLevel': (a: IHolding,b: IHolding) => a.quantity >= b.quantity ? 1 : -1,
+        },
+      'desc':
+        {
+          'firstLevel': (a: IHolding,b: IHolding) => a.quantity <= b.quantity ? 1 : -1,
+          'secondLevel': (a: IHolding,b: IHolding) => a.quantity <= b.quantity ? 1 : -1,
+        },
+    },
+  balance: 
     {
       'asc': 
         {
@@ -156,8 +190,3 @@ const sortFunctionSet: { [index: number]: { [index: string]: { [index: string]: 
         },
     },
 };
-
-const holdingsSortOrderOptions = [
-  { value: 1, label: "Name" },
-  { value: 2, label: "Balance" },
-];
