@@ -27,7 +27,7 @@ export interface IFilterableFilterBarValues {
   accounts: { value: number, label: string, filter?: (number | string), level?: number }[],
   assetClasses: { value: number, label: string, filter?: (number | string), level?: number }[],
   assets: { value: number, label: string, filter?: (number | string), level?: number }[],
-  tags: string[],
+  tags: { value: number, label: string, filter?: (number | string), level?: number }[],
 };
 export interface IFilterBarValues extends IFilterableFilterBarValues {
   asOfDate: DayValue,
@@ -64,6 +64,7 @@ interface IFilterBarOptions {
   accountOptions: IFilterBarOption[],
   assetClassOptions: IFilterBarOption[],
   assetOptions: IFilterBarOption[],
+  tagOptions: IFilterBarOption[],
 }
 // Format expected by REST API
 export interface IServerFilterValues {
@@ -92,6 +93,7 @@ export const filterBarOptionsInit = {
   accountOptions: [],
   assetClassOptions: [],
   assetOptions: [],
+  tagOptions: [],
 }
 
 // appliedFilterBarValues - filter values that have been 'applied' and fed upstream to use in data retreival.
@@ -148,7 +150,7 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
       const body = { userId: appUserAttributes!.userId, queryType: "filterBarOptions", startDate: createDateStringFromDate(startDate), 
         endDate: createDateStringFromDate(endDate) };
       
-      const token = await getUserToken(appUserAttributes!.signOutFunction!, modalContext, filterBarValues.accountTypes.length > 0 ? 1 : 0);
+      const token = await getUserToken(appUserAttributes!.signOutFunction!, modalContext);
       const postResultJSON = await fetchData(url, body, token);
       if(postResultJSON === null) {
         await modalContext.showConfirmation(
@@ -166,6 +168,7 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
           accountOptions: Object.values(postResultJSON.accountOptions),
           assetClassOptions: Object.values(postResultJSON.assetClassOptions),
           assetOptions: Object.values(postResultJSON.assetOptions),
+          tagOptions: Object.values(postResultJSON.tagOptions),
         };
         setFilterBarOptions(newFilterBarOptions);
 
@@ -187,7 +190,7 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
   const handleAccountsClearButtonClick = () => setFilterBarValues({ ...filterBarValues, accounts: [] });
   const handleAssetClassClearButtonClick = () => setFilterBarValues({ ...filterBarValues, assetClasses: [] });
   const handleAssetsClearButtonClick = () => setFilterBarValues({ ...filterBarValues, assets: [] });
-  // const handleTagsClearButtonClick = () => setFilterBarValues({ ...filterBarValues, tags: [] });
+  const handleTagsClearButtonClick = () => setFilterBarValues({ ...filterBarValues, tags: [] });
 
   const handleAsOfDateChange = (asOfDate: DayValue) => setFilterBarValues({ ...filterBarValues, asOfDate: asOfDate });
   const handleAccoutTypesChange = (accountTypes: { value: number, label: string }[]) => {
@@ -206,15 +209,11 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
     const [validatedFilterBarValues] = validateFilterValues(filterBarOptions, { ...filterBarValues, assets: assets });
     setFilterBarValues(validatedFilterBarValues);
   }
-  // const handleTagsCheckBoxValueChange: HandleCheckBoxValueChangeType = (value: string, isChecked: boolean) => {
-  //   let tags: string[] = [];
-  //   if (isChecked) {
-  //       tags = [...filterBarValues.tags, value];
-  //   } else {
-  //       tags = filterBarValues.tags.filter((item) => item !== value);
-  //   }
-  //   setFilterBarValues({ ...filterBarValues, tags: tags });
-  // }
+  const handleTagsChange = (tags: { value: number, label: string }[]) => {
+    const [validatedFilterBarValues] = validateFilterValues(filterBarOptions, { ...filterBarValues, tags: tags });
+    setFilterBarValues(validatedFilterBarValues);
+  }
+
   const hanldeApplyClicked = () => {
     setAppliedFilterBarValues(filterBarValues);
   }
@@ -307,19 +306,19 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
             handleDropdownValueChange={handleAssetsChange}
           />
         </div>
-        {/* <div className='filterbar--filter'>
+        <div className='filterbar--filter'>
           <SectionHeading
             size={SectionHeadingSizeType.small}
             label="Tags"
             handleClearButtonClick={handleTagsClearButtonClick}
-            actionText='Select Tags'
+            actionText='Select Tag'
           />
-          <CheckboxGroup
-            checkboxOptions={tagOptions}
-            checkedBoxesValues={filterBarValues.tags}
-            handleCheckBoxValueChange={handleTagsCheckBoxValueChange}
+          <DropdownList
+            dropdownOptions={preparedFilterBarOptions.tagOptions}
+            dropdownValue={filterBarValues.tags}
+            handleDropdownValueChange={handleTagsChange}
           />
-        </div> */}
+        </div>
         <div className="filterbar--apply">
           <button className={"button-el--visual" + (isApplyEnabled ? "" : " button-el--disabled")} onClick={isApplyEnabled ? () => hanldeApplyClicked() : undefined}>
             Apply
@@ -346,6 +345,8 @@ const validateFilterValues = (filterBarOptions: IFilterBarOptions, filterBarValu
     filterBarValues.assetClasses.length > 0 ? filterBarValues.assetClasses : null;
   let assetFilterValue: { value: number, label: string }[] | null = 
     filterBarValues.assets.length > 0 ? filterBarValues.assets : null;
+  let tagFilterValue: { value: number, label: string }[] | null = 
+    filterBarValues.tags.length > 0 ? filterBarValues.tags : null;
 
   let validatedFilterBarValues = { ...filterBarValues };
   let didValuesChange = false;
@@ -369,6 +370,11 @@ const validateFilterValues = (filterBarOptions: IFilterBarOptions, filterBarValu
   if(assetClassFilterValue && !isValueInOptions(assetClassFilterValue, filterBarOptions.assetClassOptions)) {
     validatedFilterBarValues.assetClasses = [];
     assetClassFilterValue = null;
+    didValuesChange = true;
+  }
+  if(tagFilterValue && !isValueInOptions(tagFilterValue, filterBarOptions.tagOptions)) {
+    validatedFilterBarValues.tags = [];
+    tagFilterValue = null;
     didValuesChange = true;
   }
 
@@ -408,6 +414,16 @@ const validateFilterValues = (filterBarOptions: IFilterBarOptions, filterBarValu
       filterBarOptions.assetOptions, accountFilterValue ? FilterableFilterBarCategories.accounts : FilterableFilterBarCategories.accountTypes)) {
         validatedFilterBarValues.assets = [];
         assetFilterValue = null;
+        didValuesChange = true;
+    }
+  }
+
+  // Fifth validate tag is associated with account (first priority) or account type
+  if(tagFilterValue && accountTypeFilterValue) {
+    if(!isValueAssociatedWithOptions(tagFilterValue, (accountFilterValue || accountTypeFilterValue!),
+      filterBarOptions.tagOptions, accountFilterValue ? FilterableFilterBarCategories.accounts : FilterableFilterBarCategories.accountTypes)) {
+        validatedFilterBarValues.tags = [];
+        tagFilterValue = null;
         didValuesChange = true;
     }
   }
@@ -452,11 +468,12 @@ const isValueAssociatedWithOptions = (checkValue: { value: number, label: string
 };
 
 // Assumes only one choice per filter is possible (does not support multi select for any filter.)
-// Assume two sets of related filters: Account Types and Accounts, and Asset Classes and Assets (securities).
+// Assume two sets of related filters: Account Types and Accounts, and Asset Classes and Assets (securities).  Tags are separate.
 // Filters are applied as follows:
 // If more general value selected then more specific filter is limited to options associated with the general filter selected.
 // E.g. If Account Type selected the Accounts filter is limited to accounts in the account type selected.  Same applies to Asset Class and Assets.
 // In addition, Asset Class and Asset filters are limited to the values associated with the Account (first priority) or Account Type selected.
+// Tags are filtered based on accounts.
 const filterAndSortOptions = (filterBarOptions: IFilterBarOptions, filterBarValues: IFilterBarValues): IFilterBarOptions => {
   const accountTypeFilterValue: number | null = filterBarValues.accountTypes.length > 0 ? filterBarValues.accountTypes[0].value : null;
   const accountFilterValue: number | null = filterBarValues.accounts.length > 0 ? filterBarValues.accounts[0].value : null;
@@ -517,11 +534,28 @@ const filterAndSortOptions = (filterBarOptions: IFilterBarOptions, filterBarValu
     return 0;
   });
 
+  // Tags - filtered to values associated with selected account (first priority) or account type (tags currently only associated with accounts).
+  let filteredTagOptions = filterBarOptions.tagOptions;
+  if(accountFilterLevelField !== null) {
+    filteredTagOptions = filterBarOptions.tagOptions.filter((item: IFilterBarOption) => {
+      if(accountFilterLevelField && !(accountFilterLevelValue in item.associations[accountFilterLevelField!])) {
+        return false;
+      }
+      return true;
+    });
+  }
+  const sortedFilteredTagOptions = filteredTagOptions.sort((a: IFilterBarOption, b: IFilterBarOption) => {
+    if(a.label < b.label) return -1;
+    if(a.label > b.label) return 1;
+    return 0;
+  });
+  
   return {
     accountTypeOptions: sortedFilteredAccountTypeOptions,
     accountOptions: sortedFilteredAccountOptions,
     assetClassOptions: sortedFilteredAssetClassOptions,
     assetOptions: sortedFilteredAssetOptions,
+    tagOptions: sortedFilteredTagOptions,
   };
 };
 
@@ -586,31 +620,9 @@ export const formatFilterBarValuesForServer = (filterBarValues: IFilterBarValues
   if((filterBarValues.assetClasses.length) > 0 && (filterBarValues.assets.length <= 0)) {
     formattedFilterBarValues.assetClasses = filterBarValues.assetClasses.flatMap(el => (el.filter as string)!.split(',').map(Number));
   }
+  if(filterBarValues.tags.length > 0) {
+    formattedFilterBarValues.tags = filterBarValues.tags.flatMap(el => el.value);
+  }
 
   return formattedFilterBarValues;
 };
-
-
-export const accountTypeOptions = [
-  { value: 1, label: "Taxable", filter: [1, 2, 3] },
-  { value: 2, label: "Tax Deferred", filter: [1, 4, 3] },
-  { value: 3, label: "Tax Exempt", filter: [1, 2, 8] },
-  { value: 4, label: "Health Savings", filter: [3] },
-  { value: 5, label: "College Savings (529)", filter: [4, 5] },
-];
-
-export const assetClassOptions = [
-  { value: 1, label: "Cash Equivalents" },
-  { value: 2, label: "Commodities" },
-  { value: 3, label: "Crypto" },
-  { value: 4, label: "Equities" },
-  { value: 5, label: "Fixed Income" },
-  { value: 6, label: "Private Investments" },
-  { value: 7, label: "Real Estate" },
-];
-
-export const tagOptions = [
-  { value: "Drawdown Assets", label: "Drawdown Assets" },
-  { value: "Income Producing", label: "Income Producing" },
-  { value: "Kid's College", label: "Kid's College" },
-];

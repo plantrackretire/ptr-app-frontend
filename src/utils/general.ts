@@ -25,11 +25,10 @@ export const fetchData = async (url: string, body: any, token: string) => {
   return null;
 }
 
-export const getUserToken = async (signOut: (() => void), modalContext: ModalContextType, test?: number) => {
+export const getUserToken = async (signOut: (() => void), modalContext: ModalContextType) => {
   let jwtToken = '';
   try {
     jwtToken = (await fetchAuthSession()).tokens?.idToken?.toString() as string;
-    if(test) jwtToken = '';
   } catch (err) {
     // TODO: Throw exception?
     console.log("Error getting token");
