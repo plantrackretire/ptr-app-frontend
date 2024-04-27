@@ -18,7 +18,7 @@ export const AccountRec: React.FC<IAccountRec> = ({ account, handleAccountTypeCa
       <td>
         <div className='two-line'>
           <div className={isActive ? "active" : ""}>
-            {account.accountName + " | " + account.accountCustodian}
+            {account.accountName + (account.accountCustodian ? " | " + account.accountCustodian : "")}
           </div>
           <small>{account.accountTypeName}</small>
         </div>
