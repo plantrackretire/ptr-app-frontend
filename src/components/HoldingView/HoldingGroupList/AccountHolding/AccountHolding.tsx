@@ -7,12 +7,14 @@ import './AccountHolding.css';
 
 interface IAccountHolding {
   accountHolding: IHolding,
-  handleHoldingActionButtonClick: () => void,
+  handleHoldingActionButtonClick: (securityId: number, securityName: string, accountId?: number, accountName?: string) => void,
 }
 
 export const AccountHolding: React.FC<IAccountHolding> = ({ accountHolding, handleHoldingActionButtonClick }) => {
   return (
-    <BasicTableSubRow handleRowClick={handleHoldingActionButtonClick}>
+    <BasicTableSubRow handleRowClick={() => 
+        handleHoldingActionButtonClick(accountHolding.securityId, accountHolding.securityName, accountHolding.accountId, accountHolding.accountName)}
+    >
       <td><br /></td>
       <td>
         <small>{accountHolding.accountName}</small>

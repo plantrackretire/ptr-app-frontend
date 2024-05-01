@@ -11,11 +11,12 @@ interface IBasicTableColHeadings {
   sortDirection: string,
   setSortColumn:(value: string) => void,
   setSortDirection:(value: string) => void,
+  freezeHeadings?: boolean,
 }
 
-export const BasicTableColHeadings: React.FC<IBasicTableColHeadings> = ({ headingSet, sortColumn, sortDirection, setSortColumn, setSortDirection }) => {
+export const BasicTableColHeadings: React.FC<IBasicTableColHeadings> = ({ headingSet, sortColumn, sortDirection, setSortColumn, setSortDirection, freezeHeadings }) => {
   return (
-    <thead className="basic-table--col-headings">
+    <thead className={"basic-table--col-headings" + (freezeHeadings ? " freeze-headings" : "")}>
       <tr>
         { headingSet &&
             headingSet.map(heading => 

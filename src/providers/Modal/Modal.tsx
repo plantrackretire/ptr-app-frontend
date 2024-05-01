@@ -1,10 +1,15 @@
 import React, {useContext, useRef, useState} from "react";
 import './Modal.css';
+import { ClearIcon } from "../../assets/ClearIcon";
 
 
+// Inputs:
+//  For confirm types (confirm and confirmWithCancel): title (required), content (optional).
+//  For closable: title (required) as content.
 export enum ModalType {
     confirm = "confirm",
     confirmWithCancel = "confirmWithCancel",
+    closable = "closable",
 };
   
 type UseModalShowReturnType = {
@@ -28,7 +33,7 @@ const useModalShow = (): UseModalShowReturnType => {
 };
 
 export type ModalContextType = {
-    showConfirmation: (modalType: ModalType, title: string, content?: string | JSX.Element) => Promise<boolean>;
+    showConfirmation: (modalType: ModalType, title: string | JSX.Element, content?: string | JSX.Element) => Promise<boolean>;
 };
 
 type ModalContextProviderProps = {
@@ -37,15 +42,23 @@ type ModalContextProviderProps = {
 
 const ModalContext = React.createContext<ModalContextType>({} as ModalContextType);
 
-export const ModalContextProvider: React.FC<ModalContextProviderProps> = (props) => {
+export const ModalContextProvider: React.FC<ModalContextProviderProps> = ({ children }) => {
     const {setShow, show, onHide} = useModalShow();
-    const [content, setContent] = useState<{ title: string, content: string | JSX.Element | null} | null>();
+    const [content, setContent] = useState<{ title: string | JSX.Element, content: string | JSX.Element | null} | null>();
     const [modalType, setModalType] = useState<ModalType>(ModalType.confirm);
     const resolver = useRef<Function>();
     const modalRef = useRef<HTMLDivElement>(null);
 
-    const handleShow = (modalType: ModalType, title: string, content?: string | JSX.Element): Promise<boolean> => {
-        content ? setContent({ title, content }) : setContent({ title, content: null });
+    const handleShow = (modalType: ModalType, title: string | JSX.Element, content?: string | JSX.Element): Promise<boolean> => {
+        switch(modalType) {
+            case ModalType.confirm:
+            case ModalType.confirmWithCancel:
+                setContent({ title, content: content ? content : null });
+                break;
+            case ModalType.closable:
+                setContent({ title, content: null });
+                break;
+        }
         setShow(true);
         setModalType(modalType);
         return new Promise(function (resolve) {
@@ -60,16 +73,18 @@ export const ModalContextProvider: React.FC<ModalContextProviderProps> = (props)
     const handleOk = () => {
         resolver.current && resolver.current(true);
         onHide();
+        setContent(null);
     };
 
     const handleCancel = () => {
         resolver.current && resolver.current(false);
         onHide();
+        setContent(null);
     };
 
     return (
         <ModalContext.Provider value={modalContext}>
-            {props.children}
+            {children}
 
             {content && show && 
                 <div id="modal"
@@ -80,22 +95,32 @@ export const ModalContextProvider: React.FC<ModalContextProviderProps> = (props)
                         handleCancel();
                     }}
                 >
-                    <div id="modal--content" ref={modalRef}>
-                        <div id="modal--content-title">
+                    { ((modalType === ModalType.confirm) || (modalType === ModalType.confirmWithCancel)) &&
+                        <div id="modal--content--confirmable" className="modal--content" ref={modalRef}>
+                            <div id="modal--content--confirmable-title">
+                                {content.title}
+                            </div>
+                            { content.content &&
+                                <div id="modal--content--confirmable-body">
+                                    {content.content}
+                                </div>
+                            }
+                            <div id="modal--content--confirmable-buttons">
+                                { modalType == ModalType.confirmWithCancel &&
+                                    <button className="button-el" onClick={handleCancel}>Cancel</button>
+                                }
+                                <button className="button-el--visual" onClick={handleOk}>OK</button>
+                            </div>
+                        </div>
+                    }
+                    { (modalType === ModalType.closable) &&
+                        <div id="modal--content--closable" className="modal--content" ref={modalRef}>
+                            <div id="modal--content--closable-close">
+                                <button className="button-el" onClick={handleCancel}><ClearIcon title="Close" /></button>
+                            </div>
                             {content.title}
                         </div>
-                        { content.content &&
-                            <div id="modal--content-body">
-                                {content.content}
-                            </div>
-                        }
-                        <div id="modal--content-buttons">
-                            { modalType == ModalType.confirmWithCancel &&
-                                <button className="button-el" onClick={handleCancel}>Cancel</button>
-                            }
-                            <button className="button-el--visual" onClick={handleOk}>OK</button>
-                        </div>
-                    </div>
+                    }
                 </div>
             }
         </ModalContext.Provider>

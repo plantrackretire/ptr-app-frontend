@@ -3,8 +3,6 @@ import { useState } from 'react';
 import { AccountTypeCategoryList } from './AccountTypeCategoryList';
 import { IHolding } from '../HoldingView';
 import { AggregateValues } from '../../utils/calcs';
-import { SortSelector } from '../SortSelector';
-import { DropdownListOptionsType } from '../DropdownList';
 import { AccountViewPlaceholder } from './AccountViewPlaceholder';
 import './AccountView.css';
 
@@ -42,8 +40,8 @@ export interface IAccount {
 
 export const AccountView: React.FC<IAccountView> = ({ startDate, asOfDate, accounts, holdings,
   filterType, filterValue, setFilterType, setFilterValue }) => {
-    const [sortColumn, setSortColumn] = useState<string>("name");
-    const [sortDirection, setSortDirection] = useState<string>("asc");
+  const [sortColumn, setSortColumn] = useState<string>("name");
+  const [sortDirection, setSortDirection] = useState<string>("asc");
 
   if(holdings === null || accounts === null) {
     return <AccountViewPlaceholder />
@@ -60,15 +58,13 @@ export const AccountView: React.FC<IAccountView> = ({ startDate, asOfDate, accou
 
   return (
     <div className='account-view'>
-      <div className="sortable-section-heading">
-        <SectionHeading
-          size={SectionHeadingSizeType.medium} 
-          label="Accounts"
-          subLabel={ "As of " + (asOfDate?.getMonth()+1) + " / " + asOfDate?.getDate() + " / " + asOfDate?.getFullYear() } 
-          handleActionButtonClick={() => { setFilterType("All"); setFilterValue("All"); }}
-          isActive={filterType === "All" ? true : false}
-        />
-      </div>
+      <SectionHeading
+        size={SectionHeadingSizeType.medium} 
+        label="Accounts"
+        subLabel={ "As of " + (asOfDate?.getMonth()+1) + " / " + asOfDate?.getDate() + " / " + asOfDate?.getFullYear() } 
+        handleActionButtonClick={() => { setFilterType("All"); setFilterValue("All"); }}
+        isActive={filterType === "All" ? true : false}
+      />
       <AccountTypeCategoryList
         accountTypeCategoryGroups={accountTypeCategoryGroupsSorted}
         accountSortFunction={sortFunctionsSecondLevel}
@@ -172,9 +168,3 @@ const sortFunctionSetSecondLevel: { [index: string]: { [index: string]: (a: IAcc
     'desc': (a: IAccount,b: IAccount) => a.aggValues!.getAggregateEndValue()! <= b.aggValues!.getAggregateEndValue()! ? 1 : -1,
   },
 };
-
-
-const accountSortOrderOptions = [
-  { value: 1, label: "Name" },
-  { value: 2, label: "Balance" },
-];

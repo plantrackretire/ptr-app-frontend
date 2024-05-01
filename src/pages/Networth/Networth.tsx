@@ -70,6 +70,7 @@ export const Networth: React.FC<INetworth> = ({ filterBarValues, dbHoldings, dbA
                     asOfDate={asOfDate} 
                     holdings={filteredHoldings} 
                     scope={holdingsFilterScope} 
+                    filterBarValues={filterBarValues}
                 />
             </div>
         </div>

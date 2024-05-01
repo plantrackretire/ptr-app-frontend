@@ -10,7 +10,7 @@ import './HoldingGroupList.css';
 
 interface IHoldingGroupList {
   holdingGroups: IHoldingGroup[],
-  handleHoldingActionButtonClick: () => void,
+  handleHoldingActionButtonClick: (securityId: number, securityName: string, accountId?: number, accountName?: string) => void,
   accountHoldingSortFunction: (a: IHolding, b: IHolding) => number,
   sortColumn: string,
   sortDirection: string,
@@ -23,7 +23,7 @@ export const HoldingGroupList: React.FC<IHoldingGroupList> = ({ holdingGroups, h
   }) => {
   return (
     <div className="holding-group-list">
-      <BasicTable areRowsClickable={true}>
+      <BasicTable areRowsClickable={true} highlightRowsOnHover={true}>
         <BasicTableColHeadings
           headingSet={[
             { name: "Ticker", sortColumn: "securityShortName" },

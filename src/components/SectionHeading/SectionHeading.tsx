@@ -13,7 +13,7 @@ export enum SectionHeadingSizeType {
 
 interface ISectionHeading {
   label: string,
-  subLabel?: string,
+  subLabel?: string | JSX.Element,
   size: SectionHeadingSizeType,
   handleActionButtonClick?: () => void,
   handleClearButtonClick?: () => void,
@@ -26,7 +26,7 @@ export const SectionHeading: React.FC<ISectionHeading> = ({ label, subLabel, siz
   isClearAll, actionText, isActive }) => {
   const activeClass = isActive ? " active" : "";
   let heading = <h4 className={activeClass}>{label}</h4>;
-  let subHeading = <small className="section-heading--sub-heading">{subLabel}</small>;
+  let subHeading = typeof(subLabel) === 'string' ? <small className="section-heading--sub-heading">{subLabel}</small> : subLabel;
 
   switch(size) {
     case SectionHeadingSizeType.tiny: heading = <small className={activeClass}>{label}</small>; break;

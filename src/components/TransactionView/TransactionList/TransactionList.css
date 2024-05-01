@@ -1,0 +1,22 @@
+.transaction-list {
+  min-width: 550px;
+}
+
+.transaction-list th,
+.transaction-list td {
+  text-align: left;
+}
+
+/* Have to select first child then select from last because may or may not have account column */
+.transaction-list th:first-child,
+.transaction-list th:nth-last-child(2),
+.transaction-list th:nth-last-child(3),
+.transaction-list th:nth-last-child(4),
+.transaction-list th:nth-last-child(5),
+.transaction-list td:first-child,
+.transaction-list td:nth-last-child(2),
+.transaction-list td:nth-last-child(3),
+.transaction-list td:nth-last-child(4),
+.transaction-list td:nth-last-child(5) {
+    text-align: right;
+}

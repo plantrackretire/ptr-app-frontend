@@ -16,14 +16,12 @@
 .basic-table th {
     padding-top: .6em;
     padding-bottom: .6em;
-    padding-right: .5em;
     font-weight: 400;
     background-color: var(--light-grey);
 }
 .basic-table tr:not(.basic-table--sub-row) td {
     padding-top: .6em;
     padding-bottom: .6em;
-    padding-right: .5em;
     border-bottom: 1px solid var(--light-grey);
 }
 /* col-headings are for sortable column labels */
@@ -35,13 +33,20 @@
     background-color: var(--medium-grey);
     color: white;
 }
+.basic-table--col-headings.freeze-headings tr:first-child>th {
+    position: sticky;
+    top: 0;
+}
 /* sub-row assumes content start one column in (first column blank for sub-rows and second slightly indented */
 .basic-table--sub-row td:not(:first-child) {
     padding-top: .25em;
     padding-bottom: .25em;
-    padding-right: .5em;
     background-color: var(--light-grey);
     border-bottom: 1px solid var(--app-background-color);
+}
+.basic-table tr th,
+.basic-table tr td {
+    padding-right: 1em;
 }
 .basic-table th:first-child,
 .basic-table td:first-child { 
@@ -54,20 +59,29 @@ tr.basic-table--sub-row:has(+ :not(.basic-table--sub-row)) td {
     border-bottom: 1px solid var(--light-grey);
 }
 /* Use class basic-table--clickable-rows on table element to have rows behave as buttons */
-.basic-table--clickable-rows tr:not(.basic-table--sub-row):hover td {
-    background-color: var(--light-grey);
-    cursor: pointer;
-}
-.basic-table--clickable-rows thead:not(.basic-table--col-headings) tr:hover th,
-.basic-table--clickable-rows tr.basic-table--sub-row:hover td:not(:first-child) {
+.basic-table--highlightable-rows tr:not(.basic-table--sub-row):hover td {
     background-color: var(--medium-grey) !important;
     color: white;
+}
+.basic-table--highlightable-rows thead:not(.basic-table--col-headings) tr:hover th,
+.basic-table--highlightable-rows tr.basic-table--sub-row:hover td:not(:first-child) {
+    background-color: var(--medium-grey) !important;
+    color: white;
+}
+.basic-table--highlightable-rows tr:hover td [class*="color-modifier"],
+.basic-table--highlightable-rows thead:not(.basic-table--col-headings) tr:hover th [class*="color-modifier"],
+.basic-table--highlightable-rows tr:hover .two-line :nth-child(2),
+.basic-table--highlightable-rows thead:not(.basic-table--col-headings) tr:hover th .active,
+.basic-table--highlightable-rows tr:hover td .active {
+    color: white !important;
+}
+
+.basic-table--clickable-rows tr:hover td,
+.basic-table--clickable-rows thead:not(.basic-table--col-headings) tr:hover th {
     cursor: pointer;
 }
-.basic-table--clickable-rows thead:not(.basic-table--col-headings) tr:hover th [class*="color-modifier"],
-.basic-table--clickable-rows tr.basic-table--sub-row:hover td:not(:first-child) [class*="color-modifier"],
-.basic-table--clickable-rows tr.basic-table--sub-row:hover .two-line :nth-child(2),
-.basic-table--clickable-rows thead:not(.basic-table--col-headings) tr:hover th .active,
-.basic-table--clickable-rows tr.basic-table--sub-row:hover td:not(:first-child) .active {
-    color: white !important;
+
+/* For alternating row stripes */
+.basic-table--zebra-stripes tr:not(.basic-table--sub-row):nth-child(odd) td {
+    background-color: var(--light-grey);
 }

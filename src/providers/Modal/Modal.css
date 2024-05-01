@@ -12,24 +12,41 @@
     background-color: rgba(0,0,0,0.4);
 }
 
-#modal--content {
+.modal--content {
     background-color: white;
-    padding: 1.5em 0;
+    padding: 1.5em 2em;
+    max-height: 90vh;
+    overflow: hidden;
+}
+
+/* For confirm related modals */
+#modal--content--confirmable {
     display: flex;
     flex-direction: column;
     gap: 1em;
 }
-
-#modal--content-title,
-#modal--content-body {
-    padding: 0 2em 0 2em;
-}
-
-#modal--content-buttons {
+#modal--content--confirmable-buttons {
     display: flex;
     gap: 1em;
     align-items: center;
     justify-content: end;
-    padding: 1em 2em 0 2em;
+    padding-top: 1em;
     border-top: 1px solid var(--light-grey);
+}
+
+/* For closable modals */
+#modal--content--closable {
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: .25em;
+}
+#modal--content--closable-close {
+    width: 100%;
+    text-align: right;
+}
+
+#modal--content--closable-close button {
+    width: 1em;
+    height: 1em;
 }

@@ -7,12 +7,16 @@ import './HoldingRec.css';
 
 interface IHoldingRec {
   holding: IHolding,
-  handleHoldingActionButtonClick: () => void,
+  handleHoldingActionButtonClick: (securityId: number, securityName: string, accountId?: number, accountName?: string) => void,
 }
 
 export const HoldingRec: React.FC<IHoldingRec> = ({ holding, handleHoldingActionButtonClick }) => {
   return (
-    <BasicTableRow handleRowClick={handleHoldingActionButtonClick}>
+    <BasicTableRow handleRowClick={() => (holding.accountId === 0) ?
+      handleHoldingActionButtonClick(holding.securityId, holding.securityName)
+    :
+      handleHoldingActionButtonClick(holding.securityId, holding.securityName, holding.accountId, holding.accountName)
+    }>
       <td>
         <span>{holding.securityShortName}</span>
       </td>

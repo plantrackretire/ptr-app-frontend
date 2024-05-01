@@ -5,6 +5,9 @@ import { HoldingGroupList } from './HoldingGroupList';
 import { compareDates } from '../../utils/dates';
 import { HoldingViewPlaceholder } from './HoldingViewPlaceholder';
 import './HoldingView.css';
+import { ModalType, useModalContext } from '../../providers/Modal';
+import { IFilterBarValues } from '../FilterBar';
+import { TransactionView } from '../TransactionView';
 
 
 interface IHoldingView {
@@ -12,6 +15,7 @@ interface IHoldingView {
   asOfDate: Date,
   scope: string,
   holdings: IHolding[] | null,
+  filterBarValues: IFilterBarValues,
 }
 
 // Used to aggregate calculations to determine the aggregate gain/loss for a grouping
@@ -41,9 +45,10 @@ export interface IHolding {
   changeInValue?: number,
 }
 
-export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, scope, holdings }) => {
+export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, scope, holdings, filterBarValues }) => {
   const [sortColumn, setSortColumn] = useState<string>("securityName");
   const [sortDirection, setSortDirection] = useState<string>("asc");
+  const modalContext = useModalContext();
 
   if(holdings === null) {
     return <HoldingViewPlaceholder />
@@ -52,8 +57,19 @@ export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, scope
     return ""
   }
 
-  const handleHoldingActionButtonClick = () => {
-    alert("Show transactions for holding.");
+  const handleHoldingActionButtonClick = async(securityId: number, securityName: string, accountId?: number, accountName?: string) => {
+    await modalContext.showConfirmation(
+      ModalType.closable,
+      <TransactionView
+        securityId={securityId}
+        securityName={securityName}
+        accountId={accountId ? accountId : undefined}
+        accountName={accountName ? accountName : undefined}
+        filterBarValues={filterBarValues}
+        freezeHeadings={true}
+        maxHeight='80vh'
+      />
+    );
   }
 
   const holdingGroups = createHoldingGroups(startDate, asOfDate, holdings);
@@ -64,13 +80,11 @@ export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, scope
 
   return (
     <div className='holding-view'>
-      <div className="sortable-section-heading">
-        <SectionHeading
-          size={SectionHeadingSizeType.medium} 
-          label="Holdings"
-          subLabel={scope} 
-        />
-      </div>
+      <SectionHeading
+        size={SectionHeadingSizeType.medium} 
+        label="Holdings"
+        subLabel={scope} 
+      />
       <HoldingGroupList
         holdingGroups={holdingGroupsSorted}
         handleHoldingActionButtonClick={handleHoldingActionButtonClick}

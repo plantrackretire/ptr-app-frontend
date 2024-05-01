@@ -26,7 +26,7 @@ export const AccountTypeCategoryList: React.FC<IAccountTypeCategoryList> = ({ ac
   filterValue, filterType, setFilterType, setFilterValue, sortColumn, sortDirection, setSortColumn, setSortDirection }) => {
   return (
     <div className="account-view-table">
-      <BasicTable areRowsClickable={true}>
+      <BasicTable areRowsClickable={true} highlightRowsOnHover={true}>
         <Fragment>
           <BasicTableColHeadings
             headingSet={[
