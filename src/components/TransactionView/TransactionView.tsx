@@ -101,25 +101,24 @@ export const TransactionView: React.FC<ITransactionView> = ({ filterBarValues, s
     return <TransactionViewPlaceholder />
   }
 
-  let scope = accountId ?
-    <div className="transaction-view--heading">
-      <div>
-        <span><b>Account: </b></span>
-        <span className='de-emphasize'>{accountName}</span>
-      </div>
-      <div>
-        <span><b>Security: </b></span>
-        <span className="de-emphasize">{securityName}</span>
-      </div>
+  let securityScope = securityId ? 
+    <div>
+      <span><b>Security: </b></span>
+      <span className="de-emphasize">{securityName}</span>
     </div>
-  :
-    <div className="transaction-view--heading">
-      <div>
-        <span><b>Security: </b></span>
-        <span className="de-emphasize">{securityName}</span>
-      </div>
+  : '';
+  let accountScope = accountId ? 
+    <div>
+      <span><b>Account: </b></span>
+      <span className='de-emphasize'>{accountName}</span>
     </div>
-  ;
+  : '';
+
+  const scope =
+    <div className="transaction-view--heading">
+      { accountScope }
+      { securityScope }
+    </div>;
 
   const sortFunction = sortFunctionSet[sortColumn][sortDirection];
   const transactionsSorted = Object.values(dbTransactions).sort(sortFunction);

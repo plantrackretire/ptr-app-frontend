@@ -3,13 +3,18 @@
 }
 
 .holding-group-list th:first-child,
+.holding-group-list th:first-child button,
 .holding-group-list th:nth-child(2),
+.holding-group-list th:nth-child(2) button,
 .holding-group-list td:first-child,
 .holding-group-list td:nth-child(2) {
   text-align: left;
+  justify-content: start;
 }
 
+.holding-group-list th:not(:first-child):not(:nth-child(2)),
 .holding-group-list th:not(:first-child):not(:nth-child(2)) button,
 .holding-group-list td:not(:first-child):not(:nth-child(2)) {
   text-align: right !important;
+  justify-content: end;
 }

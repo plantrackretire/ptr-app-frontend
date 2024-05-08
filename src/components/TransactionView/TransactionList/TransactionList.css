@@ -3,20 +3,28 @@
 }
 
 .transaction-list th,
+.transaction-list th button,
 .transaction-list td {
   text-align: left;
+  justify-content: start;
 }
 
 /* Have to select first child then select from last because may or may not have account column */
 .transaction-list th:first-child,
+.transaction-list th:first-child button,
 .transaction-list th:nth-last-child(2),
+.transaction-list th:nth-last-child(2) button,
 .transaction-list th:nth-last-child(3),
+.transaction-list th:nth-last-child(3) button,
 .transaction-list th:nth-last-child(4),
+.transaction-list th:nth-last-child(4) button,
 .transaction-list th:nth-last-child(5),
+.transaction-list th:nth-last-child(5) button,
 .transaction-list td:first-child,
 .transaction-list td:nth-last-child(2),
 .transaction-list td:nth-last-child(3),
 .transaction-list td:nth-last-child(4),
 .transaction-list td:nth-last-child(5) {
     text-align: right;
+    justify-content: end;
 }

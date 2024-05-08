@@ -1,8 +1,12 @@
 .account-view-table th:first-child,
+.account-view-table th:first-child button,
 .account-view-table td:first-child {
     text-align: left;
+    justify-content: start;
 }
 .account-view-table th:not(:first-child),
+.account-view-table th:not(:first-child) button,
 .account-view-table td:not(:first-child) {
     text-align: right;
+    justify-content: end;
 }

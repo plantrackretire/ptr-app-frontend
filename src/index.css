@@ -3,10 +3,16 @@
   --app-max-width: 1800px;
 
   --app-background-color: #242424;
-  --light-blue: #90c8ee;
+  --light-blue: #b0dfff;
   --blue: #35A2EB;
   --green: #0DB800;
+  --light-green: #c2febe;
   --red: #B80000;
+  --light-red: #fec1c1;
+  --brown: #AF8260;
+  --yellow: #F3CA52;
+  --orange: #ED7D31;
+  --light-orange: #ffdca7;
   --light-grey: #F2F2F2;
   --light-grey2: #e0e0e0;
   --medium-grey: #a6a6a6;
@@ -272,10 +278,10 @@ svg {
   padding: var(--outer-padding);
   display: flex;
   flex-direction: column;
-  gap: 2em;
+  gap: 1.5em;
 }
 .content-two-col--col > div:not(:last-child) {
-  padding-bottom: 2em;
+  padding-bottom: 1.5em;
   border-bottom: 1px solid var(--light-grey);
 }
 

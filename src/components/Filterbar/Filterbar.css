@@ -20,6 +20,17 @@
   white-space: nowrap;
 }
 
+.filterbar--filter-applied .react-dropdown-select:not(.datefilter--precanned-dates .react-dropdown-select),
+.filterbar--filter-applied .responsive-calendar-input {
+  border-color: var(--blue);
+  background-color: var(--light-blue) !important;
+}
+.filterbar--filter-not-applied .react-dropdown-select:not(.datefilter--precanned-dates .react-dropdown-select),
+.filterbar--filter-not-applied .responsive-calendar-input {
+  border-color: var(--red);
+  background-color: var(--light-red) !important;
+}
+
 .filterbar--apply {
   text-align: center;
   display: flex;

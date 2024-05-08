@@ -4,16 +4,18 @@ import { AggregateValues } from '../../utils/calcs';
 import { HoldingGroupList } from './HoldingGroupList';
 import { compareDates } from '../../utils/dates';
 import { HoldingViewPlaceholder } from './HoldingViewPlaceholder';
-import './HoldingView.css';
 import { ModalType, useModalContext } from '../../providers/Modal';
 import { IFilterBarValues } from '../FilterBar';
 import { TransactionView } from '../TransactionView';
+import { IHoldingsFilterValue } from '../../pages/Networth';
+import './HoldingView.css';
 
 
 interface IHoldingView {
   startDate: Date,
   asOfDate: Date,
-  scope: string,
+  filterType: string,
+  filterValue: IHoldingsFilterValue,
   holdings: IHolding[] | null,
   filterBarValues: IFilterBarValues,
 }
@@ -45,7 +47,7 @@ export interface IHolding {
   changeInValue?: number,
 }
 
-export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, scope, holdings, filterBarValues }) => {
+export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, filterType, filterValue, holdings, filterBarValues }) => {
   const [sortColumn, setSortColumn] = useState<string>("securityName");
   const [sortDirection, setSortDirection] = useState<string>("asc");
   const modalContext = useModalContext();
@@ -78,12 +80,25 @@ export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, scope
   const holdingGroupsSorted = Object.values(holdingGroups).sort(sortFunctions['firstLevel']);
   const accountHoldingSortFunction = sortFunctions['secondLevel'];
 
+  let filterScope = '';
+  switch(filterType) {
+      case 'account': filterScope = filterValue.label; break;
+      default: filterScope = filterValue.label + " Accounts"; break;
+  }
+
   return (
     <div className='holding-view'>
       <SectionHeading
         size={SectionHeadingSizeType.medium} 
         label="Holdings"
-        subLabel={scope} 
+        subLabel={filterScope} 
+        handleActionButtonClick={(filterType === 'account') ? 
+          () => handleHoldingActionButtonClick(0, '', filterValue.id, filterValue.label) :
+          async() => await modalContext.showConfirmation(
+            ModalType.confirm,
+            'Please select an individual account to view all transactions.',
+          )
+        }
       />
       <HoldingGroupList
         holdingGroups={holdingGroupsSorted}

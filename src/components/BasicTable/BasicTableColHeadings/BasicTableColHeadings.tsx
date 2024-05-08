@@ -2,8 +2,9 @@ import './BasicTableColHeadings.css';
 
 
 interface IBasicTableColHeadingsSet {
-  name: string,
   sortColumn: string,
+  name: string,
+  subName?: string,
 }
 interface IBasicTableColHeadings {
   headingSet: IBasicTableColHeadingsSet[],
@@ -28,14 +29,21 @@ export const BasicTableColHeadings: React.FC<IBasicTableColHeadings> = ({ headin
                     setSortDirection(sortColumn === heading.sortColumn ? (sortDirection === "asc" ? "desc" : "asc") : "asc"); 
                   }}
                 >
-                  <span>
-                    {heading.name}
-                  </span>
-                  {
+                  { heading.subName ?
+                    <div className="basic-table--col-headings--two-line">
+                      <div>{heading.name}</div>
+                      <small>{heading.subName}</small>
+                    </div>
+                  :
+                    <div>
+                      {heading.name}
+                    </div>
+                  }
+                    {
                     (sortColumn === heading.sortColumn) &&
-                      <span>
+                      <div>
                         {sortDirection === "asc" ? "▲" : "▼" }
-                      </span>
+                      </div>
                   }
                 </button>
               </th>

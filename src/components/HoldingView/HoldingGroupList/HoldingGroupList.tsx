@@ -27,10 +27,10 @@ export const HoldingGroupList: React.FC<IHoldingGroupList> = ({ holdingGroups, h
         <BasicTableColHeadings
           headingSet={[
             { name: "Ticker", sortColumn: "securityShortName" },
-            { name: "Name", sortColumn: "securityName" },
-            { name: "Price", sortColumn: "price" },
-            { name: "Quantity", sortColumn: "quantity" },
-            { name: "Value", sortColumn: "balance" },
+            { name: "Name", subName: "Account", sortColumn: "securityName" },
+            { name: "Price", subName: "Last Upd", sortColumn: "price" },
+            { name: "Quantity", subName: "Last Upd", sortColumn: "quantity" },
+            { name: "Value", subName: "YTD Chg", sortColumn: "balance" },
           ]}
           sortColumn={sortColumn}
           sortDirection={sortDirection}

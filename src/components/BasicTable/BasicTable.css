@@ -37,6 +37,10 @@
     position: sticky;
     top: 0;
 }
+.basic-table--col-headings--two-line {
+    display: flex;
+    flex-direction: column;
+}
 /* sub-row assumes content start one column in (first column blank for sub-rows and second slightly indented */
 .basic-table--sub-row td:not(:first-child) {
     padding-top: .25em;

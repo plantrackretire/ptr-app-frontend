@@ -13,40 +13,53 @@ interface INetworthChartOptions {
   setYearValueType: (value: string) => void,
 }
 
-// Using memo because without it the chart re-renders (causing flickering of the annotation) on every call, even if params did not change.
 export const NetworthChartOptions: React.FC<INetworthChartOptions> = ({ units, timePeriod, dates, yearValueType, 
   setUnits, setTimePeriod, setYearValueType }) => {
   const timePeriodOptions = getTimePeriodOptions(dates);
 
   return (
     <div className="networth-chart--options">
-      <div className="networth-chart--options--time-period">
+      <button 
+        className={"networth-chart--options-left-side" + (units === "Months" ? " button-el active" : " button-el")} 
+        onClick={() => setUnits("Months")} title="Show monthly values"
+      >
+        MONTHS
+      </button>
+      <button 
+        className={"networth-chart--options-right-side" + (units === "Years" ? " button-el active" : " button-el")} 
+        onClick={() => setUnits("Years")} title="Show end of year values"
+      >
+        YEARS
+      </button>
+      { units === "Years" && <br /> }
+      <div className={"networth-chart--options--sub-options" + (units === "Months" ? " networth-chart--options-left-side" : " networth-chart--options-right-side")}>
         { units === "Months" ? 
             timePeriodOptions.map((option) => (
-              <button key={option} className={option === timePeriod ? "button-el active" : "button-el"} onClick={() => setTimePeriod(option)}>
+              <button key={option} 
+                className={"networth-chart--options-left-side" + (option === timePeriod ? " button-el active" : " button-el")} 
+                onClick={() => setTimePeriod(option)}
+              >
                 {option}
               </button>
             ))
         :
           <Fragment>
-            <button className={yearValueType === "$" ? "button-el active" : "button-el"} onClick={() => setYearValueType("$")}>
-              $
+            <button 
+              className={"networth-chart--options-right-side" + (yearValueType === "$" ? " button-el active" : " button-el")} 
+              onClick={() => setYearValueType("$")}
+            >
+              Dollars
             </button>
-            <button className={yearValueType === "%" ? "button-el active" : "button-el"} onClick={() => setYearValueType("%")}>
-              %
+            <button 
+              className={"networth-chart--options-right-side" + (yearValueType === "%" ? " button-el active" : " button-el")} 
+              onClick={() => setYearValueType("%")}
+            >
+              % Change
             </button>
           </Fragment>
-      }
+        }
       </div>
-      <div>|</div>
-      <div className="networth-chart--options--units">
-        <button className={units === "Months" ? "button-el active" : "button-el"} onClick={() => setUnits("Months")} title="Show monthly values">
-          MONTHS
-        </button>
-        <button className={units === "Years" ? "button-el active" : "button-el"} onClick={() => setUnits("Years")} title="Show end of year values">
-          YEARS
-        </button>
-      </div>
+      { units === "Months" && <br /> }
     </div>
   );
 };

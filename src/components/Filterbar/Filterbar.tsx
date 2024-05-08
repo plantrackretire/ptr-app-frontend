@@ -240,7 +240,10 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
         isClearAll={true} 
       />
       <div className='filterbar--filters'>
-        <div className='filterbar--filter'>
+        <div className={'filterbar--filter' +
+          ((filterBarValues.asOfDate && isEqual(filterBarValues.asOfDate, appliedFilterBarValues.asOfDate)) ? " filterbar--filter-applied" : "") +
+          ((!isEqual(filterBarValues.asOfDate, appliedFilterBarValues.asOfDate)) ? " filterbar--filter-not-applied" : "")}
+        >
           <SectionHeading 
             size={SectionHeadingSizeType.small} 
             label="As of Date"
@@ -254,7 +257,10 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
             maximumDate={createDayFromDate(new Date())}
           />
         </div>
-        <div className='filterbar--filter'>
+        <div className={'filterbar--filter' + 
+          ((filterBarValues.accountTypes.length && isEqual(filterBarValues.accountTypes, appliedFilterBarValues.accountTypes)) ? " filterbar--filter-applied" : "") +
+          ((!isEqual(filterBarValues.accountTypes, appliedFilterBarValues.accountTypes)) ? " filterbar--filter-not-applied" : "")}
+        >
           <SectionHeading 
             size={SectionHeadingSizeType.small}
             label="Accounts Types"
@@ -267,7 +273,10 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
             handleDropdownValueChange={handleAccoutTypesChange}
           />
         </div>
-        <div className='filterbar--filter'>
+        <div className={'filterbar--filter' +
+          ((filterBarValues.accounts.length && isEqual(filterBarValues.accounts, appliedFilterBarValues.accounts)) ? " filterbar--filter-applied" : "") +
+          ((!isEqual(filterBarValues.accounts, appliedFilterBarValues.accounts)) ? " filterbar--filter-not-applied" : "")}
+        >
           <SectionHeading 
             size={SectionHeadingSizeType.small}
             label="Accounts"
@@ -280,7 +289,10 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
             handleDropdownValueChange={handleAccoutsChange}
           />
         </div>
-        <div className='filterbar--filter'>
+        <div className={'filterbar--filter' +
+          ((filterBarValues.assetClasses.length && isEqual(filterBarValues.assetClasses, appliedFilterBarValues.assetClasses)) ? " filterbar--filter-applied" : "") +
+          ((!isEqual(filterBarValues.assetClasses, appliedFilterBarValues.assetClasses)) ? " filterbar--filter-not-applied" : "")}
+        >
           <SectionHeading
             size={SectionHeadingSizeType.small}
             label="Asset Classes"
@@ -293,7 +305,10 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
             handleDropdownValueChange={handleAssetClassesChange}
           />
         </div>
-        <div className='filterbar--filter'>
+        <div className={'filterbar--filter' +
+          ((filterBarValues.assets.length && isEqual(filterBarValues.assets, appliedFilterBarValues.assets)) ? " filterbar--filter-applied" : "") +
+          ((!isEqual(filterBarValues.assets, appliedFilterBarValues.assets)) ? " filterbar--filter-not-applied" : "")}
+        >
           <SectionHeading
             size={SectionHeadingSizeType.small}
             label="Assets"
@@ -306,7 +321,10 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
             handleDropdownValueChange={handleAssetsChange}
           />
         </div>
-        <div className='filterbar--filter'>
+        <div className={'filterbar--filter' +
+          ((filterBarValues.tags.length && isEqual(filterBarValues.tags, appliedFilterBarValues.tags)) ? " filterbar--filter-applied" : "") +
+          ((!isEqual(filterBarValues.tags, appliedFilterBarValues.tags)) ? " filterbar--filter-not-applied" : "")}
+        >
           <SectionHeading
             size={SectionHeadingSizeType.small}
             label="Tags"

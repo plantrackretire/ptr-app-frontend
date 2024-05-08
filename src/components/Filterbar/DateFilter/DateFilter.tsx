@@ -29,11 +29,13 @@ export const DateFilter: React.FC<IDateFilter> = ({ selectedDay, setSelectedDay,
 
   return (
     <div className='datefilter'>
-      <DropdownList
-        dropdownOptions={precannedDates}
-        dropdownValue={precannedDateValueMatch}
-        handleDropdownValueChange={handleDrPrecannedDateValueChange}
-      />
+      <div className="datefilter--precanned-dates">
+        <DropdownList
+          dropdownOptions={precannedDates}
+          dropdownValue={precannedDateValueMatch}
+          handleDropdownValueChange={handleDrPrecannedDateValueChange}
+        />
+      </div>
       <div className='datefilter--date'>
         <span>{inputLabel}</span>
         <DateSelector 

@@ -14,9 +14,19 @@ interface INetworth {
     dbHistoricalHoldings: { [index: string]: [] } | null,
 }
 
+export interface IHoldingsFilterValue {
+    id: number, 
+    label: string
+}
+
+export const holdingsFilterValueAll = {
+    id: 0, 
+    label: "All"
+}
+
 export const Networth: React.FC<INetworth> = ({ filterBarValues, dbHoldings, dbAccounts, dbHistoricalHoldings }) => {
     const [holdingsFilterType, setHoldingsFilterType] = useState<string>("All");
-    const [holdingsFilterValue, setHoldingsFilterValue] = useState<string>("All");
+    const [holdingsFilterValue, setHoldingsFilterValue] = useState<IHoldingsFilterValue>(holdingsFilterValueAll);
 
     let filteredHoldings: (IHolding[] | null) = dbHoldings === null ? null : [];
     if(dbHoldings !== null && dbAccounts !== null) {
@@ -27,7 +37,7 @@ export const Networth: React.FC<INetworth> = ({ filterBarValues, dbHoldings, dbA
                 );
                 if(filteredHoldings?.length === 0 && dbHoldings.length > 0) {
                     setHoldingsFilterType("All");
-                    setHoldingsFilterValue("All");
+                    setHoldingsFilterValue(holdingsFilterValueAll);
                 }
             } else
                 filteredHoldings = [];
@@ -35,12 +45,6 @@ export const Networth: React.FC<INetworth> = ({ filterBarValues, dbHoldings, dbA
             if(dbHoldings)
                 filteredHoldings = dbHoldings;
         }
-    }
-
-    let holdingsFilterScope = '';
-    switch(holdingsFilterType) {
-        case 'account': holdingsFilterScope = holdingsFilterValue; break;
-        default: holdingsFilterScope = holdingsFilterValue + " Accounts"; break;
     }
 
     const asOfDate = createDateFromDayValue(filterBarValues.asOfDate);
@@ -69,7 +73,8 @@ export const Networth: React.FC<INetworth> = ({ filterBarValues, dbHoldings, dbA
                     startDate={startDate} 
                     asOfDate={asOfDate} 
                     holdings={filteredHoldings} 
-                    scope={holdingsFilterScope} 
+                    filterType={holdingsFilterType}
+                    filterValue={holdingsFilterValue}
                     filterBarValues={filterBarValues}
                 />
             </div>
@@ -77,12 +82,12 @@ export const Networth: React.FC<INetworth> = ({ filterBarValues, dbHoldings, dbA
     );
 };
 
-const applyFilterToRecord = (record: IHolding, accounts: {[index: number]: IAccount}, holdingsFilterType: string, holdingsFilterValue: string) => {
+const applyFilterToRecord = (record: IHolding, accounts: {[index: number]: IAccount}, holdingsFilterType: string, holdingsFilterValue: IHoldingsFilterValue) => {
     switch(holdingsFilterType) {
         case 'accountTypeCategory':
-            return(accounts[record.accountId].accountTypeCategoryName === holdingsFilterValue);
+            return(accounts[record.accountId].accountTypeCategoryId === holdingsFilterValue.id);
         case 'account':
-            return(record.accountName === holdingsFilterValue);
+            return(record.accountId === holdingsFilterValue.id);
         default:
             // TODO: Throw exception
             console.log("INVALID holdingsFilterType");

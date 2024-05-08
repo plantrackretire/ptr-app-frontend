@@ -7,15 +7,16 @@ import { BasicTableColHeadings } from '../../BasicTable/BasicTableColHeadings';
 import { BasicTableBody } from '../../BasicTable/BasicTableBody';
 import { BasicTableHeading } from '../../BasicTable/BasicTableHeading';
 import './AccountTypeCategoryList.css';
+import { IHoldingsFilterValue } from '../../../pages/Networth';
 
 
 interface IAccountTypeCategoryList {
   accountTypeCategoryGroups: IAccountTypeCategoryGroup[],
   accountSortFunction: (a: IAccount, b: IAccount) => number,
   filterType: string,
-  filterValue: string,
+  filterValue: IHoldingsFilterValue,
   setFilterType: (type: string) => void,
-  setFilterValue: (value: string) => void,
+  setFilterValue: (value: IHoldingsFilterValue) => void,
   sortColumn: string,
   sortDirection: string,
   setSortColumn:(value: string) => void,
@@ -31,7 +32,7 @@ export const AccountTypeCategoryList: React.FC<IAccountTypeCategoryList> = ({ ac
           <BasicTableColHeadings
             headingSet={[
               { name: "Name", sortColumn: "name" },
-              { name: "YTD ∆", sortColumn: "change" },
+              { name: "YTD Chg", sortColumn: "change" },
               { name: "Value", sortColumn: "balance" },
             ]}
             sortColumn={sortColumn}
@@ -47,10 +48,13 @@ export const AccountTypeCategoryList: React.FC<IAccountTypeCategoryList> = ({ ac
                     accountTypeCategory={accountTypeCategoryGroup.accountTypeCategory} 
                     handleAccountTypeCategoryButtonClick={() => { 
                       setFilterType("accountTypeCategory");
-                      setFilterValue(accountTypeCategoryGroup.accountTypeCategory.accountTypeCategoryName); 
+                      setFilterValue({
+                        id: accountTypeCategoryGroup.accountTypeCategory.accountTypeCategoryId,
+                        label: accountTypeCategoryGroup.accountTypeCategory.accountTypeCategoryName
+                      }); 
                     }}
                     isActive={filterType === "accountTypeCategory" && 
-                      filterValue === accountTypeCategoryGroup.accountTypeCategory.accountTypeCategoryName}
+                      filterValue.id === accountTypeCategoryGroup.accountTypeCategory.accountTypeCategoryId}
                   />
                 </BasicTableHeading>
                 <BasicTableBody>
@@ -61,9 +65,12 @@ export const AccountTypeCategoryList: React.FC<IAccountTypeCategoryList> = ({ ac
                         account={account}
                         handleAccountTypeCategoryButtonClick={() => { 
                           setFilterType("account");
-                          setFilterValue(account.accountName); 
+                          setFilterValue({
+                            id: account.accountId,
+                            label: account.accountName
+                          }); 
                         }}
-                        isActive={filterType === "account" && filterValue === account.accountName}
+                        isActive={filterType === "account" && filterValue.id === account.accountId}
                       />
                     ))
                   }

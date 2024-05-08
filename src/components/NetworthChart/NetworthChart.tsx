@@ -13,6 +13,8 @@ import './NetworthChart.css';
 
 export const defaultNetworthChartHeight = "350px";
 
+const graphColor = AppColors.brown;
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -187,8 +189,9 @@ const createDataRecord = (dataLabels: string[], dataValues: number[], config: IC
         minBarLength: 0,
         data: dataValues,
         fill: true,
-        borderColor: units === "Months" ? config?.getColor(AppColors.blue) : borderColors,
-        backgroundColor: units === "Months" ? hexToRgb(config?.getColor(AppColors.blue), 0.5) : backgroundColors,
+        borderWidth: 1,
+        borderColor: units === "Months" ? config?.getColor(graphColor) : borderColors,
+        backgroundColor: units === "Months" ? hexToRgb(config?.getColor(graphColor), 0.5) : backgroundColors,
       },
     ],
   };
@@ -301,7 +304,7 @@ const drawVerticalLine = (chart: any, config: IConfigContext) => {
     ctx.setLineDash([0]);
     ctx.moveTo(x, y);
     ctx.lineTo(x, bottomy);
-    ctx.strokeStyle = config?.getColor(AppColors.blue);
+    ctx.strokeStyle = config?.getColor(graphColor);
     ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(x, topy);
@@ -402,8 +405,8 @@ const getBarColors = (data: number[], config: IConfigContext): [string[], string
 
   data.map((_value, index) => {
     if(index % 2) {
-      backgroundColors.push(hexToRgb(config?.getColor(AppColors.blue), 0.5));
-      borderColors.push(config?.getColor(AppColors.blue));
+      backgroundColors.push(hexToRgb(config?.getColor(graphColor), 0.5));
+      borderColors.push(config?.getColor(graphColor));
     } else {
       backgroundColors.push(hexToRgb(config?.getColor(AppColors.mediumGrey), 0.5));
       borderColors.push(config?.getColor(AppColors.mediumGrey));

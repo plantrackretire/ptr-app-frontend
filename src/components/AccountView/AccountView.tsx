@@ -5,6 +5,7 @@ import { IHolding } from '../HoldingView';
 import { AggregateValues } from '../../utils/calcs';
 import { AccountViewPlaceholder } from './AccountViewPlaceholder';
 import './AccountView.css';
+import { IHoldingsFilterValue, holdingsFilterValueAll } from '../../pages/Networth';
 
 
 interface IAccountView {
@@ -13,9 +14,9 @@ interface IAccountView {
   accounts: { [index: number]: IAccount } | null,
   holdings: IHolding[] | null,
   filterType: string,
-  filterValue: string,
+  filterValue: IHoldingsFilterValue,
   setFilterType: (type: string) => void,
-  setFilterValue: (value: string) => void,
+  setFilterValue: (value: IHoldingsFilterValue) => void,
 }
 export interface IAccountTypeCategoryGroup {
   accountTypeCategory: IAccountTypeCategory,
@@ -23,6 +24,7 @@ export interface IAccountTypeCategoryGroup {
   hasNonZeroAccounts: boolean,
 }
 export interface IAccountTypeCategory {
+  accountTypeCategoryId: number,
   accountTypeCategoryName: string,
   aggValues: AggregateValues, // Used to track start and end agg balances and to calc change in value
 }
@@ -62,7 +64,7 @@ export const AccountView: React.FC<IAccountView> = ({ startDate, asOfDate, accou
         size={SectionHeadingSizeType.medium} 
         label="Accounts"
         subLabel={ "As of " + (asOfDate?.getMonth()+1) + " / " + asOfDate?.getDate() + " / " + asOfDate?.getFullYear() } 
-        handleActionButtonClick={() => { setFilterType("All"); setFilterValue("All"); }}
+        handleActionButtonClick={() => { setFilterType("All"); setFilterValue(holdingsFilterValueAll); }}
         isActive={filterType === "All" ? true : false}
       />
       <AccountTypeCategoryList
@@ -88,9 +90,10 @@ const createAccountTypeCategoryGroups = (startDate: Date, asOfDate: Date,
     const holdingAccount = accounts[holding.accountId];
 
     // Create new IAccountTypeCategoryGroup (to hold category and related accounts) if it doesn't exist
-    if(!atcg[holdingAccount.accountTypeCategoryName]) {
-      atcg[holdingAccount.accountTypeCategoryName] = {
+    if(!atcg[holdingAccount.accountTypeCategoryId]) {
+      atcg[holdingAccount.accountTypeCategoryId] = {
         accountTypeCategory: {
+          accountTypeCategoryId: holdingAccount.accountTypeCategoryId,
           accountTypeCategoryName: holdingAccount.accountTypeCategoryName,
           aggValues: new AggregateValues(startDate, asOfDate),
         },
@@ -99,7 +102,7 @@ const createAccountTypeCategoryGroups = (startDate: Date, asOfDate: Date,
       }
     }
 
-    const rec = atcg[holdingAccount.accountTypeCategoryName];
+    const rec = atcg[holdingAccount.accountTypeCategoryId];
     // Update aggregates on account type category
     rec.accountTypeCategory.aggValues.addValues(holding.startDateValue ? holding.startDateValue : 0, holding.balance);
 

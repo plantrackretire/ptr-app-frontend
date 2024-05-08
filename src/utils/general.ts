@@ -80,7 +80,7 @@ export function getTextWidth(text: string, font: string): number {
 }
 
 // Re-use formatter for better performance
-const balanceFormatter = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0, style: 'currency', currency: 'USD' });
+const balanceFormatter = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2, style: 'currency', currency: 'USD' });
 export const formatBalance = (balance: number): string => {
   return balanceFormatter.format(balance);
 }
