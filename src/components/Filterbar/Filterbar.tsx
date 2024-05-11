@@ -2,19 +2,17 @@ import { SectionHeading, SectionHeadingSizeType } from '../SectionHeading';
 import { DateFilter } from './DateFilter';
 import { DropdownList } from '../DropdownList';
 import { DayValue, Day, utils } from '@hassanmojab/react-modern-calendar-datepicker';
-// import { CheckboxGroup } from '../CheckboxGroup/CheckboxGroup';
-// import { HandleCheckBoxValueChangeType } from '../CheckboxGroup/Checkbox/Checkbox';
 import { Fragment, useContext, useEffect, useState } from 'react';
 import isEqual from 'lodash/isEqual';
 import { PtrAppApiStack } from '../../../../ptr-app-backend/cdk-outputs.json';
-import { AuthenticatorContext } from '../../providers/AppAuthenticatorProvider';
+import { AuthenticatorContext, IAuthenticatorContext } from '../../providers/AppAuthenticatorProvider';
 import { fetchData, getUserToken } from '../../utils/general';
 import { createDateFromDayValue, createDateStringFromDate, createDayFromDate, createLocalDateFromDateTimeString, getBeginningOfYear, getPriorMonthEnd } from '../../utils/dates';
-import { ModalType, useModalContext } from '../../providers/Modal';
+import { ModalContextType, ModalType, useModalContext } from '../../providers/Modal';
 import './FilterBar.css';
 
 
-// Account Type Category does not appear here because they appear together with Account Types in account type filter (distinguished by level: 0 and 1).
+// Account Type Category does not appear here because it goes together with Account Types in account type filter (distinguished by level: 0 and 1).
 export enum FilterableFilterBarCategories {
   accountTypes = "accountTypes",
   accounts = "accounts",
@@ -22,13 +20,17 @@ export enum FilterableFilterBarCategories {
   assets = "assets",
   tags = "tags",
 };
+
+type DropListFilterBarValues = { value: number, label: string, filter?: (number | string), level?: number }[];
+
 export interface IFilterableFilterBarValues {
-  accountTypes: { value: number, label: string, filter?: (number | string), level?: number }[],
-  accounts: { value: number, label: string, filter?: (number | string), level?: number }[],
-  assetClasses: { value: number, label: string, filter?: (number | string), level?: number }[],
-  assets: { value: number, label: string, filter?: (number | string), level?: number }[],
-  tags: { value: number, label: string, filter?: (number | string), level?: number }[],
+  accountTypes: DropListFilterBarValues,
+  accounts: DropListFilterBarValues,
+  assetClasses: DropListFilterBarValues,
+  assets: DropListFilterBarValues,
+  tags: DropListFilterBarValues,
 };
+
 export interface IFilterBarValues extends IFilterableFilterBarValues {
   asOfDate: DayValue,
 };
@@ -60,11 +62,11 @@ interface IFilterBarOption {
   associations: IAssociations,
 }
 interface IFilterBarOptions {
-  accountTypeOptions: IFilterBarOption[],
-  accountOptions: IFilterBarOption[],
-  assetClassOptions: IFilterBarOption[],
-  assetOptions: IFilterBarOption[],
-  tagOptions: IFilterBarOption[],
+  accountTypes: IFilterBarOption[],
+  accounts: IFilterBarOption[],
+  assetClasses: IFilterBarOption[],
+  assets: IFilterBarOption[],
+  tags: IFilterBarOption[],
 }
 // Format expected by REST API
 export interface IServerFilterValues {
@@ -89,17 +91,26 @@ export const filterBarValuesInit = {
   tags: [],
 };
 export const filterBarOptionsInit = {
-  accountTypeOptions: [],
-  accountOptions: [],
-  assetClassOptions: [],
-  assetOptions: [],
-  tagOptions: [],
+  accountTypes: [],
+  accounts: [],
+  assetClasses: [],
+  assets: [],
+  tags: [],
 }
+
+// Filters that use a dropdown list, share common rendering logic.
+const dropListFilters = [
+  { filterObjectName: 'accountTypes', label: 'Account Types', filterClearValue: [], },
+  { filterObjectName: 'accounts', label: 'Accounts', filterClearValue: [], },
+  { filterObjectName: 'assetClasses', label: 'Asset Classes', filterClearValue: [], },
+  { filterObjectName: 'assets', label: 'Assets', filterClearValue: [], },
+  { filterObjectName: 'tags', label: 'Tags', filterClearValue: [], },
+];
 
 // appliedFilterBarValues - filter values that have been 'applied' and fed upstream to use in data retreival.
 // filterBarValues - current value of each fitler, which may or may not have been fed upstream to apply.
 // When apply button is pressed filterBarValues are fed upstream to apply to data retreival and will come back in appliedFilterBarValues.
-// filterBarOptions - choices for each filter, loaded from db based on asOfDate, further filtered based on values of other filters.
+// filterBarOptions - choices for each filter, loaded from db based on asOfDate, further filtered in memory based on values of other filters.
 export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setAppliedFilterBarValues }) => {
   const [activityRange, setActivityRange] = useState<IActivityRange>(activityRangeInit);
   const [filterBarValues, setFilterBarValues] = useState<IFilterBarValues>(filterBarValuesInit);
@@ -111,11 +122,9 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
     // This avoids race conditions by ignoring results from stale calls
     let ignoreResults = false;
 
-    const getDbActivityRange = async() => {
-      const url = PtrAppApiStack.PtrAppApiEndpoint + "GetRefData";
-      const body = { userId: appUserAttributes!.userId, queryType: "activityRange" };
-      const token = await getUserToken(appUserAttributes!.signOutFunction!, modalContext);
-      const postResultJSON = await fetchData(url, body, token);
+
+    const getActivityRange = async() => {
+      const postResultJSON = await getDbActivityRange(appUserAttributes!, modalContext);
       if(postResultJSON === null) {
         setActivityRange(activityRangeInit);
       }
@@ -132,7 +141,7 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
       }
     }
 
-    getDbActivityRange();
+    getActivityRange();
 
     return () => { ignoreResults = true };
   }, []);
@@ -141,17 +150,12 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
     // This avoids race conditions by ignoring results from stale calls
     let ignoreResults = false;
 
-    const getDbFilterBarOptions = async() => {
-      const url = PtrAppApiStack.PtrAppApiEndpoint + "GetRefData";
+    const getFilterBarOptions = async() => {
       const asOfDate = createDateFromDayValue(filterBarValues.asOfDate);
       const startDate = getBeginningOfYear(asOfDate);
       const endDate = getPriorMonthEnd(asOfDate);
 
-      const body = { userId: appUserAttributes!.userId, queryType: "filterBarOptions", startDate: createDateStringFromDate(startDate), 
-        endDate: createDateStringFromDate(endDate) };
-      
-      const token = await getUserToken(appUserAttributes!.signOutFunction!, modalContext);
-      const postResultJSON = await fetchData(url, body, token);
+      const postResultJSON = await getDbFilterBarOptions(appUserAttributes!, modalContext, startDate, endDate);
       if(postResultJSON === null) {
         await modalContext.showConfirmation(
             ModalType.confirm,
@@ -164,11 +168,11 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
 
       if(!ignoreResults) {
         const newFilterBarOptions: IFilterBarOptions = {
-          accountTypeOptions: Object.values(postResultJSON.accountTypeOptions),
-          accountOptions: Object.values(postResultJSON.accountOptions),
-          assetClassOptions: Object.values(postResultJSON.assetClassOptions),
-          assetOptions: Object.values(postResultJSON.assetOptions),
-          tagOptions: Object.values(postResultJSON.tagOptions),
+          accountTypes: Object.values(postResultJSON.accountTypeOptions),
+          accounts: Object.values(postResultJSON.accountOptions),
+          assetClasses: Object.values(postResultJSON.assetClassOptions),
+          assets: Object.values(postResultJSON.assetOptions),
+          tags: Object.values(postResultJSON.tagOptions),
         };
         setFilterBarOptions(newFilterBarOptions);
 
@@ -179,56 +183,34 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
       }
     }
 
-    getDbFilterBarOptions();
+    getFilterBarOptions();
 
     return () => { ignoreResults = true };
   }, [filterBarValues.asOfDate]);
 
-  const handleFiltersClearButtonClick = () => { setFilterBarValues(filterBarValuesInit); };
+  const handleFiltersClearButtonClick = () => setFilterBarValues(filterBarValuesInit);
   const handleAsOfDateClearButtonClick = () => setFilterBarValues({ ...filterBarValues, asOfDate: utils('en').getToday() });
-  const handleAccountTypesClearButtonClick = () => setFilterBarValues({ ...filterBarValues, accountTypes: [] });
-  const handleAccountsClearButtonClick = () => setFilterBarValues({ ...filterBarValues, accounts: [] });
-  const handleAssetClassClearButtonClick = () => setFilterBarValues({ ...filterBarValues, assetClasses: [] });
-  const handleAssetsClearButtonClick = () => setFilterBarValues({ ...filterBarValues, assets: [] });
-  const handleTagsClearButtonClick = () => setFilterBarValues({ ...filterBarValues, tags: [] });
 
   const handleAsOfDateChange = (asOfDate: DayValue) => setFilterBarValues({ ...filterBarValues, asOfDate: asOfDate });
-  const handleAccoutTypesChange = (accountTypes: { value: number, label: string }[]) => {
-    const [validatedFilterBarValues] = validateFilterValues(filterBarOptions, { ...filterBarValues, accountTypes: accountTypes });
-    setFilterBarValues(validatedFilterBarValues);
-  }
-  const handleAccoutsChange = (accounts: { value: number, label: string }[]) => {
-    const [validatedFilterBarValues] = validateFilterValues(filterBarOptions, { ...filterBarValues, accounts: accounts });
-    setFilterBarValues(validatedFilterBarValues);
-  }
-  const handleAssetClassesChange = (assetClasses: { value: number, label: string }[]) => {
-    const [validatedFilterBarValues] = validateFilterValues(filterBarOptions, { ...filterBarValues, assetClasses: assetClasses });
-    setFilterBarValues(validatedFilterBarValues);
-  }
-  const handleAssetsChange = (assets: { value: number, label: string }[]) => {
-    const [validatedFilterBarValues] = validateFilterValues(filterBarOptions, { ...filterBarValues, assets: assets });
-    setFilterBarValues(validatedFilterBarValues);
-  }
-  const handleTagsChange = (tags: { value: number, label: string }[]) => {
-    const [validatedFilterBarValues] = validateFilterValues(filterBarOptions, { ...filterBarValues, tags: tags });
-    setFilterBarValues(validatedFilterBarValues);
-  }
 
-  const hanldeApplyClicked = () => {
-    setAppliedFilterBarValues(filterBarValues);
-  }
+  const hanldeApplyClicked = () => setAppliedFilterBarValues(filterBarValues);
   const hanldeResetClicked = async () => {
     if(!isEqual(appliedFilterBarValues, filterBarValues)) {
       setFilterBarValues(appliedFilterBarValues);
     }
   }
 
-  let isApplyEnabled = false;
-  if(!isEqual(appliedFilterBarValues, filterBarValues)) {
-    isApplyEnabled = true;
-  }
+  const isApplyEnabled = !isEqual(appliedFilterBarValues, filterBarValues) ? true : false;
 
   const preparedFilterBarOptions = filterAndSortOptions(filterBarOptions, filterBarValues);
+
+  // For each droplist type filter create the callback functions and html.
+  const dropListFiltersElements = dropListFilters.map(filter => 
+    createDropListFilterOption(filter.filterObjectName, filter.label, filterBarValues[filter.filterObjectName as FilterableFilterBarCategories], 
+      appliedFilterBarValues[filter.filterObjectName as FilterableFilterBarCategories], filter.filterClearValue, 
+      preparedFilterBarOptions[filter.filterObjectName as FilterableFilterBarCategories], 
+      preparedFilterBarOptions, filterBarValues, setFilterBarValues)
+  );
 
   return (
     <Fragment>
@@ -257,86 +239,7 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
             maximumDate={createDayFromDate(new Date())}
           />
         </div>
-        <div className={'filterbar--filter' + 
-          ((filterBarValues.accountTypes.length && isEqual(filterBarValues.accountTypes, appliedFilterBarValues.accountTypes)) ? " filterbar--filter-applied" : "") +
-          ((!isEqual(filterBarValues.accountTypes, appliedFilterBarValues.accountTypes)) ? " filterbar--filter-not-applied" : "")}
-        >
-          <SectionHeading 
-            size={SectionHeadingSizeType.small}
-            label="Accounts Types"
-            handleClearButtonClick={handleAccountTypesClearButtonClick}
-            actionText='Select Account Type'
-          />
-          <DropdownList
-            dropdownOptions={preparedFilterBarOptions.accountTypeOptions}
-            dropdownValue={filterBarValues.accountTypes}
-            handleDropdownValueChange={handleAccoutTypesChange}
-          />
-        </div>
-        <div className={'filterbar--filter' +
-          ((filterBarValues.accounts.length && isEqual(filterBarValues.accounts, appliedFilterBarValues.accounts)) ? " filterbar--filter-applied" : "") +
-          ((!isEqual(filterBarValues.accounts, appliedFilterBarValues.accounts)) ? " filterbar--filter-not-applied" : "")}
-        >
-          <SectionHeading 
-            size={SectionHeadingSizeType.small}
-            label="Accounts"
-            handleClearButtonClick={handleAccountsClearButtonClick}
-            actionText='Select Account'
-          />
-          <DropdownList
-            dropdownOptions={preparedFilterBarOptions.accountOptions}
-            dropdownValue={filterBarValues.accounts}
-            handleDropdownValueChange={handleAccoutsChange}
-          />
-        </div>
-        <div className={'filterbar--filter' +
-          ((filterBarValues.assetClasses.length && isEqual(filterBarValues.assetClasses, appliedFilterBarValues.assetClasses)) ? " filterbar--filter-applied" : "") +
-          ((!isEqual(filterBarValues.assetClasses, appliedFilterBarValues.assetClasses)) ? " filterbar--filter-not-applied" : "")}
-        >
-          <SectionHeading
-            size={SectionHeadingSizeType.small}
-            label="Asset Classes"
-            handleClearButtonClick={handleAssetClassClearButtonClick}
-            actionText='Select Asset Class'
-          />
-          <DropdownList
-            dropdownOptions={preparedFilterBarOptions.assetClassOptions}
-            dropdownValue={filterBarValues.assetClasses}
-            handleDropdownValueChange={handleAssetClassesChange}
-          />
-        </div>
-        <div className={'filterbar--filter' +
-          ((filterBarValues.assets.length && isEqual(filterBarValues.assets, appliedFilterBarValues.assets)) ? " filterbar--filter-applied" : "") +
-          ((!isEqual(filterBarValues.assets, appliedFilterBarValues.assets)) ? " filterbar--filter-not-applied" : "")}
-        >
-          <SectionHeading
-            size={SectionHeadingSizeType.small}
-            label="Assets"
-            handleClearButtonClick={handleAssetsClearButtonClick}
-            actionText='Select Asset'
-          />
-          <DropdownList
-            dropdownOptions={preparedFilterBarOptions.assetOptions}
-            dropdownValue={filterBarValues.assets}
-            handleDropdownValueChange={handleAssetsChange}
-          />
-        </div>
-        <div className={'filterbar--filter' +
-          ((filterBarValues.tags.length && isEqual(filterBarValues.tags, appliedFilterBarValues.tags)) ? " filterbar--filter-applied" : "") +
-          ((!isEqual(filterBarValues.tags, appliedFilterBarValues.tags)) ? " filterbar--filter-not-applied" : "")}
-        >
-          <SectionHeading
-            size={SectionHeadingSizeType.small}
-            label="Tags"
-            handleClearButtonClick={handleTagsClearButtonClick}
-            actionText='Select Tag'
-          />
-          <DropdownList
-            dropdownOptions={preparedFilterBarOptions.tagOptions}
-            dropdownValue={filterBarValues.tags}
-            handleDropdownValueChange={handleTagsChange}
-          />
-        </div>
+        {dropListFiltersElements}
         <div className="filterbar--apply">
           <button className={"button-el--visual" + (isApplyEnabled ? "" : " button-el--disabled")} onClick={isApplyEnabled ? () => hanldeApplyClicked() : undefined}>
             Apply
@@ -351,6 +254,61 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
     </Fragment>
   );
 };
+
+const getDbActivityRange = async(appUserAttributes: IAuthenticatorContext, modalContext: ModalContextType) => {
+  const url = PtrAppApiStack.PtrAppApiEndpoint + "GetRefData";
+  const body = { userId: appUserAttributes!.userId, queryType: "activityRange" };
+  const token = await getUserToken(appUserAttributes!.signOutFunction!, modalContext);
+  const postResultJSON = await fetchData(url, body, token);
+
+  return postResultJSON;
+}
+
+const getDbFilterBarOptions = async(appUserAttributes: IAuthenticatorContext, modalContext: ModalContextType, startDate: Date, endDate: Date) => {
+  const url = PtrAppApiStack.PtrAppApiEndpoint + "GetRefData";
+  const body = { userId: appUserAttributes!.userId, queryType: "filterBarOptions", startDate: createDateStringFromDate(startDate), 
+    endDate: createDateStringFromDate(endDate) };
+  
+  const token = await getUserToken(appUserAttributes!.signOutFunction!, modalContext);
+  const postResultJSON = await fetchData(url, body, token);
+
+  return postResultJSON;
+}
+
+const createDropListFilterOption = (filterObjectName: string, label: string, filterValues: DropListFilterBarValues, 
+  filterAppliedValues: DropListFilterBarValues, filterClearValue: DropListFilterBarValues, filterOptions: IFilterBarOption[], 
+  allOptions: IFilterBarOptions, allValues: IFilterBarValues, setFilterBarValues: ((value: IFilterBarValues) => void)) => {
+  const handleClearButtonClick = () => {
+    const newValues: IFilterBarValues = { ...allValues };
+    newValues[filterObjectName as FilterableFilterBarCategories] = filterClearValue;
+    setFilterBarValues(newValues);
+  };
+
+  const handleChange = (value: { value: number, label: string }[]) => {
+    const newValues: IFilterBarValues = { ...allValues };
+    newValues[filterObjectName as FilterableFilterBarCategories] = value;
+    const [validatedFilterBarValues] = validateFilterValues(allOptions, newValues);
+    setFilterBarValues(validatedFilterBarValues);
+  };
+
+  return (
+    <div key={filterObjectName} className={'filterbar--filter' +
+      ((filterValues.length && isEqual(filterValues, filterAppliedValues)) ? " filterbar--filter-applied" : "") +
+      ((!isEqual(filterValues, filterAppliedValues)) ? " filterbar--filter-not-applied" : "")}
+    >
+      <SectionHeading
+        size={SectionHeadingSizeType.small}
+        label={label}
+        handleClearButtonClick={handleClearButtonClick}
+      />
+      <DropdownList
+        dropdownOptions={filterOptions}
+        dropdownValue={filterValues}
+        handleDropdownValueChange={handleChange}
+      />
+    </div>
+  );
+}
 
 // Go through each filter selection and determine if it is a valid choice given the values in other filters.
 // Supports multi selection in any filter.
@@ -370,27 +328,27 @@ const validateFilterValues = (filterBarOptions: IFilterBarOptions, filterBarValu
   let didValuesChange = false;
 
   // Validate each filter selection is in its respective options list
-  if(accountTypeFilterValue && !isValueInOptions(accountTypeFilterValue, filterBarOptions.accountTypeOptions)) {
+  if(accountTypeFilterValue && !isValueInOptions(accountTypeFilterValue, filterBarOptions.accountTypes)) {
     validatedFilterBarValues.accountTypes = [];
     accountTypeFilterValue = null;
     didValuesChange = true;
   }
-  if(accountFilterValue && !isValueInOptions(accountFilterValue, filterBarOptions.accountOptions)) {
+  if(accountFilterValue && !isValueInOptions(accountFilterValue, filterBarOptions.accounts)) {
     validatedFilterBarValues.accounts = [];
     accountFilterValue = null;
     didValuesChange = true;
   }
-  if(assetFilterValue && !isValueInOptions(assetFilterValue, filterBarOptions.assetOptions)) {
+  if(assetFilterValue && !isValueInOptions(assetFilterValue, filterBarOptions.assets)) {
     validatedFilterBarValues.assets = [];
     assetFilterValue = null;
     didValuesChange = true;
   }
-  if(assetClassFilterValue && !isValueInOptions(assetClassFilterValue, filterBarOptions.assetClassOptions)) {
+  if(assetClassFilterValue && !isValueInOptions(assetClassFilterValue, filterBarOptions.assetClasses)) {
     validatedFilterBarValues.assetClasses = [];
     assetClassFilterValue = null;
     didValuesChange = true;
   }
-  if(tagFilterValue && !isValueInOptions(tagFilterValue, filterBarOptions.tagOptions)) {
+  if(tagFilterValue && !isValueInOptions(tagFilterValue, filterBarOptions.tags)) {
     validatedFilterBarValues.tags = [];
     tagFilterValue = null;
     didValuesChange = true;
@@ -399,7 +357,7 @@ const validateFilterValues = (filterBarOptions: IFilterBarOptions, filterBarValu
   // First validate account is associated with account type
   if(accountFilterValue && accountTypeFilterValue) {
     if(!isValueAssociatedWithOptions(accountFilterValue, accountTypeFilterValue,
-      filterBarOptions.accountOptions, FilterableFilterBarCategories.accountTypes)) {
+      filterBarOptions.accounts, FilterableFilterBarCategories.accountTypes)) {
         validatedFilterBarValues.accounts = [];
         accountFilterValue = null;
         didValuesChange = true;
@@ -409,7 +367,7 @@ const validateFilterValues = (filterBarOptions: IFilterBarOptions, filterBarValu
   // Second validate asset class is associated with account (first priority) or account type
   if(assetClassFilterValue && (accountFilterValue || accountTypeFilterValue)) {
     if(!isValueAssociatedWithOptions(assetClassFilterValue, (accountFilterValue || accountTypeFilterValue!),
-      filterBarOptions.assetClassOptions, accountFilterValue ? FilterableFilterBarCategories.accounts : FilterableFilterBarCategories.accountTypes)) {
+      filterBarOptions.assetClasses, accountFilterValue ? FilterableFilterBarCategories.accounts : FilterableFilterBarCategories.accountTypes)) {
         validatedFilterBarValues.assetClasses = [];
         assetClassFilterValue = null;
         didValuesChange = true;
@@ -419,7 +377,7 @@ const validateFilterValues = (filterBarOptions: IFilterBarOptions, filterBarValu
   // Third validate asset is associated with asset class
   if(assetFilterValue && assetClassFilterValue) {
     if(!isValueAssociatedWithOptions(assetFilterValue, assetClassFilterValue,
-      filterBarOptions.assetOptions, FilterableFilterBarCategories.assetClasses)) {
+      filterBarOptions.assets, FilterableFilterBarCategories.assetClasses)) {
         validatedFilterBarValues.assets = [];
         assetFilterValue = null;
         didValuesChange = true;
@@ -429,7 +387,7 @@ const validateFilterValues = (filterBarOptions: IFilterBarOptions, filterBarValu
   // Fourth validate asset is associated with account (first priority) or account type
   if(assetFilterValue && accountTypeFilterValue) {
     if(!isValueAssociatedWithOptions(assetFilterValue, (accountFilterValue || accountTypeFilterValue!),
-      filterBarOptions.assetOptions, accountFilterValue ? FilterableFilterBarCategories.accounts : FilterableFilterBarCategories.accountTypes)) {
+      filterBarOptions.assets, accountFilterValue ? FilterableFilterBarCategories.accounts : FilterableFilterBarCategories.accountTypes)) {
         validatedFilterBarValues.assets = [];
         assetFilterValue = null;
         didValuesChange = true;
@@ -439,7 +397,7 @@ const validateFilterValues = (filterBarOptions: IFilterBarOptions, filterBarValu
   // Fifth validate tag is associated with account (first priority) or account type
   if(tagFilterValue && accountTypeFilterValue) {
     if(!isValueAssociatedWithOptions(tagFilterValue, (accountFilterValue || accountTypeFilterValue!),
-      filterBarOptions.tagOptions, accountFilterValue ? FilterableFilterBarCategories.accounts : FilterableFilterBarCategories.accountTypes)) {
+      filterBarOptions.tags, accountFilterValue ? FilterableFilterBarCategories.accounts : FilterableFilterBarCategories.accountTypes)) {
         validatedFilterBarValues.tags = [];
         tagFilterValue = null;
         didValuesChange = true;
@@ -506,12 +464,12 @@ const filterAndSortOptions = (filterBarOptions: IFilterBarOptions, filterBarValu
   }
 
   // Account Types - this is top level filter so is not filtered based on other filters
-  const sortedFilteredAccountTypeOptions = sortHierarchyArray(filterBarOptions.accountTypeOptions);
+  const sortedFilteredAccountTypeOptions = sortHierarchyArray(filterBarOptions.accountTypes);
 
   // Accounts - filtered to values associated with selected account type
-  let filteredAccountOptions = filterBarOptions.accountOptions;
+  let filteredAccountOptions = filterBarOptions.accounts;
   if(accountTypeFilterValue !== null) {
-    filteredAccountOptions = filterBarOptions.accountOptions.filter((item: IFilterBarOption) => {
+    filteredAccountOptions = filterBarOptions.accounts.filter((item: IFilterBarOption) => {
       if(accountTypeFilterValue && !(accountTypeFilterValue in item.associations.accountTypes)) {
         return false;
       }
@@ -525,18 +483,18 @@ const filterAndSortOptions = (filterBarOptions: IFilterBarOptions, filterBarValu
   });
 
   // Asset Classes - filtered to values associated with selected account (first priority) or account type
-  let filteredAssetClassOptions = filterBarOptions.assetClassOptions;
+  let filteredAssetClassOptions = filterBarOptions.assetClasses;
   if(accountFilterLevelField !== null) {
-    filteredAssetClassOptions = filterBarOptions.assetClassOptions.filter((item: IFilterBarOption) => {
+    filteredAssetClassOptions = filterBarOptions.assetClasses.filter((item: IFilterBarOption) => {
       return (accountFilterLevelValue in item.associations[accountFilterLevelField!]);
     });
   }
   const sortedFilteredAssetClassOptions = sortHierarchyArray(filteredAssetClassOptions);
 
   // Assets - filtered to values associated with selected asset class, and account (first priority) or account type
-  let filteredAssetOptions = filterBarOptions.assetOptions;
+  let filteredAssetOptions = filterBarOptions.assets;
   if(assetClassFilterValue !== null || accountFilterLevelField !== null) {
-    filteredAssetOptions = filterBarOptions.assetOptions.filter((item: IFilterBarOption) => {
+    filteredAssetOptions = filterBarOptions.assets.filter((item: IFilterBarOption) => {
       if(assetClassFilterValue && !(assetClassFilterValue in item.associations.assetClasses)) {
         return false;
       }
@@ -553,9 +511,9 @@ const filterAndSortOptions = (filterBarOptions: IFilterBarOptions, filterBarValu
   });
 
   // Tags - filtered to values associated with selected account (first priority) or account type (tags currently only associated with accounts).
-  let filteredTagOptions = filterBarOptions.tagOptions;
+  let filteredTagOptions = filterBarOptions.tags;
   if(accountFilterLevelField !== null) {
-    filteredTagOptions = filterBarOptions.tagOptions.filter((item: IFilterBarOption) => {
+    filteredTagOptions = filterBarOptions.tags.filter((item: IFilterBarOption) => {
       if(accountFilterLevelField && !(accountFilterLevelValue in item.associations[accountFilterLevelField!])) {
         return false;
       }
@@ -569,11 +527,11 @@ const filterAndSortOptions = (filterBarOptions: IFilterBarOptions, filterBarValu
   });
   
   return {
-    accountTypeOptions: sortedFilteredAccountTypeOptions,
-    accountOptions: sortedFilteredAccountOptions,
-    assetClassOptions: sortedFilteredAssetClassOptions,
-    assetOptions: sortedFilteredAssetOptions,
-    tagOptions: sortedFilteredTagOptions,
+    accountTypes: sortedFilteredAccountTypeOptions,
+    accounts: sortedFilteredAccountOptions,
+    assetClasses: sortedFilteredAssetClassOptions,
+    assets: sortedFilteredAssetOptions,
+    tags: sortedFilteredTagOptions,
   };
 };
 

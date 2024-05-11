@@ -61,23 +61,23 @@ export const NetworthChart: React.FC<INetworthChart> = memo(({ labels, balances 
   
   const config = useContext(ConfigContext);
 
-  // useEffect required to register action and have it execute.  Doing it outside of useEffect has not actual effect
+  // useEffect required to register action and have it execute.  Doing it outside of useEffect has not actual effect.
   useEffect(() => {    
     if(units === "Months") {
       if(!hoverVerticalLinePluginRef) {
-        // Draws a vertical line on the x coord of the value currently displaying a tootlip
+        // Draws a vertical line on the x coord of the value currently displaying a tootlip.
         const hoverVerticalLinePlugin = {
-          id: 'hoverVerticalLine', //typescript crashes without id
+          id: 'hoverVerticalLine', //typescript crashes without id.
           afterDraw: (chart: any) => {
             drawVerticalLine(chart, config!);
           },
         }
         ChartJS.register([hoverVerticalLinePlugin]);
-        setHoverVerticalLinePluginRef(hoverVerticalLinePlugin); // Save a reference to avoid rendering unecessarily
+        setHoverVerticalLinePluginRef(hoverVerticalLinePlugin); // Save a reference to avoid rendering unecessarily.
       }
     } else { // units === Years
       if(hoverVerticalLinePluginRef) {
-        ChartJS.unregister(hoverVerticalLinePluginRef);
+        ChartJS.unregister(hoverVerticalLinePluginRef); // Because Years view does not have tooltip unregister the plugin and clear out ref.
         setHoverVerticalLinePluginRef(null);
       }
     }
@@ -435,6 +435,7 @@ const calcPercentageChange = (dates: string[], values: number[]): number => {
 }
 
 
+// FOR REFERENCE:
 // To include a custom annotation on the chart:
 //  const options: { [index: string]: any } = {
 //    plugins: {

@@ -18,7 +18,7 @@ Amplify.configure({
   }
 });
 
-interface IAuthenticatorContext {
+export interface IAuthenticatorContext {
   authUserId: string,
   authUsername: string,
   userId: string | null,

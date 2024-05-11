@@ -47,10 +47,13 @@ export const TransactionView: React.FC<ITransactionView> = ({ filterBarValues, s
   const appUserAttributes = useContext(AuthenticatorContext);
   const modalContext = useModalContext();
 
+  // Load transactions from db.
   useEffect(() => {
     // This avoids race conditions by ignoring results from stale calls
     let ignoreResults = false;
 
+    // If specific security and/or account were passed in then merge them with filter values.
+    // If either exists override their respective values and clear out their parent (account types or asset classes).
     let mergedFilterBarValues = filterBarValues;
     if(securityId || accountId) {
       mergedFilterBarValues = {...filterBarValues};
