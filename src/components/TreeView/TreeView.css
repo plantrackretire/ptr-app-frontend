@@ -1,0 +1,32 @@
+.tree-view {
+  display: flex;
+  flex-direction: column;
+  gap: .5em;
+}
+
+.tree-view--options {
+  display: flex;
+  gap: 1.5em;
+  border-bottom: 1px solid var(--light-grey);
+  padding-bottom: .5em;
+}
+
+.tree-view--node {
+  margin-bottom: .5em;
+}
+
+.tree-view--node-parent {
+  display: flex;
+  small {
+    width: 1.25em;
+  }
+}
+
+.tree-view--node-children {
+  overflow: hidden;
+  transition: max-height .5s;
+}
+
+.tree-view--node-children.collapsable-expanded {
+  max-height: 35em;
+}

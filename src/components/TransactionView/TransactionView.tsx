@@ -79,7 +79,7 @@ export const TransactionView: React.FC<ITransactionView> = ({ filterBarValues, s
 
         const results = await fetchData(url, bodyTransactions, token);
         if(results === null) {
-            await modalContext.showConfirmation(
+            await modalContext.showModal(
                 ModalType.confirm,
                 'Error retreiving transactions, please try again.',
             );

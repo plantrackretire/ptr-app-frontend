@@ -15,6 +15,10 @@
     text-overflow:ellipsis !important;
 }
 
+.react-dropdown-select {
+    border-color: var(--medium-grey) !important;
+}
+
 .dropdown-list--item {
     padding: .5em;
     color: #555;

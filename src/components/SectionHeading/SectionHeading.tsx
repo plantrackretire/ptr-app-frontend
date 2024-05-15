@@ -20,13 +20,15 @@ interface ISectionHeading {
   isClearAll?: boolean,
   actionText?: string,
   isActive?: boolean,
+  lightColor?: boolean,
 }
 
 export const SectionHeading: React.FC<ISectionHeading> = ({ label, subLabel, size, handleActionButtonClick, handleClearButtonClick, 
-  isClearAll, actionText, isActive }) => {
+  isClearAll, actionText, isActive, lightColor }) => {
   const activeClass = isActive ? " active" : "";
   let heading = <h4 className={activeClass}>{label}</h4>;
-  let subHeading = typeof(subLabel) === 'string' ? <small className="section-heading--sub-heading">{subLabel}</small> : subLabel;
+  let subHeading = typeof(subLabel) === 'string' ? 
+    <small className={"section-heading--sub-heading"  + (lightColor ? " section-heading-light" : "")}>{subLabel}</small> : subLabel;
 
   switch(size) {
     case SectionHeadingSizeType.tiny: heading = <small className={activeClass}>{label}</small>; break;
@@ -38,7 +40,7 @@ export const SectionHeading: React.FC<ISectionHeading> = ({ label, subLabel, siz
 
   return (
     <div>
-      <div className="section-heading">
+      <div className={"section-heading" + (lightColor ? " section-heading-light" : "")}>
         {
           handleActionButtonClick ?
             <button className="section-heading--main-heading button-el" onClick={handleActionButtonClick}>
@@ -55,7 +57,7 @@ export const SectionHeading: React.FC<ISectionHeading> = ({ label, subLabel, siz
         { 
           handleClearButtonClick && 
           <div className={"section-heading--clear-button" + sizeClass + activeClass}>
-            <ClearButton handleClearButtonClick={() => handleClearButtonClick()} isClearAll={isClearAll}/>
+            <ClearButton handleClearButtonClick={() => handleClearButtonClick()} isClearAll={isClearAll} lightColor={lightColor ? true : false}/>
           </div>
         }
       </div>

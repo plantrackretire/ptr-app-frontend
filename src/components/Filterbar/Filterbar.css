@@ -1,4 +1,3 @@
-/* Name the sections of the page for grid */
 .filterbar {
   display: flex;
   flex-direction: column;
@@ -20,14 +19,34 @@
   white-space: nowrap;
 }
 
+.filterbar--filter-textbox {
+  width: 100%;
+  height: 2em;
+  padding: .3em;
+  border: 1px solid var(--medium-grey);
+  font-size: .85em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  div {
+    overflow: hidden;
+    text-overflow:ellipsis !important;
+  }
+  small {
+    padding-left: .5em;
+  }
+}
+
+.filterbar--filter-applied .filterbar--filter-textbox,
 .filterbar--filter-applied .react-dropdown-select:not(.datefilter--precanned-dates .react-dropdown-select),
 .filterbar--filter-applied .responsive-calendar-input {
-  border-color: var(--blue);
+  border-color: var(--blue) !important;
   background-color: var(--light-blue) !important;
 }
+.filterbar--filter-not-applied .filterbar--filter-textbox,
 .filterbar--filter-not-applied .react-dropdown-select:not(.datefilter--precanned-dates .react-dropdown-select),
 .filterbar--filter-not-applied .responsive-calendar-input {
-  border-color: var(--red);
+  border-color: var(--red) !important;
   background-color: var(--light-red) !important;
 }
 

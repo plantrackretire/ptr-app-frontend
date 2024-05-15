@@ -2,7 +2,6 @@
   display: flex;
   gap: .85em;
   align-items: center;
-  fill: var(--medium-grey);
 }
 
 .section-heading--main-heading {
@@ -11,15 +10,21 @@
   gap: .4em;
 }
 
-.section-heading--sub-heading {
-  color: var(--medium-grey);
-}
-
 .section-heading--clear-button {
   display: flex;
   gap: .85em;
   align-items: center;
+}
+
+.section-heading--sub-heading:not(.section-heading-light),
+.section-heading:not(.section-heading-light) .section-heading--clear-button {
   color: var(--medium-grey);
+  fill: var(--medium-grey);
+}
+
+.section-heading--sub-heading.section-heading-light {
+  color: var(--light-text);
+  fill: var(--light-text);
 }
 
 .section-heading--clear-button.section-heading--size-tiny {

@@ -10,12 +10,12 @@ export const Header: React.FC = () => {
   const modalContext = useModalContext();
 
   const handleUserIconClicked = async () => {
-    const result = await modalContext.showConfirmation(
+    const result = await modalContext.showModal(
       ModalType.confirmWithCancel,
       'Are you sure you want to sign out?',
     );
 
-    if(result) {
+    if(result.status) {
       appUserAttributes!.signOutFunction!();
     }
   }

@@ -10,6 +10,7 @@ export enum ModalType {
     confirm = "confirm",
     confirmWithCancel = "confirmWithCancel",
     closable = "closable",
+    noButtons = "noButtons",
 };
   
 type UseModalShowReturnType = {
@@ -33,11 +34,17 @@ const useModalShow = (): UseModalShowReturnType => {
 };
 
 export type ModalContextType = {
-    showConfirmation: (modalType: ModalType, title: string | JSX.Element, content?: string | JSX.Element) => Promise<boolean>;
+    showModal: (modalType: ModalType, title: string | JSX.Element, content?: string | JSX.Element) => Promise<ModalReturnContent>;
+    closeWithContent: (content: any) => void;
 };
 
 type ModalContextProviderProps = {
     children: React.ReactNode
+}
+
+type ModalReturnContent = {
+    status: boolean,
+    content?: any,
 }
 
 const ModalContext = React.createContext<ModalContextType>({} as ModalContextType);
@@ -49,7 +56,7 @@ export const ModalContextProvider: React.FC<ModalContextProviderProps> = ({ chil
     const resolver = useRef<Function>();
     const modalRef = useRef<HTMLDivElement>(null);
 
-    const handleShow = (modalType: ModalType, title: string | JSX.Element, content?: string | JSX.Element): Promise<boolean> => {
+    const handleShow = (modalType: ModalType, title: string | JSX.Element, content?: string | JSX.Element): Promise<ModalReturnContent> => {
         switch(modalType) {
             case ModalType.confirm:
             case ModalType.confirmWithCancel:
@@ -58,7 +65,10 @@ export const ModalContextProvider: React.FC<ModalContextProviderProps> = ({ chil
             case ModalType.closable:
                 setContent({ title, content: null });
                 break;
-        }
+            case ModalType.noButtons:
+                setContent({ title, content: null });
+                break;
+            }
         setShow(true);
         setModalType(modalType);
         return new Promise(function (resolve) {
@@ -66,18 +76,25 @@ export const ModalContextProvider: React.FC<ModalContextProviderProps> = ({ chil
         });
     };
 
+    const handleCloseWithContent = (returnValue: any) => {
+        resolver.current && resolver.current({ status: true, content: returnValue });
+        onHide();
+        setContent(null);
+    };
+
     const modalContext: ModalContextType = {
-        showConfirmation: handleShow
+        showModal: handleShow,
+        closeWithContent: handleCloseWithContent,
     };
 
     const handleOk = () => {
-        resolver.current && resolver.current(true);
+        resolver.current && resolver.current({ status: true });
         onHide();
         setContent(null);
     };
 
     const handleCancel = () => {
-        resolver.current && resolver.current(false);
+        resolver.current && resolver.current({ status: false });
         onHide();
         setContent(null);
     };
@@ -118,6 +135,11 @@ export const ModalContextProvider: React.FC<ModalContextProviderProps> = ({ chil
                             <div id="modal--content--closable-close">
                                 <button className="button-el" onClick={handleCancel}><ClearIcon title="Close" /></button>
                             </div>
+                            {content.title}
+                        </div>
+                    }
+                    { (modalType === ModalType.noButtons) &&
+                        <div id="modal--content--closable" className="modal--content" ref={modalRef}>
                             {content.title}
                         </div>
                     }

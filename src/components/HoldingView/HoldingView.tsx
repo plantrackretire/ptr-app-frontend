@@ -60,7 +60,7 @@ export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, filte
   }
 
   const handleHoldingActionButtonClick = async(securityId: number, securityName: string, accountId?: number, accountName?: string) => {
-    await modalContext.showConfirmation(
+    await modalContext.showModal(
       ModalType.closable,
       <TransactionView
         securityId={securityId}
@@ -94,7 +94,7 @@ export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, filte
         subLabel={filterScope} 
         handleActionButtonClick={(filterType === 'account') ? 
           () => handleHoldingActionButtonClick(0, '', filterValue.id, filterValue.label) :
-          async() => await modalContext.showConfirmation(
+          async() => await modalContext.showModal(
             ModalType.confirm,
             'Please select an individual account to view all transactions.',
           )

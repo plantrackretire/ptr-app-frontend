@@ -1,0 +1,33 @@
+.tree-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2em;
+  width: 40vw;
+  height: 65vh;
+}
+
+.tree-filter--header {
+  display: flex;
+}
+.tree-filter--header button {
+  margin-left: auto;
+}
+
+.tree-filter--content--heading {
+  background-color: var(--medium-grey);
+  color: var(--light-text);
+  fill: var(--light-text);
+  padding: .5em;
+  position: sticky;
+  top: 0;
+}
+
+.tree-filter--content {
+  padding: .5em;
+}
+
+.tree-filter--content--list {
+  display: flex;
+  flex-direction: column;
+  gap: .5em;
+}

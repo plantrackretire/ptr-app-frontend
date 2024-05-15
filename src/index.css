@@ -17,6 +17,7 @@
   --light-grey2: #e0e0e0;
   --medium-grey: #a6a6a6;
   --dark-grey: #4B4B4B;
+  --light-text: white;
   --outer-padding: .75em;
   --default-font-size: .85em;
   --small-font-size: calc(var(--h1-font-size) - .8em);
@@ -235,6 +236,20 @@ svg {
 }
 .sortable-section-heading :nth-child(2) {
   margin-left: auto;
+}
+
+/* Used to allow for element to animate expand and collapse on height.  Set max-height between to a value above max possible when expanded. */
+.collapsable {
+  overflow: hidden;
+  transition: max-height .5s;
+}
+.collapsable-collapsed {
+  height: 0;
+  max-height: 0;
+}
+/* Override this class within your class to set max-height */
+.collapsable-expanded {
+  height: max-content;
 }
 
 /* Used to display placeholders while data is loading */
