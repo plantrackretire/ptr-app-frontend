@@ -73,12 +73,14 @@ export class AggregateValues {
     private endDate: Date;
     private aggreateStartValue: number;
     private aggregateEndValue: number;
+    private percentageOfTotal: number | null;
 
     public constructor(startDate: Date, endDate: Date) {
         this.startDate = startDate;
         this.endDate = endDate;
         this.aggreateStartValue = 0;
         this.aggregateEndValue = 0;
+        this.percentageOfTotal = null;
     }
 
     public getStartDate() {
@@ -92,6 +94,17 @@ export class AggregateValues {
     }
     public getAggregateEndValue() {
         return this.aggregateEndValue;
+    }
+    public getPercentageOfTotal() {
+        return this.percentageOfTotal;
+    }
+
+    public setPercentageOfTotal(total: number) {
+        if(total) {
+            this.percentageOfTotal = 0;
+        }
+
+        this.percentageOfTotal = this.aggregateEndValue / total;
     }
 
     // Assumes passed in values are valid for given start and end dates

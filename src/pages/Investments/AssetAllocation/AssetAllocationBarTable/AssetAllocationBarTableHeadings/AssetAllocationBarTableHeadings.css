@@ -1,0 +1,21 @@
+.asset-allocation-bar-table--headings {
+    display: contents;
+}
+
+.asset-allocation-bar-table--headings > div {
+    padding: .5em .5em;
+    margin-bottom: .25em;
+    background-color: var(--medium-grey);
+    color: var(--light-text);
+}
+
+.asset-allocation-bar-table--headings--button {
+    width: 100%;
+    display: flex;
+    gap: .5em;
+}
+
+.asset-allocation-bar-table--headings--two-line {
+    display: flex;
+    flex-direction: column;
+}

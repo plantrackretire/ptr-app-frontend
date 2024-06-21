@@ -1,41 +1,24 @@
-import { Navlist } from '../Navlist';
-import { PiggyBankIcon } from '../../assets/PiggyBankIcon';
-import { PieChartIcon } from '../../assets/PieChartIcon';
-import { PerformanceChartIcon } from '../../assets/PerformanceChartIcon';
+import { INavItem, Navlist } from '../Navlist';
 import { FilterBar, IFilterBarValues } from '../FilterBar';
 import './Navbar.css';
 
 
 interface INavbar {
+  subPageItems: INavItem[],
+  setSubPage: (value: any) => void,
   filterBarValues: IFilterBarValues,
   setFilterBarValues: (filterBarValues: IFilterBarValues) => void,
 }
 
-export const Navbar: React.FC<INavbar> = ({ filterBarValues, setFilterBarValues }) => {
+export const Navbar: React.FC<INavbar> = ({ subPageItems, setSubPage, filterBarValues, setFilterBarValues }) => {
   return (
     <div className='navbar'>
-      <Navlist navItems={navItems} iconWidth="1em" />
+      <Navlist 
+        navItems={subPageItems}
+        setCurrentNavItem={setSubPage}
+        iconWidth="1em" 
+      />
       <FilterBar appliedFilterBarValues={filterBarValues} setAppliedFilterBarValues={setFilterBarValues} />
     </div>
   );
 };  
-
-
-const navItems = [
-  {
-    icon: PiggyBankIcon,
-    label: "Net Worth",
-    title: 'Net Worth',
-    isActive: true,
-  },
-  {
-    icon: PieChartIcon,
-    label: "Asset Allocation",
-    title: 'Asset Allocation',
-  },
-  {
-    icon: PerformanceChartIcon,
-    label: "Performance",
-    title: 'Performance',
-  },
-]

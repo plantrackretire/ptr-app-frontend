@@ -1,0 +1,11 @@
+.asset-allocation--chart-area {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+.asset-allocation--pie-charts {
+    display: flex;
+    justify-content: space-evenly;
+    margin-top: 1em;
+}

@@ -5,7 +5,8 @@
   --app-background-color: #242424;
   --light-blue: #b0dfff;
   --blue: #35A2EB;
-  --green: #0DB800;
+  /* --green: #0DB800; */
+  --green: #008000;
   --light-green: #c2febe;
   --red: #B80000;
   --light-red: #fec1c1;
@@ -15,7 +16,7 @@
   --light-orange: #ffdca7;
   --light-grey: #F2F2F2;
   --light-grey2: #e0e0e0;
-  --medium-grey: #a6a6a6;
+  --medium-grey: #909090;
   --dark-grey: #4B4B4B;
   --light-text: white;
   --outer-padding: .75em;
@@ -145,7 +146,7 @@ a:hover {
   fill: var(--light-active-color) !important;
 }
 .button-el--visual:hover:not(.button-el--disabled) {
-  background-color: var(--dark-active-color);
+  background-color: var(--dark-active-color) !important;
   color: white !important;
   fill: white !important;
 }
@@ -202,6 +203,19 @@ ul {
   overflow: hidden;
 }
 
+.right-justify {
+  text-align: end;
+  justify-content: end;
+}
+.left-justify {
+  text-align: start;
+  justify-content: start;
+}
+.center-justify {
+  text-align: center;
+  justify-content: center;
+}
+
 /* Create content with two lines, with second line de-emphasized */
 .two-line {
   display: flex;
@@ -220,6 +234,9 @@ svg {
 .de-emphasize {
   color: var(--medium-grey);
   fill: var(--medium-grey);
+}
+.warning {
+  color: var(--red);
 }
 
 /* Classes used to modify color based on varying criteria.  'color-modifier' prefix is required so other elements can select on it. */

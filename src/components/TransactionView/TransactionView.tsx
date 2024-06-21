@@ -7,7 +7,7 @@ import { ModalType, useModalContext } from '../../providers/Modal';
 import { PtrAppApiStack } from '../../../../ptr-app-backend/cdk-outputs.json';
 import { IFilterBarValues, formatFilterBarValuesForServer } from '../FilterBar';
 import { AuthenticatorContext } from '../../providers/AppAuthenticatorProvider';
-import { fetchData, getUserToken } from '../../utils/general';
+import { convertArrayToString, fetchData, getUserToken } from '../../utils/general';
 import './TransactionView.css';
 
 
@@ -17,6 +17,10 @@ interface ITransactionView {
   securityName?: string,
   accountId?: number,
   accountName?: string,
+  accountTypeCategoryId?: number,
+  accountTypeCategoryName?: string,
+  assetClassIdList?: number[],
+  assetClassName?: string,
   freezeHeadings?: boolean,
   maxHeight?: string, // Required to scroll table data
 }
@@ -40,7 +44,8 @@ export interface ITransaction {
   fee: number,
 }
 
-export const TransactionView: React.FC<ITransactionView> = ({ filterBarValues, securityId, securityName, accountId, accountName, freezeHeadings, maxHeight }) => {
+export const TransactionView: React.FC<ITransactionView> = ({ filterBarValues, securityId, securityName, accountId, accountName, 
+  accountTypeCategoryId, accountTypeCategoryName, assetClassIdList, assetClassName, freezeHeadings, maxHeight }) => {
   const [dbTransactions, setDbTransactions] = useState<ITransaction[] | null>(null);
   const [sortColumn, setSortColumn] = useState<string>("transactionDate");
   const [sortDirection, setSortDirection] = useState<string>("desc");
@@ -52,21 +57,27 @@ export const TransactionView: React.FC<ITransactionView> = ({ filterBarValues, s
     // This avoids race conditions by ignoring results from stale calls
     let ignoreResults = false;
 
-    // If specific security and/or account were passed in then merge them with filter values.
+    // If specific security and/or account were passed in then merge them with filter values.  
     // If either exists override their respective values and clear out their parent (account types or asset classes).
+    // Otherwise do the same with account type category and/or asset classes.
     let mergedFilterBarValues = filterBarValues;
-    if(securityId || accountId) {
+    if(securityId || accountId || accountTypeCategoryId || assetClassIdList) {
       mergedFilterBarValues = {...filterBarValues};
       if(securityId) {
         mergedFilterBarValues.assets =  [{label: '', value: securityId}];
         mergedFilterBarValues.assetClasses = [];
+      } else if(assetClassIdList) {
+        // Converting asset class id array back to string because in filterbar it is still stored as a string (easy to change that as the filter value is only used in format for server).
+        mergedFilterBarValues.assetClasses = [{ label: '', value: 0, filter: convertArrayToString(assetClassIdList, ',')}];
       }
       if(accountId) {
         mergedFilterBarValues.accounts =  [{label: '', value: accountId}];
         mergedFilterBarValues.accountTypes = [];
+      } else if(accountTypeCategoryId) {
+        mergedFilterBarValues.accountTypes = [{label: '', value: accountTypeCategoryId, level: 0}];
       }
     }
-    
+
     const formattedFilterBarValues = formatFilterBarValuesForServer(mergedFilterBarValues);
     const formattedEndDate = getPriorMonthEnd(createDateFromDayValue(filterBarValues.asOfDate));
 
@@ -98,7 +109,7 @@ export const TransactionView: React.FC<ITransactionView> = ({ filterBarValues, s
     getData();
 
     return () => { ignoreResults = true };
-  }, [filterBarValues, securityId, accountId])
+  }, [filterBarValues, securityId, accountId, accountTypeCategoryId, assetClassIdList])
 
   if(dbTransactions === null) {
     return <TransactionViewPlaceholder />
@@ -116,9 +127,23 @@ export const TransactionView: React.FC<ITransactionView> = ({ filterBarValues, s
       <span className='de-emphasize'>{accountName}</span>
     </div>
   : '';
+  let accountTypeCategoryScope = accountTypeCategoryId ? 
+    <div>
+      <span><b>Account Type Category: </b></span>
+      <span className='de-emphasize'>{accountTypeCategoryName}</span>
+    </div>
+  : '';
+  let assetClassScope = assetClassIdList ? 
+    <div>
+      <span><b>Asset Class: </b></span>
+      <span className='de-emphasize'>{assetClassName}</span>
+    </div>
+  : '';
 
   const scope =
     <div className="transaction-view--heading">
+      { accountTypeCategoryScope }
+      { assetClassScope }
       { accountScope }
       { securityScope }
     </div>;

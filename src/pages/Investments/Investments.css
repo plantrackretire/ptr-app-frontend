@@ -1,5 +1,5 @@
 /* Represents the header and content (two rows) */
-.page {
+.investments {
   height: 100vh;
   max-width: var(--app-max-width);
   margin: auto;
@@ -7,15 +7,15 @@
   grid-template-rows: auto minmax(0, 1fr);
 }
 
-.page--header {
+.investments--header {
   border-bottom: 1px solid var(--light-grey);
 }
-.page--navbar {
+.investments--navbar {
   border-right: 1px solid var(--light-grey);
 }
 
 /* Represents two columns, navbar and content */
-.page--content-container {
+.investments--content-container {
   flex: 1;
   display: grid;
   grid-template-columns: 16em minmax(0, 1fr);

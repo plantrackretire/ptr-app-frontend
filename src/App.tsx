@@ -2,11 +2,11 @@ import { ReactElement } from 'react';
 // import { BrowserRouter, Route, Routes } from 'react-router-dom'
 // import LoadingOverlay from 'react-loading-overlay-ts';
 // import LoadingSpinner from './LoadingSpinner';
-import { Page } from './pages';
+import { Investments } from './pages/Investments';
 
 const App = (): ReactElement => {
   return (
-    <Page />
+    <Investments />
   );
 };
 

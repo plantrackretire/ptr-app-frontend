@@ -1,4 +1,4 @@
-import { IHolding, IHoldingGroup } from '..';
+import { IHandleHoldingActionButtonClick, IHolding, IHoldingGroup, IHoldingsFilter } from '..';
 import { Fragment } from 'react';
 import { HoldingRec } from './HoldingRec';
 import { AccountHolding } from './AccountHolding';
@@ -10,7 +10,8 @@ import './HoldingGroupList.css';
 
 interface IHoldingGroupList {
   holdingGroups: IHoldingGroup[],
-  handleHoldingActionButtonClick: (securityId: number, securityName: string, accountId?: number, accountName?: string) => void,
+  filters: IHoldingsFilter[],
+  handleHoldingActionButtonClick: (params: IHandleHoldingActionButtonClick) => void,
   accountHoldingSortFunction: (a: IHolding, b: IHolding) => number,
   sortColumn: string,
   sortDirection: string,
@@ -18,7 +19,7 @@ interface IHoldingGroupList {
   setSortDirection:(value: string) => void,
 }
 
-export const HoldingGroupList: React.FC<IHoldingGroupList> = ({ holdingGroups, handleHoldingActionButtonClick, accountHoldingSortFunction,
+export const HoldingGroupList: React.FC<IHoldingGroupList> = ({ holdingGroups, filters, handleHoldingActionButtonClick, accountHoldingSortFunction,
   sortColumn, sortDirection, setSortColumn, setSortDirection
   }) => {
   return (
@@ -43,6 +44,7 @@ export const HoldingGroupList: React.FC<IHoldingGroupList> = ({ holdingGroups, h
               <Fragment key={holdingGroup.holdingId}>
                 <HoldingRec
                   holding={holdingGroup}
+                  filters={filters}
                   handleHoldingActionButtonClick={handleHoldingActionButtonClick}
                 />
                 {

@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState, memo, useContext } from 'react';
+import { Fragment, useState, memo, useContext, useRef } from 'react';
 import { Line, Bar } from 'react-chartjs-2';
 import annotationPlugin from "chartjs-plugin-annotation";
 import { calcChangeFromDataSet } from '../../utils/calcs';
@@ -8,13 +8,7 @@ import { formatBalance, formatChangePercentage, getTextWidth, hexToRgb } from '.
 import { NetworthChartTitle } from './NetworthChartTitle';
 import { NetworthChartOptions } from './NetworthChartOptions';
 import { NetworthChartPlaceholder } from './NetworthChartPlaceholder';
-import './NetworthChart.css';
-
-
-export const defaultNetworthChartHeight = "350px";
-
-const graphColor = AppColors.brown;
-
+import { IHolding, calcHoldingsTotals } from '../HoldingView';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -28,9 +22,12 @@ import {
   Filler,
   Ticks,
   Tick,
-  ChartComponentLike,
 } from 'chart.js';
+import './NetworthChart.css';
 
+export const defaultNetworthChartHeight = "350px";
+
+const graphColor = AppColors.brown;
 
 ChartJS.register(
   CategoryScale,
@@ -48,40 +45,19 @@ ChartJS.register(
 interface INetworthChart {
   labels: string[] | null,
   balances: number[] | null,
+  holdings: IHolding[] | null,
 }
 
 const invalidValue: number = 0.000001234567890;
 
 // Using memo because without it the chart re-renders (causing flickering of the annotation) on every call, even if params did not change.
-export const NetworthChart: React.FC<INetworthChart> = memo(({ labels, balances }) => {
-  const [hoverVerticalLinePluginRef, setHoverVerticalLinePluginRef] = useState<ChartComponentLike | null>(null);
+export const NetworthChart: React.FC<INetworthChart> = memo(({ labels, balances, holdings }) => {
+  const chartRef = useRef();
   const [timePeriod, setTimePeriod] = useState<string>("ALL");
   const [units, setUnits] = useState<string>("Months");
   const [yearValueType, setYearValueType] = useState<string>("$");
   
   const config = useContext(ConfigContext);
-
-  // useEffect required to register action and have it execute.  Doing it outside of useEffect has not actual effect.
-  useEffect(() => {    
-    if(units === "Months") {
-      if(!hoverVerticalLinePluginRef) {
-        // Draws a vertical line on the x coord of the value currently displaying a tootlip.
-        const hoverVerticalLinePlugin = {
-          id: 'hoverVerticalLine', //typescript crashes without id.
-          afterDraw: (chart: any) => {
-            drawVerticalLine(chart, config!);
-          },
-        }
-        ChartJS.register([hoverVerticalLinePlugin]);
-        setHoverVerticalLinePluginRef(hoverVerticalLinePlugin); // Save a reference to avoid rendering unecessarily.
-      }
-    } else { // units === Years
-      if(hoverVerticalLinePluginRef) {
-        ChartJS.unregister(hoverVerticalLinePluginRef); // Because Years view does not have tooltip unregister the plugin and clear out ref.
-        setHoverVerticalLinePluginRef(null);
-      }
-    }
-  });
 
   if(labels === null || balances === null) {
     return <NetworthChartPlaceholder />
@@ -101,7 +77,8 @@ export const NetworthChart: React.FC<INetworthChart> = memo(({ labels, balances 
 
   const data = createDataRecord(dataLabels, dataValues, config!, units);
   const options = createOptionsRecord(config!, units, yearValueType);
-  const titlePercentageChange = calcPercentageChange(filteredLabels, filteredBalances); // Not using dataValues because they may be percentages
+  const titleAnnualPercentageChange = 
+    calcPercentageChange(filteredLabels, filteredBalances); // Not using dataValues because they may be percentages
 
   let chartHeight = defaultNetworthChartHeight;
   if(units === "Years") {
@@ -113,13 +90,31 @@ export const NetworthChart: React.FC<INetworthChart> = memo(({ labels, balances 
     }
   }
 
+  // Plugin to draw vertical line on hover
+  const hoverVerticalLinePlugin = {
+    id: 'hoverVerticalLine', //typescript crashes without id.
+    afterDraw: (chart: any) => {
+      drawVerticalLine(chart, config!);
+    },
+  }
+
+  let changeFromStartDate = null;
+  if(holdings !== null) {
+    const totals = calcHoldingsTotals(holdings);
+    changeFromStartDate = totals.changeInValue;
+  }
+
   return (
     <div className="networth-chart">
       { balances.length > 0 ?
         <Fragment>
-          <NetworthChartTitle titleBalance={filteredBalances[filteredBalances.length-1]} titlePercentageChange={titlePercentageChange} />
+          <NetworthChartTitle titleBalance={filteredBalances[filteredBalances.length-1]} titleAnnualPercentageChange={titleAnnualPercentageChange}
+            titleChangeFromStartDate={changeFromStartDate} />
           <div className="networth-chart--chart"  style={{ height: chartHeight }}>
-            { units === "Months" ? <Line options={options} data={data} /> : <Bar options={options} data={data} /> }
+            { units === "Months" ? 
+                <Line plugins={[hoverVerticalLinePlugin]} ref={chartRef} options={options} data={data} /> : 
+                <Bar ref={chartRef} options={options} data={data} /> 
+            }
           </div>
           <NetworthChartOptions
             dates={labels} 
@@ -198,6 +193,13 @@ const createDataRecord = (dataLabels: string[], dataValues: number[], config: IC
 }
 
 const createOptionsRecord = (config: IConfigContext, units: string, yearValueType: string) => {
+  const hoverVerticalLinePlugin = {
+    id: 'hoverVerticalLine', //typescript crashes without id.
+    afterDraw: (chart: any) => {
+      drawVerticalLine(chart, config!);
+    },
+  }
+
   const options: { [index: string]: any } = {
     responsive: true,
     maintainAspectRatio: false,
@@ -242,6 +244,8 @@ const createOptionsRecord = (config: IConfigContext, units: string, yearValueTyp
       },
       padding: 10,
     };
+    options.plugins.hoverVerticalLinePlugin = hoverVerticalLinePlugin;
+
     options.scales.y.ticks ={
       // Include a dollar sign in the ticks
       callback: function(value: string | number, index: number, ticks: Tick[]) {

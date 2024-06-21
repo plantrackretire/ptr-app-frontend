@@ -1,9 +1,13 @@
-import { useState } from 'react';
-import { AccountView, IAccount } from '../../components/AccountView';
-import { HoldingView, IHolding } from '../../components/HoldingView';
-import { NetworthChart } from '../../components/NetworthChart';
-import { createDateFromDayValue, getBeginningOfYear } from '../../utils/dates';
-import { IFilterBarValues } from '../../components/FilterBar';
+import { useContext, useEffect, useState } from 'react';
+import { AccountView, IAccount, IAccountGroupCategoryValues } from '../../../components/AccountView';
+import { HoldingView, HoldingsFilterTypes, IHolding, IHoldingsFilter, holdingsFilterAll } from '../../../components/HoldingView';
+import { NetworthChart } from '../../../components/NetworthChart';
+import { createDateFromDayValue, createDateStringFromDate, getBeginningOfYear, getPriorMonthEnd } from '../../../utils/dates';
+import { IFilterBarValues, formatFilterBarValuesForServer } from '../../../components/FilterBar';
+import { PtrAppApiStack } from '../../../../../ptr-app-backend/cdk-outputs.json';
+import { AuthenticatorContext } from '../../../providers/AppAuthenticatorProvider';
+import { ModalType, useModalContext } from '../../../providers/Modal';
+import { fetchData, getUserToken } from '../../../utils/general';
 import './Networth.css';
 
 
@@ -11,40 +15,77 @@ interface INetworth {
     filterBarValues: IFilterBarValues,
     dbHoldings: IHolding[] | null,
     dbAccounts: {[index: number]: IAccount} | null,
-    dbHistoricalHoldings: { [index: string]: [] } | null,
 }
 
-export interface IHoldingsFilterValue {
-    id: number, 
-    label: string
-}
+export const Networth: React.FC<INetworth> = ({ filterBarValues, dbHoldings, dbAccounts }) => {
+    const [dbHistoricalHoldings, setDbHistoricalHoldings] = useState<{ [index: string]: [] } | null>(null);
+    const [loadHistoricalHoldings, setLoadHistoricalHoldings] = useState<boolean>(false);
+    const [holdingsFilters, setHoldingsFilters] = useState<IHoldingsFilter[]>([holdingsFilterAll]);
+    const appUserAttributes = useContext(AuthenticatorContext);
+    const modalContext = useModalContext();
 
-export const holdingsFilterValueAll = {
-    id: 0, 
-    label: "All"
-}
+    useEffect(() => {
+        // This avoids race conditions by ignoring results from stale calls
+        let ignoreResults = false;
 
-export const Networth: React.FC<INetworth> = ({ filterBarValues, dbHoldings, dbAccounts, dbHistoricalHoldings }) => {
-    const [holdingsFilterType, setHoldingsFilterType] = useState<string>("All");
-    const [holdingsFilterValue, setHoldingsFilterValue] = useState<IHoldingsFilterValue>(holdingsFilterValueAll);
-
-    let filteredHoldings: (IHolding[] | null) = dbHoldings === null ? null : [];
-    if(dbHoldings !== null && dbAccounts !== null) {
-        if(!(holdingsFilterType === "All")) {
-            if(dbHoldings) {
-                filteredHoldings = dbHoldings.filter((record) => 
-                    applyFilterToRecord(record, dbAccounts ? dbAccounts : {}, holdingsFilterType, holdingsFilterValue)
-                );
-                if(filteredHoldings?.length === 0 && dbHoldings.length > 0) {
-                    setHoldingsFilterType("All");
-                    setHoldingsFilterValue(holdingsFilterValueAll);
-                }
-            } else
-                filteredHoldings = [];
-        } else {
-            if(dbHoldings)
-                filteredHoldings = dbHoldings;
+        if(!loadHistoricalHoldings) {
+            return () => { ignoreResults = true };
         }
+
+        const formattedFilterBarValues = formatFilterBarValuesForServer(filterBarValues);
+        const formattedEndDate = getPriorMonthEnd(createDateFromDayValue(filterBarValues.asOfDate));
+
+        const getData = async() => {
+            const url = PtrAppApiStack.PtrAppApiEndpoint + "GetHoldings";
+            const bodyHistoricalHoldings = { userId: appUserAttributes!.userId, queryType: "historical", endDate: createDateStringFromDate(formattedEndDate),
+                filters: formattedFilterBarValues };
+
+            const token = await getUserToken(appUserAttributes!.signOutFunction!, modalContext);
+
+            const results = await Promise.all([
+                fetchData(url, bodyHistoricalHoldings, token),
+            ]);
+            if(results === null) {
+                await modalContext.showModal(
+                    ModalType.confirm,
+                    'Error retreiving data sub page data, please try again.',
+                );
+                setLoadHistoricalHoldings(false);
+                setDbHistoricalHoldings({ labels: [], values: [] });
+                return () => { ignoreResults = true };
+            }
+            const resultsHistoricalHoldings = results[0];
+            
+            if(!ignoreResults) {
+                setLoadHistoricalHoldings(false);
+                setDbHistoricalHoldings(resultsHistoricalHoldings);
+            }
+        }
+
+        getData();
+    
+        return () => { ignoreResults = true };
+    }, [loadHistoricalHoldings])
+
+    useEffect(() => {
+        setLoadHistoricalHoldings(true);
+        setDbHistoricalHoldings(null);
+    }, [filterBarValues])
+
+    // If holdings filter results in zero record and we do have holdings, then revert to 'All' filter.
+    const handleZeroFilterResults = () => {
+        if(dbHoldings && dbHoldings.length > 0) {
+            setHoldingsFilters([holdingsFilterAll]);
+        }
+    }
+
+    // Used to determine how accounts are grouped in the account view.
+    const getAccountGroupValues = (_holding: IHolding, account: IAccount): IAccountGroupCategoryValues => {
+        return {
+            accountGroupCategoryId: account.accountTypeCategoryId,
+            accountGroupCategoryName: account.accountTypeCategoryName,
+            accountGroupCategoryFilterValue: [account.accountTypeCategoryId],
+        };
     }
 
     const asOfDate = createDateFromDayValue(filterBarValues.asOfDate);
@@ -56,42 +97,33 @@ export const Networth: React.FC<INetworth> = ({ filterBarValues, dbHoldings, dbA
                 <NetworthChart 
                     labels={dbHistoricalHoldings ? dbHistoricalHoldings['labels'] : null} 
                     balances={dbHistoricalHoldings ? dbHistoricalHoldings['values'] : null} 
+                    holdings={dbHoldings}
                 />
                 <AccountView 
+                    title="Accounts by Account Category"
                     startDate={startDate}
                     asOfDate={asOfDate}
                     accounts={dbAccounts}
                     holdings={dbHoldings}
-                    filterType={holdingsFilterType}
-                    filterValue={holdingsFilterValue}
-                    setFilterType={setHoldingsFilterType}
-                    setFilterValue={setHoldingsFilterValue}
+                    getAccountGroupValues={getAccountGroupValues}
+                    accountGroupCategoryFilterType={HoldingsFilterTypes.accountTypeCategory}
+                    holdingsFilters={holdingsFilters}
+                    setHoldingsFilters={setHoldingsFilters}
                 />
             </div>
             <div className='content-two-col--col scrollable'>
                 <HoldingView 
                     startDate={startDate} 
                     asOfDate={asOfDate} 
-                    holdings={filteredHoldings} 
-                    filterType={holdingsFilterType}
-                    filterValue={holdingsFilterValue}
+                    holdings={dbHoldings} 
+                    accounts={dbAccounts}
+                    filters={holdingsFilters}
                     filterBarValues={filterBarValues}
+                    handleZeroFilterResults={handleZeroFilterResults}
                 />
             </div>
         </div>
     );
-};
-
-const applyFilterToRecord = (record: IHolding, accounts: {[index: number]: IAccount}, holdingsFilterType: string, holdingsFilterValue: IHoldingsFilterValue) => {
-    switch(holdingsFilterType) {
-        case 'accountTypeCategory':
-            return(accounts[record.accountId].accountTypeCategoryId === holdingsFilterValue.id);
-        case 'account':
-            return(record.accountId === holdingsFilterValue.id);
-        default:
-            // TODO: Throw exception
-            console.log("INVALID holdingsFilterType");
-        }
 };
 
 

@@ -33,7 +33,7 @@ export const getUserToken = async (signOut: (() => void), modalContext: ModalCon
     // TODO: Throw exception?
     console.log("Error getting token");
     console.log(err);
-    await modalContext.showConfirmation(
+    await modalContext.showModal(
       ModalType.confirm,
       'Error loading user session, please login again.',
     );
@@ -41,7 +41,7 @@ export const getUserToken = async (signOut: (() => void), modalContext: ModalCon
   }
 
   if(!jwtToken || jwtToken.length <= 0) {
-    await modalContext.showConfirmation(
+    await modalContext.showModal(
       ModalType.confirm,
       'Session has expired, Please login again.',
     );
@@ -86,6 +86,12 @@ export const formatBalance = (balance: number): string => {
 }
 
 // Re-use formatter for better performance
+const balanceWithoutCentsFormatter = new Intl.NumberFormat("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0, style: 'currency', currency: 'USD' });
+export const formatBalanceWithoutCents = (balance: number): string => {
+  return balanceWithoutCentsFormatter.format(balance);
+}
+
+// Re-use formatter for better performance
 const priceFormatter = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2, style: 'currency', currency: 'USD' });
 export const formatPrice = (price: number): string => {
   return priceFormatter.format(price);
@@ -101,4 +107,18 @@ export const formatChangePercentage = (percent: number): string => {
 const quantityFormatter = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 export const formatQuantity = (quantity: number): string => {
   return quantityFormatter.format(quantity);
+}
+
+export const convertStringToArray = (inputString: string, delimeter: string, outputType: (value: string, index: number, array: string[]) => void): any[] => {
+  return inputString.split(delimeter).map(outputType);
+}
+
+export const convertArrayToString = (inputArray: any[], delimeter: string): string => {
+  let outputString = '';
+
+  inputArray.forEach((el, index) => {
+    outputString += (index > 0) ? delimeter + el : el;
+  });
+
+  return outputString;
 }

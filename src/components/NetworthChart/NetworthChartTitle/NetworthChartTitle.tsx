@@ -1,23 +1,34 @@
-import { formatBalance } from '../../../utils/general';
+import { formatBalanceWithoutCents } from '../../../utils/general';
 import { ColoredPercentage } from '../../ColoredPercentage';
 import './NetworthChartTitle.css';
 
 
 interface INetworthChartTitle {
   titleBalance: number,
-  titlePercentageChange: number,
+  titleAnnualPercentageChange: number,
+  titleChangeFromStartDate: number | null,
 }
 
-export const NetworthChartTitle: React.FC<INetworthChartTitle> = ({ titleBalance, titlePercentageChange }) => {
+export const NetworthChartTitle: React.FC<INetworthChartTitle> = ({ titleBalance, titleAnnualPercentageChange, titleChangeFromStartDate }) => {
   return (
     <div className="networth-chart--title">
       <div className="networth-chart--title-section">
-        <span className="networth-chart--title-section--label">Networth:</span>
-        <span className="networth-chart--title-section--value">{formatBalance(titleBalance)}</span>
+        <span className="networth-chart--title-section--label">Total:</span>
+        <span className="networth-chart--title-section--value">{formatBalanceWithoutCents(titleBalance)}</span>
       </div>
       <div className="networth-chart--title-section">
-        <span className="networth-chart--title-section--label">Annual Change:</span>
-        <span className="networth-chart--title-section--value"><ColoredPercentage percentage={titlePercentageChange} /></span>
+        <span className="networth-chart--title-section--label">Annual Chg:</span>
+        <span className="networth-chart--title-section--value"><ColoredPercentage percentage={titleAnnualPercentageChange} /></span>
+      </div>
+      <div className="networth-chart--title-section">
+        <span className="networth-chart--title-section--label">Ytd Chg:</span>
+        <span className="networth-chart--title-section--value">
+          { titleChangeFromStartDate === null ?
+              <span className="networth-chart--title-section--label">N/A</span>
+            :
+              <ColoredPercentage percentage={titleChangeFromStartDate} />
+          }
+        </span>
       </div>
     </div>
   );

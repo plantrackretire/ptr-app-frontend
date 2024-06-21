@@ -1,0 +1,18 @@
+.pie-chart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .25em;
+}
+
+.pie-chart--chart {
+    width: 100%; /* allows tooltip to use more space */
+    transition: height .5s;
+}
+
+.pie-chart--no-data {
+    width: 100%;
+    margin-top: .5em;
+    display: flex;
+    justify-content: center;
+}

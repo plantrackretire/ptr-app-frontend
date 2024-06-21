@@ -1,0 +1,65 @@
+/* grid-template-rows specified in code to match max number of rows for animation (grid row animation only works if number of rows is always the same). */
+.asset-class-allocation-bar-table {
+    display: grid;
+    /* grid-template-columns: 1em 1fr max-content max-content max-content max-content; */
+    /* grid-template-columns: 1em 1fr 7em max-content max-content max-content max-content; */
+    column-gap: 0em;
+    transition: grid-template-rows .25s ease-in-out;
+    overflow: hidden;
+}
+
+.asset-class-allocation-bar-table--headings {
+    display: contents;
+}
+.asset-class-allocation-bar-table--headings div {
+    padding: .5em .5em;
+    margin-bottom: .25em;
+    background-color: var(--medium-grey);
+    color: var(--light-text);
+}
+
+.asset-class-allocation-bar-table--row {
+    display: contents;
+}
+
+.asset-class-allocation-bar-table--row > div {
+    border-bottom: 1px solid var(--light-grey);
+}
+
+.asset-class-allocation-bar-table--row:hover div:not(:first-child),
+.asset-class-allocation-bar-table--hover {
+    background-color: var(--medium-grey) !important;
+    color: var(--light-text) !important;
+}
+
+.asset-class-allocation-bar-table--bar {
+    margin-left: .5em;
+    width: 100%;
+}
+.asset-class-allocation-bar-table--sub-bar {
+    margin-left: .5em;
+    height: .5em;
+}
+
+.asset-class-allocation-bar-table--content {
+    padding: .25em .5em;
+}
+
+/* .asset-class-allocation-bar-table--row > div:not(:first-child):not(:nth-child(2)), */
+/* .asset-allocation-bar-table--headings > div:not(:nth-child(2)):not(:nth-child(3)) div,
+.asset-allocation-bar-table--headings > div:not(:nth-child(2)):not(:nth-child(3)) button { */
+.asset-class-allocation-bar-table--row > div:nth-last-child(1),
+.asset-class-allocation-bar-table--row > div:nth-last-child(2),
+.asset-class-allocation-bar-table--row > div:nth-last-child(3),
+.asset-class-allocation-bar-table--row > div:nth-last-child(4),
+.asset-allocation-bar-table--headings > div:nth-last-child(1) div,
+.asset-allocation-bar-table--headings > div:nth-last-child(1) button,
+.asset-allocation-bar-table--headings > div:nth-last-child(2) div,
+.asset-allocation-bar-table--headings > div:nth-last-child(2) button,
+.asset-allocation-bar-table--headings > div:nth-last-child(3) div,
+.asset-allocation-bar-table--headings > div:nth-last-child(3) button,
+.asset-allocation-bar-table--headings > div:nth-last-child(4) div,
+.asset-allocation-bar-table--headings > div:nth-last-child(4) button {
+    /* text-align: end;
+    justify-content: end; */
+}

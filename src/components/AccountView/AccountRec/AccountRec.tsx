@@ -7,14 +7,14 @@ import './AccountRec.css';
 
 interface IAccountRec {
   account: IAccount,
-  handleAccountTypeCategoryButtonClick: () => void,
+  handleAccountButtonClick: () => void,
   isActive?: boolean,
 }
 
-export const AccountRec: React.FC<IAccountRec> = ({ account, handleAccountTypeCategoryButtonClick, isActive }) => {
+export const AccountRec: React.FC<IAccountRec> = ({ account, handleAccountButtonClick, isActive }) => {
   const changeInValuePercentage: number | null | string = account.aggValues!.calcChangeInValuePercentage();
   return (
-    <BasicTableRow handleRowClick={handleAccountTypeCategoryButtonClick}>
+    <BasicTableRow handleRowClick={handleAccountButtonClick}>
       <td>
         <div className='two-line'>
           <div className={isActive ? "active" : ""}>
@@ -22,6 +22,9 @@ export const AccountRec: React.FC<IAccountRec> = ({ account, handleAccountTypeCa
           </div>
           <small>{account.accountTypeName}</small>
         </div>
+      </td>
+      <td>
+        <br />
       </td>
       <td>
         { changeInValuePercentage === null ?

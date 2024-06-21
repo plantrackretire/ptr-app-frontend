@@ -6,7 +6,7 @@ import { Fragment, useContext, useEffect, useState } from 'react';
 import isEqual from 'lodash/isEqual';
 import { PtrAppApiStack } from '../../../../ptr-app-backend/cdk-outputs.json';
 import { AuthenticatorContext, IAuthenticatorContext } from '../../providers/AppAuthenticatorProvider';
-import { fetchData, getUserToken } from '../../utils/general';
+import { convertStringToArray, fetchData, getUserToken } from '../../utils/general';
 import { createDateFromDayValue, createDateStringFromDate, createDayFromDate, createLocalDateFromDateTimeString, getBeginningOfYear, getPriorMonthEnd } from '../../utils/dates';
 import { ModalContextType, ModalType, useModalContext } from '../../providers/Modal';
 import { TreeFilter } from './TreeFilter';
@@ -695,7 +695,7 @@ export const formatFilterBarValuesForServer = (filterBarValues: IFilterBarValues
     formattedFilterBarValues.assets = filterBarValues.assets.map(el => el.value);
   }
   if((filterBarValues.assetClasses.length) > 0 && (filterBarValues.assets.length <= 0)) {
-    formattedFilterBarValues.assetClasses = filterBarValues.assetClasses.flatMap(el => (el.filter as string)!.split(',').map(Number));
+    formattedFilterBarValues.assetClasses = filterBarValues.assetClasses.flatMap(el => convertStringToArray((el.filter as string), ',', Number));
   }
   if(filterBarValues.tags.length > 0) {
     formattedFilterBarValues.tags = filterBarValues.tags.flatMap(el => el.value);

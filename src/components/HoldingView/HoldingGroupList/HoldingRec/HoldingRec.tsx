@@ -1,21 +1,42 @@
 import { ColoredPercentage } from '../../../ColoredPercentage';
 import { formatBalance, formatPrice, formatQuantity } from '../../../../utils/general';
-import { IHolding } from '../..';
+import { HoldingsFilterTypes, IHandleHoldingActionButtonClick, IHolding, IHoldingsFilter } from '../..';
 import { BasicTableRow } from '../../../BasicTable/BasicTableRow';
 import './HoldingRec.css';
 
 
 interface IHoldingRec {
   holding: IHolding,
-  handleHoldingActionButtonClick: (securityId: number, securityName: string, accountId?: number, accountName?: string) => void,
+  filters: IHoldingsFilter[],
+  handleHoldingActionButtonClick: (params: IHandleHoldingActionButtonClick) => void,
 }
 
-export const HoldingRec: React.FC<IHoldingRec> = ({ holding, handleHoldingActionButtonClick }) => {
+export const HoldingRec: React.FC<IHoldingRec> = ({ holding, filters, handleHoldingActionButtonClick }) => {
+  let accountTypeCategoryId = 0;
+  let accountTypeCategoryName = '';
+
+  if(holding.accountId === 0) {
+    const accountTypeCategoryFilter = filters.find(el => el.type === HoldingsFilterTypes.accountTypeCategory);
+    if(accountTypeCategoryFilter) {
+      accountTypeCategoryId = accountTypeCategoryFilter.filterValue[0];
+      accountTypeCategoryName = accountTypeCategoryFilter.label;
+    }
+  }
   return (
     <BasicTableRow handleRowClick={() => (holding.accountId === 0) ?
-      handleHoldingActionButtonClick(holding.securityId, holding.securityName)
+      handleHoldingActionButtonClick({
+        securityId: holding.securityId, 
+        securityName: holding.securityName,
+        accountTypeCategoryId: accountTypeCategoryId ? accountTypeCategoryId : undefined,
+        accountTypeCategoryName: accountTypeCategoryName.length > 0 ? accountTypeCategoryName : undefined,
+      })
     :
-      handleHoldingActionButtonClick(holding.securityId, holding.securityName, holding.accountId, holding.accountName)
+      handleHoldingActionButtonClick({
+        securityId: holding.securityId, 
+        securityName: holding.securityName, 
+        accountId: holding.accountId, 
+        accountName: holding.accountName,
+      })
     }>
       <td>
         <span>{holding.securityShortName}</span>

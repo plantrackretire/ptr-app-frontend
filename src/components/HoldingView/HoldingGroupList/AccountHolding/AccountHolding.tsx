@@ -1,4 +1,4 @@
-import { IHolding } from '../..';
+import { IHandleHoldingActionButtonClick, IHolding } from '../..';
 import { ColoredPercentage } from '../../../ColoredPercentage';
 import { formatBalance, formatQuantity } from '../../../../utils/general';
 import { BasicTableSubRow } from '../../../BasicTable/BasicTableSubRow';
@@ -7,13 +7,18 @@ import './AccountHolding.css';
 
 interface IAccountHolding {
   accountHolding: IHolding,
-  handleHoldingActionButtonClick: (securityId: number, securityName: string, accountId?: number, accountName?: string) => void,
+  handleHoldingActionButtonClick: (params: IHandleHoldingActionButtonClick) => void,
 }
 
 export const AccountHolding: React.FC<IAccountHolding> = ({ accountHolding, handleHoldingActionButtonClick }) => {
   return (
     <BasicTableSubRow handleRowClick={() => 
-        handleHoldingActionButtonClick(accountHolding.securityId, accountHolding.securityName, accountHolding.accountId, accountHolding.accountName)}
+        handleHoldingActionButtonClick({
+          securityId: accountHolding.securityId, 
+          securityName: accountHolding.securityName, 
+          accountId: accountHolding.accountId, 
+          accountName: accountHolding.accountName,
+        })}
     >
       <td><br /></td>
       <td>

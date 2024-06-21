@@ -1,0 +1,28 @@
+.charts-options {
+    width: 100%;
+    align-self: center;
+    display: flex;
+    justify-content: space-between;
+}
+
+.charts-options--scope {
+    display: flex;
+    align-content: center;
+    gap: .5em;
+}
+
+.charts-options--levels {
+    display: flex;
+    align-content: center;
+    gap: 1em;
+}
+
+.charts-options--levels-options {
+    display: flex;
+    gap: 1.5em;
+    width: max-content;
+}
+
+.charts-options--label {
+    color: var(--medium-grey);
+}

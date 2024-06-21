@@ -30,8 +30,7 @@ export const TreeView: React.FC<ITreeView> = ({ treeItems, currentSelection, han
 
   const handleExpandAllClicked = () => {
     const expandedNodes: { [index: number]: boolean } = {};
-    const nodesByParent = getNodesByParent(treeItems);
-    Object.keys(nodesByParent).forEach(parent => expandedNodes[((parent as unknown) as number)] = true)
+    treeItems.forEach(item => { if(item.parent) expandedNodes[item.parent] = true });
     setExpandedNodes(expandedNodes);
   }
 
@@ -73,7 +72,7 @@ const generateHTMLStructure = (treeItems: TreeViewItem[], currentSelection: Tree
 
         // Generate HTML for current node and its children
         return  (
-                <Fragment>
+                <Fragment key={node.value}>
                 <div className={"tree-view--node" + (children.length > 0 ? " tree-view--node-parent" : '')} 
                   style={{paddingLeft: ((node.level || 0) * hierarchyPaddingMultiplier) + "em"}}
                   
