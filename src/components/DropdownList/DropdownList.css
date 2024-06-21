@@ -1,8 +1,7 @@
 .dropdown-list {
-    height: 2em;
-    min-height: 2em !important;
-    font-size: .85em;
-  
+    min-height: 2.25em !important;
+    font-size: .9em;
+
     .react-dropdown-select-dropdown {
         z-index: 999; /* make sure dropdown appears on top of other elements */
     }
@@ -17,6 +16,13 @@
 
 .react-dropdown-select {
     border-color: var(--medium-grey) !important;
+}
+.react-dropdown-select input {
+    margin-left: 0px !important;
+    font-size: 1em;
+}
+.react-dropdown-select input::placeholder {
+    color: var(--medium-grey);
 }
 
 .dropdown-list--item {

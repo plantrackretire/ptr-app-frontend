@@ -133,9 +133,10 @@ a:hover {
 }
 .button-el--visual:not(.button-el--disabled) {
   cursor: pointer;
-  border: 1px solid var(--dark-active-color);
-  color: var(--blue) !important;
-  fill: var(--blue) !important;
+  border: 1px solid var(--red);
+  background-color: var(--light-red);
+  color: var(--dark-grey) !important;
+  fill: var(--dark-grey) !important;
 }
 .button-el:hover:not(.button-el--disabled):not(.light) {
   color: var(--active-color) !important;
@@ -147,6 +148,7 @@ a:hover {
 }
 .button-el--visual:hover:not(.button-el--disabled) {
   background-color: var(--dark-active-color) !important;
+  border: 1px solid var(--light-active-color);
   color: white !important;
   fill: white !important;
 }
@@ -223,6 +225,13 @@ ul {
 }
 .two-line :nth-child(2) {
   color: var(--medium-grey);
+}
+
+.no-data-found {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 2em;
 }
 
 /* Sometimes browsers (safari) clip a pixel on bottom and/or left (probably rounding error) */

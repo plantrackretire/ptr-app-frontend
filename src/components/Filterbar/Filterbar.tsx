@@ -54,6 +54,7 @@ interface IAssociations {
 interface IFilterBar {
   appliedFilterBarValues: IFilterBarValues,
   setAppliedFilterBarValues: (filterBarValues: IFilterBarValues) => void,
+  useApply: boolean,
 }
 export interface IFilterBarOption {
   value: number,
@@ -106,25 +107,22 @@ const dropListFilters = [
   { filterObjectName: 'tags', label: 'Tags', filterClearValue: [], },
 ];
 
-// TODO: Delete this version if never going to use drop lists for account and asset related filters.
-// const dropListFilters = [
-//   { filterObjectName: 'accountTypes', label: 'Account Types', filterClearValue: [], },
-//   { filterObjectName: 'accounts', label: 'Accounts', filterClearValue: [], },
-//   { filterObjectName: 'assetClasses', label: 'Asset Classes', filterClearValue: [], },
-//   { filterObjectName: 'assets', label: 'Assets', filterClearValue: [], },
-//   { filterObjectName: 'tags', label: 'Tags', filterClearValue: [], },
-// ];
-
 // appliedFilterBarValues - filter values that have been 'applied' and fed upstream to use in data retreival.
 // filterBarValues - current value of each fitler, which may or may not have been fed upstream to apply.
 // When apply button is pressed filterBarValues are fed upstream to apply to data retreival and will come back in appliedFilterBarValues.
 // filterBarOptions - choices for each filter, loaded from db based on asOfDate, further filtered in memory based on values of other filters.
-export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setAppliedFilterBarValues }) => {
+export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setAppliedFilterBarValues, useApply }) => {
   const [activityRange, setActivityRange] = useState<IActivityRange>(activityRangeInit);
   const [filterBarValues, setFilterBarValues] = useState<IFilterBarValues>(filterBarValuesInit);
   const [filterBarOptions, setFilterBarOptions] = useState<IFilterBarOptions>(filterBarOptionsInit);
   const appUserAttributes = useContext(AuthenticatorContext);
   const modalContext = useModalContext();
+
+  // Determine which values to use (depending on whether apply button is being used).
+  let activeFilterBarValues = appliedFilterBarValues;
+  if(useApply) {
+    activeFilterBarValues = filterBarValues;
+  }
 
   useEffect(() => {
     // This avoids race conditions by ignoring results from stale calls
@@ -159,7 +157,7 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
     let ignoreResults = false;
 
     const getFilterBarOptions = async() => {
-      const asOfDate = createDateFromDayValue(filterBarValues.asOfDate);
+      const asOfDate = createDateFromDayValue(activeFilterBarValues.asOfDate);
       const startDate = getBeginningOfYear(asOfDate);
       const endDate = getPriorMonthEnd(asOfDate);
 
@@ -170,7 +168,7 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
             'Error retreiving reference data, please try again.',
         );
         setFilterBarOptions(filterBarOptionsInit);
-        setFilterBarValues(filterBarValuesInit);
+        updateFilterBarValues(filterBarValuesInit);
         return () => { ignoreResults = true };
       }
 
@@ -184,9 +182,9 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
         };
         setFilterBarOptions(newFilterBarOptions);
 
-        const [validatedFilterBarValues, didValuesChange] = validateFilterValues(newFilterBarOptions, filterBarValues);
+        const [validatedFilterBarValues, didValuesChange] = validateFilterValues(newFilterBarOptions, activeFilterBarValues);
         if(didValuesChange) {
-          setFilterBarValues(validatedFilterBarValues);    
+          updateFilterBarValues(validatedFilterBarValues);
         }
       }
     }
@@ -194,24 +192,32 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
     getFilterBarOptions();
 
     return () => { ignoreResults = true };
-  }, [filterBarValues.asOfDate]);
+  }, [activeFilterBarValues.asOfDate]);
 
-  const handleFiltersClearButtonClick = () => setFilterBarValues(filterBarValuesInit);
-  const handleAsOfDateClearButtonClick = () => setFilterBarValues({ ...filterBarValues, asOfDate: utils('en').getToday() });
-  const handleAccountsClearButtonClick = () => setFilterBarValues({ ...filterBarValues, accountTypes: [], accounts: [] });
-  const handleAssetsClearButtonClick = () => setFilterBarValues({ ...filterBarValues, assetClasses: [], assets: [] });
+  const updateFilterBarValues = (filterBarValues: IFilterBarValues) => {
+    if(useApply) {
+      setFilterBarValues(filterBarValues);
+    } else {
+      setAppliedFilterBarValues(filterBarValues);
+    }
+  }
 
-  const handleAsOfDateChange = (asOfDate: DayValue) => setFilterBarValues({ ...filterBarValues, asOfDate: asOfDate });
+  const handleFiltersClearButtonClick = () => updateFilterBarValues(filterBarValuesInit);
+  const handleAsOfDateClearButtonClick = () => updateFilterBarValues({ ...activeFilterBarValues, asOfDate: utils('en').getToday() });
+  const handleAccountsClearButtonClick = () => updateFilterBarValues({ ...activeFilterBarValues, accountTypes: [], accounts: [] });
+  const handleAssetsClearButtonClick = () => updateFilterBarValues({ ...activeFilterBarValues, assetClasses: [], assets: [] });
+
+  const handleAsOfDateChange = (asOfDate: DayValue) => updateFilterBarValues({ ...activeFilterBarValues, asOfDate: asOfDate });
 
   const handleAccountTreeFilterClicked = async() => {
-    const preparedOptions = filterAndSortOptions(filterBarOptions, filterBarValues, true);
+    const preparedOptions = filterAndSortOptions(filterBarOptions, activeFilterBarValues, true);
     const results = await modalContext.showModal(
       ModalType.noButtons,
       <TreeFilter
         treeOptions={preparedOptions['accountTypes']}
         drilldownOptions={preparedOptions['accounts']}
-        initialTreeValue={filterBarValues.accountTypes}
-        initialDrilldownValue={filterBarValues.accounts}
+        initialTreeValue={activeFilterBarValues.accountTypes}
+        initialDrilldownValue={activeFilterBarValues.accounts}
         treeElementName="accountTypes"
         title='Account Types & Accounts'
         subTitle='Select an Account Type and/or Account'
@@ -220,20 +226,20 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
         handleCloseWithContent={modalContext.closeWithContent}
       />
     );
-    if(!isEqual(results.content.treeValue, filterBarValues.accountTypes) ||
-    !isEqual(results.content.drilldownValue, filterBarValues.accounts)) {
-      setFilterBarValues({ ...filterBarValues, accountTypes: results.content.treeValue, accounts: results.content.drilldownValue });
+    if(!isEqual(results.content.treeValue, activeFilterBarValues.accountTypes) ||
+    !isEqual(results.content.drilldownValue, activeFilterBarValues.accounts)) {
+      updateFilterBarValues({ ...activeFilterBarValues, accountTypes: results.content.treeValue, accounts: results.content.drilldownValue });
     }
   }
   const handleAssetTreeFilterClicked = async() => {
-    const preparedOptions = filterAndSortOptions(filterBarOptions, filterBarValues, true);
+    const preparedOptions = filterAndSortOptions(filterBarOptions, activeFilterBarValues, true);
     const results = await modalContext.showModal(
       ModalType.noButtons,
       <TreeFilter
         treeOptions={preparedOptions['assetClasses']}
         drilldownOptions={preparedOptions['assets']}
-        initialTreeValue={filterBarValues.assetClasses}
-        initialDrilldownValue={filterBarValues.assets}
+        initialTreeValue={activeFilterBarValues.assetClasses}
+        initialDrilldownValue={activeFilterBarValues.assets}
         treeElementName="assetClasses"
         title='Asset Classes & Assets'
         subTitle='Select an Asset Class and/or Asset'
@@ -242,32 +248,34 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
         handleCloseWithContent={modalContext.closeWithContent}
       />
     );
-    if(!isEqual(results.content.treeValue, filterBarValues.assetClasses) ||
-    !isEqual(results.content.drilldownValue, filterBarValues.assets)) {
-      setFilterBarValues({ ...filterBarValues, assetClasses: results.content.treeValue, assets: results.content.drilldownValue });
+    if(!isEqual(results.content.treeValue, activeFilterBarValues.assetClasses) ||
+    !isEqual(results.content.drilldownValue, activeFilterBarValues.assets)) {
+      updateFilterBarValues({ ...activeFilterBarValues, assetClasses: results.content.treeValue, assets: results.content.drilldownValue });
     }
   }
 
-  const hanldeApplyClicked = () => setAppliedFilterBarValues(filterBarValues);
+  const hanldeApplyClicked = () => setAppliedFilterBarValues(activeFilterBarValues);
   const hanldeResetClicked = async () => {
-    if(!isEqual(appliedFilterBarValues, filterBarValues)) {
-      setFilterBarValues(appliedFilterBarValues);
+    if(!isEqual(appliedFilterBarValues, activeFilterBarValues)) {
+      updateFilterBarValues(appliedFilterBarValues);
     }
   }
 
-  const isApplyEnabled = !isEqual(appliedFilterBarValues, filterBarValues) ? true : false;
+  const isApplyEnabled = !isEqual(appliedFilterBarValues, activeFilterBarValues) ? true : false;
 
-  const preparedFilterBarOptions = filterAndSortOptions(filterBarOptions, filterBarValues);
+  const preparedFilterBarOptions = filterAndSortOptions(filterBarOptions, activeFilterBarValues);
 
   // For each droplist type filter create the callback functions and html.
   const dropListFiltersElements = dropListFilters.map(filter => 
-    createDropListFilterOption(filter.filterObjectName, filter.label, filterBarValues[filter.filterObjectName as FilterableFilterBarCategories], 
+    createDropListFilterOption(filter.filterObjectName, filter.label, activeFilterBarValues[filter.filterObjectName as FilterableFilterBarCategories], 
       appliedFilterBarValues[filter.filterObjectName as FilterableFilterBarCategories], filter.filterClearValue, 
       preparedFilterBarOptions[filter.filterObjectName as FilterableFilterBarCategories], 
-      preparedFilterBarOptions, filterBarValues, setFilterBarValues,
+      preparedFilterBarOptions, activeFilterBarValues, useApply, updateFilterBarValues,
       (filter.filterObjectName === 'accountTypes' || filter.filterObjectName === 'accounts') ? handleAccountTreeFilterClicked : 
       ((filter.filterObjectName === 'assetClasses' || filter.filterObjectName === 'assets') ? handleAssetTreeFilterClicked : undefined))
   );
+
+  console.log("RENDERING FILTER BAR");
 
   return (
     <Fragment>
@@ -280,8 +288,8 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
       />
       <div className='filterbar--filters'>
         <div className={'filterbar--filter' +
-          ((filterBarValues.asOfDate && isEqual(filterBarValues.asOfDate, appliedFilterBarValues.asOfDate)) ? " filterbar--filter-applied" : "") +
-          ((!isEqual(filterBarValues.asOfDate, appliedFilterBarValues.asOfDate)) ? " filterbar--filter-not-applied" : "")}
+          ((useApply && activeFilterBarValues.asOfDate && isEqual(activeFilterBarValues.asOfDate, appliedFilterBarValues.asOfDate)) ? " filterbar--filter-applied" : "") +
+          ((useApply && !isEqual(activeFilterBarValues.asOfDate, appliedFilterBarValues.asOfDate)) ? " filterbar--filter-not-applied" : "")}
         >
           <SectionHeading 
             size={SectionHeadingSizeType.small} 
@@ -289,18 +297,18 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
             handleClearButtonClick={handleAsOfDateClearButtonClick}
           />
           <DateFilter 
-            selectedDay={filterBarValues.asOfDate}
+            selectedDay={activeFilterBarValues.asOfDate}
             setSelectedDay={handleAsOfDateChange}
-            inputLabel='As of:'
+            inputLabel='As of Date:'
             minimumDate={activityRange.startDate}
             maximumDate={createDayFromDate(new Date())}
           />
         </div>
         <div className={'filterbar--filter' +
-          ((filterBarValues.accountTypes.length && isEqual(filterBarValues.accountTypes, appliedFilterBarValues.accountTypes)) ||
-          (filterBarValues.accounts.length && isEqual(filterBarValues.accounts, appliedFilterBarValues.accounts)) ? " filterbar--filter-applied" : "") +
-          ((!isEqual(filterBarValues.accountTypes, appliedFilterBarValues.accountTypes) ||
-          !isEqual(filterBarValues.accounts, appliedFilterBarValues.accounts)) ? " filterbar--filter-not-applied" : "")}
+          (useApply && ((activeFilterBarValues.accountTypes.length && isEqual(activeFilterBarValues.accountTypes, appliedFilterBarValues.accountTypes)) ||
+          (activeFilterBarValues.accounts.length && isEqual(activeFilterBarValues.accounts, appliedFilterBarValues.accounts))) ? " filterbar--filter-applied" : "") +
+          (useApply && ((!isEqual(activeFilterBarValues.accountTypes, appliedFilterBarValues.accountTypes) ||
+          !isEqual(activeFilterBarValues.accounts, appliedFilterBarValues.accounts))) ? " filterbar--filter-not-applied" : "")}
         >
           <SectionHeading
             size={SectionHeadingSizeType.small}
@@ -308,16 +316,16 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
             handleClearButtonClick={handleAccountsClearButtonClick}
           />
           <div className='filterbar--filter-textbox' onClick={handleAccountTreeFilterClicked}>
-            { filterBarValues.accounts.length > 0 ? <div>{filterBarValues.accounts[0].label}</div> : 
-              (filterBarValues.accountTypes.length > 0 ? <div>{filterBarValues.accountTypes[0].label}</div> : <small className='de-emphasize'>Select...</small>)
+            { activeFilterBarValues.accounts.length > 0 ? <div>{activeFilterBarValues.accounts[0].label}</div> : 
+              (activeFilterBarValues.accountTypes.length > 0 ? <div>{activeFilterBarValues.accountTypes[0].label}</div> : <div className='de-emphasize'>Select...</div>)
             }
           </div>
         </div>
         <div className={'filterbar--filter' +
-          ((filterBarValues.assetClasses.length && isEqual(filterBarValues.assetClasses, appliedFilterBarValues.assetClasses)) ||
-          (filterBarValues.assets.length && isEqual(filterBarValues.assets, appliedFilterBarValues.assets)) ? " filterbar--filter-applied" : "") +
-          ((!isEqual(filterBarValues.assetClasses, appliedFilterBarValues.assetClasses) ||
-          !isEqual(filterBarValues.assets, appliedFilterBarValues.assets)) ? " filterbar--filter-not-applied" : "")}
+          (useApply && ((activeFilterBarValues.assetClasses.length && isEqual(activeFilterBarValues.assetClasses, appliedFilterBarValues.assetClasses)) ||
+          (activeFilterBarValues.assets.length && isEqual(activeFilterBarValues.assets, appliedFilterBarValues.assets))) ? " filterbar--filter-applied" : "") +
+          (useApply && ((!isEqual(activeFilterBarValues.assetClasses, appliedFilterBarValues.assetClasses) ||
+          !isEqual(activeFilterBarValues.assets, appliedFilterBarValues.assets))) ? " filterbar--filter-not-applied" : "")}
         >
           <SectionHeading
             size={SectionHeadingSizeType.small}
@@ -325,21 +333,23 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
             handleClearButtonClick={handleAssetsClearButtonClick}
           />
           <div className='filterbar--filter-textbox' onClick={handleAssetTreeFilterClicked}>
-            { filterBarValues.assets.length > 0 ? <div>{filterBarValues.assets[0].label}</div> : 
-              (filterBarValues.assetClasses.length > 0 ? <div>{filterBarValues.assetClasses[0].label}</div> : <small className='de-emphasize'>Select...</small>)
+            { activeFilterBarValues.assets.length > 0 ? <div>{activeFilterBarValues.assets[0].label}</div> : 
+              (activeFilterBarValues.assetClasses.length > 0 ? <div>{activeFilterBarValues.assetClasses[0].label}</div> : <div className='de-emphasize'>Select...</div>)
             }
           </div>
         </div>
         {dropListFiltersElements}
-        <div className="filterbar--apply">
-          <button className={"button-el--visual" + (isApplyEnabled ? "" : " button-el--disabled")} onClick={isApplyEnabled ? () => hanldeApplyClicked() : undefined}>
-            Apply
-          </button>
-          <button className={"button-el" + (isApplyEnabled ? "" : " button-el--disabled")} 
-            onClick={isApplyEnabled ? () => hanldeResetClicked() : undefined}>
-            <small>Reset</small>
-          </button>
-        </div>
+        { useApply &&
+          <div className="filterbar--apply">
+            <button className={"button-el--visual" + (isApplyEnabled ? "" : " button-el--disabled")} onClick={isApplyEnabled ? () => hanldeApplyClicked() : undefined}>
+              Apply
+            </button>
+            <button className={"button-el" + (isApplyEnabled ? "" : " button-el--disabled")} 
+              onClick={isApplyEnabled ? () => hanldeResetClicked() : undefined}>
+              <small>Reset</small>
+            </button>
+          </div>
+        }
       </div>
     </div>
     </Fragment>
@@ -368,7 +378,7 @@ const getDbFilterBarOptions = async(appUserAttributes: IAuthenticatorContext, mo
 
 const createDropListFilterOption = (filterObjectName: string, label: string, filterValues: DropListFilterBarValues, 
   filterAppliedValues: DropListFilterBarValues, filterClearValue: DropListFilterBarValues, filterOptions: IFilterBarOption[], 
-  allOptions: IFilterBarOptions, allValues: IFilterBarValues, setFilterBarValues: ((value: IFilterBarValues) => void),
+  allOptions: IFilterBarOptions, allValues: IFilterBarValues, useApply: boolean, setFilterBarValues: ((value: IFilterBarValues) => void),
   handleTreeFilterClicked?: () => void) => {
   const handleClearButtonClick = () => {
     const newValues: IFilterBarValues = { ...allValues };
@@ -385,8 +395,8 @@ const createDropListFilterOption = (filterObjectName: string, label: string, fil
 
   return (
     <div key={filterObjectName} className={'filterbar--filter' +
-      ((filterValues.length && isEqual(filterValues, filterAppliedValues)) ? " filterbar--filter-applied" : "") +
-      ((!isEqual(filterValues, filterAppliedValues)) ? " filterbar--filter-not-applied" : "")}
+      ((useApply && filterValues.length && isEqual(filterValues, filterAppliedValues)) ? " filterbar--filter-applied" : "") +
+      ((useApply && !isEqual(filterValues, filterAppliedValues)) ? " filterbar--filter-not-applied" : "")}
     >
       { handleTreeFilterClicked ?
         <SectionHeading

@@ -18,7 +18,7 @@ export const Navbar: React.FC<INavbar> = ({ subPageItems, setSubPage, filterBarV
         setCurrentNavItem={setSubPage}
         iconWidth="1em" 
       />
-      <FilterBar appliedFilterBarValues={filterBarValues} setAppliedFilterBarValues={setFilterBarValues} />
+      <FilterBar appliedFilterBarValues={filterBarValues} setAppliedFilterBarValues={setFilterBarValues} useApply={false} />
     </div>
   );
 };  

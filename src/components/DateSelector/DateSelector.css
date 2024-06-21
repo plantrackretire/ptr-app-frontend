@@ -5,6 +5,9 @@
 
 .responsive-calendar-input {
     /* This has input text use default font size for page */
-    font-size: .85em !important; /* default to 10px */
+    font-size: 1em !important; /* default to 10px */
     width: 100%;
+    text-align: left;
+    color: var(--dark-grey);
+    border: 1px solid var(--medium-grey);
 }

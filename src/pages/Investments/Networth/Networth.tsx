@@ -90,7 +90,11 @@ export const Networth: React.FC<INetworth> = ({ filterBarValues, dbHoldings, dbA
 
     const asOfDate = createDateFromDayValue(filterBarValues.asOfDate);
     const startDate = getBeginningOfYear(asOfDate);
-    
+
+    if(dbHoldings !== null && dbHoldings.length === 0) {
+        return <div className="no-data-found"><h1>No data found, please adjust your filters.</h1></div>;
+    }
+
     return (
         <div className='content-two-col scrollable'>
             <div className='content-two-col--col scrollable'>

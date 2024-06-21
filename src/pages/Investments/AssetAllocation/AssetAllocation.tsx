@@ -288,6 +288,10 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
       total = totals.endTotal;
     }
 
+    if(holdings !== null && holdings.length === 0) {
+      return <div className="no-data-found"><h1>No data found, please adjust your filters.</h1></div>;
+    }
+
     return (
         <div className='content-two-col scrollable'>
             <div className='content-two-col--col scrollable'>
