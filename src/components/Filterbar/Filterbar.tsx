@@ -275,8 +275,6 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
       ((filter.filterObjectName === 'assetClasses' || filter.filterObjectName === 'assets') ? handleAssetTreeFilterClicked : undefined))
   );
 
-  console.log("RENDERING FILTER BAR");
-
   return (
     <Fragment>
     <div className='filterbar'>

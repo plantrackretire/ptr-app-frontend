@@ -3,26 +3,33 @@
     align-self: center;
     display: flex;
     justify-content: space-between;
+    align-items: end;
+}
+
+.charts-options--options {
+    display: flex;
+    flex-direction: column;
+    gap: .25em;
+}
+
+.charts-options--options--options-set {
+    display: flex;
+    align-content: center;
+    gap: 1em;
+}
+
+.charts-options--options--options-set--options {
+    display: flex;
+    gap: 1.5em;
+    width: max-content;
+}
+
+.charts-options--options--options-set--label {
+    color: var(--medium-grey);
 }
 
 .charts-options--scope {
     display: flex;
     align-content: center;
     gap: .5em;
-}
-
-.charts-options--levels {
-    display: flex;
-    align-content: center;
-    gap: 1em;
-}
-
-.charts-options--levels-options {
-    display: flex;
-    gap: 1.5em;
-    width: max-content;
-}
-
-.charts-options--label {
-    color: var(--medium-grey);
 }

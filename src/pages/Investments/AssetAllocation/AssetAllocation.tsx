@@ -46,12 +46,19 @@ export interface ITargetAssetClassRecord extends IAssetClass {
 
 export type ITargetAssetClassRecords = { [index: number]: ITargetAssetClassRecord }
 
-export enum TargetAADisplayTypes {
+export enum TargetAaDisplayReasons {
   display = "display",
+  doNotDisplay = "doNotDisplay",
   invalidFilter = "invalidFilter",
   noTargetsForPortfolio = "noTargetsForPortfolio",
   noTargetsForTag = "noTargetsForTag",
 };
+
+export enum AaDisplayTypes {
+  actualsOnly = "actualsOnly",
+  targetsOnly = "targetsOnly",
+  actualsVsTargets = "actualsVsTargets",
+}
 
 // Color scheme for pie chart and bar chart, excludes greens and reds
 const chartColors = [
@@ -73,9 +80,9 @@ const otherAssetClassId = -1;
 
 export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, dbHoldings, dbAccounts }) => {
     const [aaViewLevel, setAaViewLevel] = useState<number>(-1); 
+    const [aaDisplay, setAaDisplay] = useState<AaDisplayTypes>(AaDisplayTypes.actualsVsTargets); 
     const [dbAssetClasses, setDbAssetClasses] = useState<IAssetClass[] | null>(null);
     const [dbTargetAssetClassAllocations, setDbTargetAssetClassAllocations] = useState<ITargetAssetAllocation[] | null>(null);
-    const [displayTargetAssetClassAllocations, setDisplayTargetAssetClassAllocations] = useState<TargetAADisplayTypes>(TargetAADisplayTypes.display);
     const [sortColumn, setSortColumn] = useState<string>("actPercent");
     const [sortDirection, setSortDirection] = useState<string>("desc");
     const [hoverAc, setHoverAc] = useState<number>(0); 
@@ -88,21 +95,15 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
         // This avoids race conditions by ignoring results from stale calls
         let ignoreResults = false;
 
-        // Assumes only one tag chosen at a time, if more than one can be chosen the the first one is being used.
         const getData = async() => {
-          let displayTargets = TargetAADisplayTypes.display;
-
-          // Targets no longer make sense if actuals data is filtered (other than tag).
-          if(filterBarValues.accounts.length > 0 || filterBarValues.accountTypes.length > 0 || filterBarValues.assetClasses.length > 0 || filterBarValues.assets.length > 0) {
-            displayTargets = TargetAADisplayTypes.invalidFilter;
-          }
           const url = PtrAppApiStack.PtrAppApiEndpoint + "GetRefData";
+          // Assumes only one tag chosen at a time, if more than one can be chosen the the first one is being used.
           const tagId = filterBarValues.tags.length > 0 ? filterBarValues.tags[0].value : 0;
           const bodyHoldings = { 
             userId: appUserAttributes!.userId, 
             queryType: "getAssetClasses", 
             tagId: tagId, 
-            includeTargetAllocations: (displayTargets === TargetAADisplayTypes.display), 
+            includeTargetAllocations: true, 
           };
 
           const token = await getUserToken(appUserAttributes!.signOutFunction!, modalContext);
@@ -128,39 +129,26 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
             console.log("assetClasses not in GetAssetClasses API results.");
           }
           let targetAssetClassAllocations = [];
-          if(displayTargets === TargetAADisplayTypes.display) {
-            if('targetAssetClassAllocations' in results[0]) {
-              targetAssetClassAllocations = results[0].targetAssetClassAllocations;
-            } else {
-              // TODO: Throw exception
-              console.log("targetAssetClassAllocations not in GetAssetClasses API results.");
-            }
+          if('targetAssetClassAllocations' in results[0]) {
+            targetAssetClassAllocations = results[0].targetAssetClassAllocations;
+          } else {
+            // TODO: Throw exception
+            console.log("targetAssetClassAllocations not in GetAssetClasses API results.");
           }
 
           // Test data
           // const assetClasses = tmpAssetClasses;
           // const targetAssetClassAllocations = tmpTargetAllocation;
           
-          if(displayTargets === TargetAADisplayTypes.display && targetAssetClassAllocations.length === 0) {
-            if(tagId !== 0) {
-              displayTargets = TargetAADisplayTypes.noTargetsForTag;
-            } else {
-              displayTargets = TargetAADisplayTypes.noTargetsForPortfolio;
-            }
-          }
-
           // Convert string list of child asset class id's to an array of numbers on each asset class.
           createChildAssetClassArrays(assetClasses);
                   
           if(!ignoreResults) {
             setDbAssetClasses(assetClasses);
-            if(displayTargets === TargetAADisplayTypes.display) {
+            if(targetAssetClassAllocations) {
               setDbTargetAssetClassAllocations(targetAssetClassAllocations);
             } else {
               setDbTargetAssetClassAllocations([]);
-            }
-            if(displayTargetAssetClassAllocations !== displayTargets) {
-              setDisplayTargetAssetClassAllocations(displayTargets);
             }
           }
         }
@@ -169,6 +157,12 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
     
         return () => { ignoreResults = true };
     }, [filterBarValues])
+
+    // Set a boolean to easily determine if actuals should be displayed.
+    const displayActuals = (aaDisplay === AaDisplayTypes.actualsOnly || aaDisplay === AaDisplayTypes.actualsVsTargets) ? true : false;
+
+    // Figure out if targets should be displayed, and if not the reason.
+    const displayTargets = determineDisplayTargets(aaDisplay, filterBarValues, dbTargetAssetClassAllocations ? dbTargetAssetClassAllocations : []);
 
     const handlePieChartHover = (keyValue: number) => {
       if(keyValue !== hoverAc) {
@@ -183,6 +177,21 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
         
         return formatBalance(tooltipItem.raw.value) + " (" + formatChangePercentage(total ? tooltipItem.raw.value / total : 0) + ")"; 
     }    
+
+    const handleDisplayChange = (value: AaDisplayTypes) => {
+      setAaDisplay(value);
+      setAaViewLevel(-1); // Don't know if new display will have sufficient levels to support current selection, so reset to max.
+      switch(value) {
+        case AaDisplayTypes.targetsOnly:
+          setSortColumn('tgtPercent');
+          setSortDirection('desc');
+          break;
+        default: // All other cases include actuals so sort on that.
+          setSortColumn('actPercent');
+          setSortDirection('desc');
+          break;
+      }
+    }
         
     // If holdings filter results in zero record and we do have holdings, then revert to 'All' filter.
     const handleZeroFilterResults = () => {
@@ -204,72 +213,78 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
 
     // Use dbHoldings to denote data loading and placeholders should be displayed.
     let holdings: IHolding[] | null = dbHoldings;
-    let targetAssetClassAllocations: ITargetAssetAllocation[] | null = dbTargetAssetClassAllocations;
+    let targetAssetClassAllocations: ITargetAssetAllocation[] | null = displayTargets === TargetAaDisplayReasons.display ?
+      dbTargetAssetClassAllocations : [];
     if(dbAssetClasses === null || dbTargetAssetClassAllocations === null) {
         holdings = null;
     }
 
-    // Consolidate actuals and targets to determine max level before updating asset classes for current view level (otherwise full depth will be lost).
-    // Need to consolidate because if we don't then max level may be exaggerated (if actual has level 3 asset class, but it is consolidated under level 1 target then max is 1).
-    // TODO: If performance issues consider storing this as state to avoid repeating.
-    let maxLevel = null; let maxLevelNumAssetClasses = 0;
+    // Calc total holdings and change from start date for title.
+    let changeFromStartDate = null; let total = null;
     if(holdings !== null) {
-      // Mapping needed to consolidate actuals and targets.  Creates reverse mapping of target asset class children back to target asset class for quick lookups.
-      // This mapping is used to determine if a target record exists for an actual record.
-      const tmpAcChildToTargetMapping = createAcChildToTargetMapping(targetAssetClassAllocations!, dbAssetClasses!);
+      const totals = calcHoldingsTotals(holdings);
+      changeFromStartDate = totals.changeInValue;
+      total = totals.endTotal;
+    }
 
-      // Create tree of target asset class records, than add actual holdings into it for a consolidated view.
-      const tmpTacRecordsTree = createTargetAssetClassRecords(targetAssetClassAllocations!, dbAssetClasses!);
-      addHoldingsToTargetAssetClassRecords(holdings ? holdings : [], tmpTacRecordsTree, dbAssetClasses!, tmpAcChildToTargetMapping, true);
-
+    // Create temp target records tree to calc max level.  
+    // Will have to do again later after asset classes are updated for display level, but this must be done before that update to get the correct number of levels available.
+    // TODO: If performance issues consider storing this as state to avoid repeating.
+    let maxLevel = null; let maxLevelNumAssetClasses = 0; // maxLevel has to start as null as it tells other components to show placeholders.
+    if(holdings !== null) {
+      const [_tmpAcChildToTargetMapping, tmpTacRecordsTree] = createAcMappingAndTree(holdings, dbAssetClasses!, targetAssetClassAllocations!, displayActuals);
       [maxLevel, maxLevelNumAssetClasses] = getMaxAssetClassLevel(tmpTacRecordsTree, dbAssetClasses!);
     }
 
-    // If viewing an asset class level other than the lowest level (highest number or -1) then make a copy of holdings and set asset class id's accordingly.
-    // TODO: If a performance issue do this in useEffect and store revised holdings in state.
+    // If viewing an asset class level other than the lowest level (highest number or -1) then make a copy of holdings and targets and set asset class id's accordingly.
     // level of -1 is default and denotes the lowest level (highest number level), which equates to the original asset classes, hence not re-creating records in that case.
-    if(holdings !== null && aaViewLevel !== -1) {
+    // TODO: If a performance issue do this in useEffect and store revised holdings in state.
+    if(holdings !== null && (aaViewLevel !== -1 && aaViewLevel !== maxLevel)) {
       holdings = createHoldingsWithAssetClassLevel(holdings, aaViewLevel, dbAssetClasses!);
-      targetAssetClassAllocations = createTargetAllocationsWithAssetClassLevel(targetAssetClassAllocations!, aaViewLevel, dbAssetClasses!);
+      if(displayTargets === TargetAaDisplayReasons.display) {
+        targetAssetClassAllocations = createTargetAllocationsWithAssetClassLevel(targetAssetClassAllocations!, aaViewLevel, dbAssetClasses!);
+      }
     }
 
-    // Mapping needed to consolidate actuals and targets.  Creates reverse mapping of target asset class children back to target asset class for quick lookups.
-    // This mapping is used to determine if a target record exists for an actual record.
-    let acChildToTargetMapping: { [index: number]: number } = {};
-    if(targetAssetClassAllocations !== null) {
-      acChildToTargetMapping = createAcChildToTargetMapping(targetAssetClassAllocations!, dbAssetClasses!);
-    }
-
+    let acChildToTargetMapping: { [index: number]: number } = {}; // Maps each used asset class to its target asset class.
     let tacRecordsTree: ITargetAssetClassRecords = {}; // Tree is used to quickly find each record when assigning holdings to target records.
-    let tacRecords: ITargetAssetClassRecord[] | null = null;
+    let tacRecords: ITargetAssetClassRecord[] | null = null; // Array of asset class records (actuals not mapped to a target will appear as their own target).
     let actualsPieChartRecords: IPieChartItem[] | null = null;
     let targetsPieChartRecords: IPieChartItem[] | null = null;
     if(holdings !== null) {
-        tacRecordsTree = createTargetAssetClassRecords(targetAssetClassAllocations!, dbAssetClasses!);
-        const totalValue = addHoldingsToTargetAssetClassRecords(holdings ? holdings : [], tacRecordsTree, dbAssetClasses!, acChildToTargetMapping);
-        tacRecords = Object.values(tacRecordsTree);
-        assignValues(tacRecords, totalValue);
-        let sortFunc = null;
-        if(sortColumn.substring(0, 15) === 'assetClassLevel') {
-          sortFunc = assetClassLevelSort;
-        } else {
-          sortFunc = sortFunctions[sortColumn][sortDirection];
-        }
-        tacRecords = tacRecords.sort(sortFunc);
-        consolidateRecords(tacRecords, chartColors);
+      [acChildToTargetMapping, tacRecordsTree] = createAcMappingAndTree(holdings, dbAssetClasses!, targetAssetClassAllocations!, displayActuals);
+      tacRecords = Object.values(tacRecordsTree);
+      assignValues(tacRecords, total ? total : 0);
 
+      // Sort the records.
+      let sortFunc = null;
+      if(sortColumn.substring(0, 15) === 'assetClassLevel') {
+        sortFunc = assetClassLevelSort;
+      } else {
+        sortFunc = sortFunctions[sortColumn][sortDirection];
+      }
+      tacRecords = tacRecords.sort(sortFunc);
+
+      // Consolidate records if there are more records than colors available.
+      consolidateRecords(tacRecords, chartColors);
+
+      // Reduce records into format for pie chart, one set for actuals (if included) and one for targets (if included).
+      if(displayActuals) {
         actualsPieChartRecords = consolidateTacRecords(tacRecords, 'actuals');
+      }
+      if(displayTargets === TargetAaDisplayReasons.display) {
         targetsPieChartRecords = consolidateTacRecords(tacRecords, 'targets');
+      }
     }
 
-    // Used to determine how accounts are grouped in the account view.
+    // Used to determine how accounts are grouped in the account view.  Requires the record tree created above.
     const getAccountGroupValues = (holding: IHolding, _account: IAccount): IAccountGroupCategoryValues => {
         // TODO: Handle case where record not found (should not happen).
         const tacRecord: ITargetAssetClassRecord = tacRecordsTree[acChildToTargetMapping[holding.assetClassId]];
 
         return {
             accountGroupCategoryId: tacRecord.assetClassId,
-            accountGroupCategoryName: tacRecord.assetClassFullName,
+            accountGroupCategoryName: tacRecord.assetClassFullName.replace(/:/g, " - "),
             accountGroupCategoryFilterValue: tacRecord.childAssetClassIdArray!,
         };
     }
@@ -278,17 +293,11 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
     const asOfDate = createDateFromDayValue(filterBarValues.asOfDate);
     const startDate = getBeginningOfYear(asOfDate);
 
+    // Create label for source of targets.
     const tag = filterBarValues.tags.length > 0 ? filterBarValues.tags[0] : 0;
     const targetsSource = tag ? tag.label : 'Entire Portfolio';
 
-    let changeFromStartDate = null; let total = null;
-    if(holdings !== null) {
-      const totals = calcHoldingsTotals(holdings);
-      changeFromStartDate = totals.changeInValue;
-      total = totals.endTotal;
-    }
-
-    if(holdings !== null && holdings.length === 0) {
+    if(holdings !== null && tacRecords !== null && tacRecords.length === 0) {
       return <div className="no-data-found"><h1>No data found, please adjust your filters.</h1></div>;
     }
 
@@ -301,7 +310,9 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
                       currentLevel={aaViewLevel}
                       maxLevel={maxLevel}
                       setLevel={setAaViewLevel}
-                      displayTargetAssetClassAllocations={displayTargetAssetClassAllocations}
+                      aaDisplay={aaDisplay}
+                      setAaDisplay={handleDisplayChange}
+                      displayTargetAssetClassAllocations={displayTargets}
                       targetsSource={targetsSource}
                   />
                   <AssetAllocationBarTable
@@ -313,26 +324,29 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
                       }}
                       numLevels={(aaViewLevel === -1) ? (maxLevel ? (maxLevel+1) : 1) : (aaViewLevel+1)}
                       maxRecords={maxLevelNumAssetClasses}
-                      displayTargetAssetClassAllocations={(displayTargetAssetClassAllocations === TargetAADisplayTypes.display)}
+                      aaDisplayActuals={displayActuals}
+                      aaDisplayTargets={displayTargets === TargetAaDisplayReasons.display}
                       sortColumn={sortColumn}
                       sortDirection={sortDirection}
                       setSortColumn={setSortColumn}
                       setSortDirection={setSortDirection}
                   />
                   <div className='asset-allocation--pie-charts'>
-                      <PieChart
-                          pieChartItems={actualsPieChartRecords}
-                          title='Actuals'
-                          height='250px'
-                          hoverLookupValue={hoverAc}
-                          hoverLookupType={(hoverAcChart === 2 ? 'internal' : 'external')}
-                          createTooltipLabel={createPieChartTooltipLabel}
-                          handleOnHover={(ac: number) => {
-                            setHoverAcChart(2);
-                            handlePieChartHover(ac);
-                          }}
-                      />
-                      { (displayTargetAssetClassAllocations === TargetAADisplayTypes.display) &&
+                      { displayActuals &&
+                        <PieChart
+                            pieChartItems={actualsPieChartRecords}
+                            title='Actuals'
+                            height='250px'
+                            hoverLookupValue={hoverAc}
+                            hoverLookupType={(hoverAcChart === 2 ? 'internal' : 'external')}
+                            createTooltipLabel={createPieChartTooltipLabel}
+                            handleOnHover={(ac: number) => {
+                              setHoverAcChart(2);
+                              handlePieChartHover(ac);
+                            }}
+                        />
+                      }
+                      { (displayTargets === TargetAaDisplayReasons.display) &&
                         <PieChart
                             pieChartItems={targetsPieChartRecords}
                             title='Targets'
@@ -348,32 +362,79 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
                       }
                   </div>
                 </div>
-                <AccountView
-                    title="Accounts by Asset Class"
-                    startDate={startDate}
-                    asOfDate={asOfDate}
-                    accounts={dbAccounts}
-                    holdings={holdings}
-                    getAccountGroupValues={getAccountGroupValues}
-                    accountGroupCategoryFilterType={HoldingsFilterTypes.assetClass}
-                    holdingsFilters={holdingsFilters}
-                    setHoldingsFilters={setHoldingsFilters}
-                />
+                { displayActuals &&
+                  <AccountView
+                      title="Accounts by Asset Class"
+                      startDate={startDate}
+                      asOfDate={asOfDate}
+                      accounts={dbAccounts}
+                      holdings={holdings}
+                      getAccountGroupValues={getAccountGroupValues}
+                      accountGroupCategoryFilterType={HoldingsFilterTypes.assetClass}
+                      holdingsFilters={holdingsFilters}
+                      setHoldingsFilters={setHoldingsFilters}
+                  />
+                }
             </div>
             <div className='content-two-col--col scrollable'>
-                <HoldingView 
-                    startDate={startDate} 
-                    asOfDate={asOfDate} 
-                    holdings={holdings}
-                    accounts={dbAccounts} 
-                    filters={holdingsFilters}
-                    filterBarValues={filterBarValues}
-                    handleZeroFilterResults={handleZeroFilterResults}
-                />
+                { displayActuals ?
+                  <HoldingView 
+                      startDate={startDate} 
+                      asOfDate={asOfDate} 
+                      holdings={holdings}
+                      accounts={dbAccounts} 
+                      filters={holdingsFilters}
+                      filterBarValues={filterBarValues}
+                      handleZeroFilterResults={handleZeroFilterResults}
+                  />
+                :
+                  <div className="no-data-found"><h2>Only showing targets, no holdings to display.</h2></div>
+                }
             </div>
         </div>
     );
 };
+
+// Set to do not display if display type doesn't include targets.
+// If targets are included, check if targets were found, if not determine why and set the reason, otherwise if found to to 'display'.
+const determineDisplayTargets = (aaDisplay: AaDisplayTypes, filterBarValues: IFilterBarValues, dbTargetAssetClassAllocations: ITargetAssetAllocation[]) => {
+  let displayTargets: TargetAaDisplayReasons;
+  if(aaDisplay === AaDisplayTypes.actualsVsTargets || aaDisplay === AaDisplayTypes.targetsOnly) {
+    if(filterBarValues.accounts.length > 0 || filterBarValues.accountTypes.length > 0 || filterBarValues.assetClasses.length > 0 || filterBarValues.assets.length > 0) {
+      displayTargets = TargetAaDisplayReasons.invalidFilter;
+    } else if(dbTargetAssetClassAllocations !== null && dbTargetAssetClassAllocations.length === 0) {
+        const tagId = filterBarValues.tags.length > 0 ? filterBarValues.tags[0].value : 0;
+        if(tagId !== 0) {
+          displayTargets = TargetAaDisplayReasons.noTargetsForTag;
+        } else {
+          displayTargets = TargetAaDisplayReasons.noTargetsForPortfolio;
+        }
+    } else {
+      displayTargets = TargetAaDisplayReasons.display;
+    }
+  } else {
+    displayTargets = TargetAaDisplayReasons.doNotDisplay;
+  }
+
+  return displayTargets;
+}
+
+const createAcMappingAndTree = (holdings: IHolding[], assetClasses: IAssetClass[], targetAssetClassAllocations: ITargetAssetAllocation[], displayActuals: boolean):
+  [{ [index: number]: number }, ITargetAssetClassRecords] => {
+  // Creates reverse mapping of target asset class children back to target asset class for quick lookups.
+  // This mapping is used to determine if a target record exists for an actual record.
+  const acChildToTargetMapping = createAcChildToTargetMapping(targetAssetClassAllocations, assetClasses);
+
+  // Create initial set of target recrods based on targets, actuals will be layered on top of this.
+  const tacRecordsTree = createTargetAssetClassRecords(targetAssetClassAllocations, assetClasses);
+
+  // Add actual holdings to the target record tree.  If it already exists then add to existing, otherwise create a new record for it.
+  if(displayActuals) {
+    addHoldingsToTargetAssetClassRecords(holdings, tacRecordsTree, assetClasses, acChildToTargetMapping);
+  }
+
+  return [acChildToTargetMapping, tacRecordsTree];
+}
 
 const getMaxAssetClassLevel = (tacRecords: ITargetAssetClassRecords, assetClasses: IAssetClass[]) => {
   const assetClassLevelMap: { [index: number]: number } = {};
@@ -501,26 +562,20 @@ const createTargetAssetClassRecords = (targetAssetClassAllocations: ITargetAsset
 }
 
 const addHoldingsToTargetAssetClassRecords = (holdings: IHolding[], tacRecordsTree: ITargetAssetClassRecords,
-    assetClasses: IAssetClass[], acChildToTargetMapping: { [index: number]: number }, ignoreValues?: boolean): number => {
-    let totalValue = 0;
+    assetClasses: IAssetClass[], acChildToTargetMapping: { [index: number]: number }) => {
     let tacRecord: ITargetAssetClassRecord;
 
     holdings.forEach(holding => {
-        if(holding.assetClassId in acChildToTargetMapping) {
-            tacRecord = tacRecordsTree[acChildToTargetMapping[holding.assetClassId]];
-        } else {
-            acChildToTargetMapping[holding.assetClassId] = holding.assetClassId;
-            const ac = assetClasses.find(ac => ac.assetClassId === holding.assetClassId);
-            tacRecord = createTargetAssetClassAllocationRecord(ac!, { assetClassId: holding.assetClassId, allocationPercentage: 0 });
-            tacRecordsTree[holding.assetClassId] = tacRecord;
-        }
-        if(!ignoreValues) {
-          tacRecord.actualValue += holding.balance;
-          totalValue += holding.balance;
-        }
+      if(holding.assetClassId in acChildToTargetMapping) {
+          tacRecord = tacRecordsTree[acChildToTargetMapping[holding.assetClassId]];
+      } else {
+          acChildToTargetMapping[holding.assetClassId] = holding.assetClassId;
+          const ac = assetClasses.find(ac => ac.assetClassId === holding.assetClassId);
+          tacRecord = createTargetAssetClassAllocationRecord(ac!, { assetClassId: holding.assetClassId, allocationPercentage: 0 });
+          tacRecordsTree[holding.assetClassId] = tacRecord;
+      }
+      tacRecord.actualValue += holding.balance;
     });
-
-    return totalValue;
 }
 
 const createTargetAssetClassAllocationRecord = (ac: IAssetClass, taca: ITargetAssetAllocation): ITargetAssetClassRecord => {
@@ -565,24 +620,24 @@ const consolidateTacRecords = (tacRecords: ITargetAssetClassRecord[], allocType:
     const tacConsolidatedMapping: { [index: number]: number } = {}; // Capture index of pcr array each color is in, used to group together records with same color.
 
     const pieChartRecords = tacRecords.reduce((pcr, tacRecord) => {
-        if((allocType === 'actuals' && tacRecord.actualValue !== 0) || (allocType === 'targets' && tacRecord.targetValue !== 0)) {
-            if(tacRecord.consolidatedAssetClassId in tacConsolidatedMapping) {
-                const pcrRec = pcr[tacConsolidatedMapping[tacRecord.consolidatedAssetClassId]];
-                pcrRec.value += (allocType === 'actuals') ? tacRecord.actualValue : tacRecord.targetValue;
-                pcrRec.label = 'Other';
-                pcrRec.lookupValue = otherAssetClassId;
-            } else {
-                tacConsolidatedMapping[tacRecord.consolidatedAssetClassId] = pcr.length;
-                pcr.push({
-                    value: (allocType === 'actuals') ? tacRecord.actualValue : tacRecord.targetValue,
-                    label: tacRecord.assetClassFullName, // Don't use 'Other' in case there are no more records to consolidate with.
-                    lookupValue: tacRecord.consolidatedAssetClassId,
-                    color: tacRecord.color,
-                });
-            }
-        }
+      if((allocType === 'actuals' && tacRecord.actualValue !== 0) || (allocType === 'targets' && tacRecord.targetValue !== 0)) {
+          if(tacRecord.consolidatedAssetClassId in tacConsolidatedMapping) {
+              const pcrRec = pcr[tacConsolidatedMapping[tacRecord.consolidatedAssetClassId]];
+              pcrRec.value += (allocType === 'actuals') ? tacRecord.actualValue : tacRecord.targetValue;
+              pcrRec.label = 'Other';
+              pcrRec.lookupValue = otherAssetClassId;
+          } else {
+              tacConsolidatedMapping[tacRecord.consolidatedAssetClassId] = pcr.length;
+              pcr.push({
+                  value: (allocType === 'actuals') ? tacRecord.actualValue : tacRecord.targetValue,
+                  label: tacRecord.assetClassFullName, // Don't use 'Other' in case there are no more records to consolidate with.
+                  lookupValue: tacRecord.consolidatedAssetClassId,
+                  color: tacRecord.color,
+              });
+          }
+      }
 
-        return pcr;
+      return pcr;
     }, pcr);
 
     return pieChartRecords;
@@ -618,6 +673,13 @@ const sortFunctions: { [index: string]: { [index: string]: (a: ITargetAssetClass
         (a.actualPercentage || 0) >= (b.actualPercentage || 0) ? 1 : -1,
       'desc': (a: ITargetAssetClassRecord,b: ITargetAssetClassRecord) => 
         (a.actualPercentage || 0) <= (b.actualPercentage || 0) ? 1 : -1,
+    },
+  'tgtValue': 
+    {
+      'asc': (a: ITargetAssetClassRecord,b: ITargetAssetClassRecord) => 
+        (a.targetValue || 0) >= (b.targetValue || 0) ? 1 : -1,
+      'desc': (a: ITargetAssetClassRecord,b: ITargetAssetClassRecord) => 
+        (a.targetValue || 0) <= (b.targetValue || 0) ? 1 : -1,
     },
   'tgtPercent': 
     {

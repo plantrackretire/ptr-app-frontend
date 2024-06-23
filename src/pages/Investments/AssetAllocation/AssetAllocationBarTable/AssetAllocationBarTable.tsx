@@ -12,14 +12,15 @@ interface IAssetAllocationBarTable {
     setHoverAc: (value: number) => void,
     numLevels: number, // How many asset class levels to display.
     maxRecords: number, // Maximum number of asset classes to display, which equals number of asset classes is deepest level of tree.
-    displayTargetAssetClassAllocations: boolean,
+    aaDisplayActuals: boolean, // At least one of aaDisplayActuals and aaDisplayTargets must be true.
+    aaDisplayTargets: boolean,
     sortColumn: string,
     sortDirection: string,
     setSortColumn:(value: string) => void,
     setSortDirection:(value: string) => void,
   }
 
-export const AssetAllocationBarTable: React.FC<IAssetAllocationBarTable> = ({ tacRecords, hoverAc, setHoverAc, numLevels, maxRecords, displayTargetAssetClassAllocations,
+export const AssetAllocationBarTable: React.FC<IAssetAllocationBarTable> = ({ tacRecords, hoverAc, setHoverAc, numLevels, maxRecords, aaDisplayActuals, aaDisplayTargets,
     sortColumn, sortDirection, setSortColumn, setSortDirection }) => {
 
     if(tacRecords === null) {
@@ -42,7 +43,7 @@ export const AssetAllocationBarTable: React.FC<IAssetAllocationBarTable> = ({ ta
     }
 
     // Push remaining columns for the various metrics.
-    if(displayTargetAssetClassAllocations) {
+    if(aaDisplayActuals && aaDisplayTargets) {
         headingSet.push(...[
             { sortColumn: 'actValue', name: 'Act Value', justify: 'right', },
             { sortColumn: 'actPercent', name: 'Act %', justify: 'right', },
@@ -50,10 +51,16 @@ export const AssetAllocationBarTable: React.FC<IAssetAllocationBarTable> = ({ ta
             { sortColumn: 'delta', name: 'Delta', justify: 'right', },
         ]);
         gridColumnsString += ' max-content max-content max-content max-content';
-    } else {
+    } else if(aaDisplayActuals) {
         headingSet.push(...[
             { sortColumn: 'actValue', name: 'Act Value', justify: 'right', },
             { sortColumn: 'actPercent', name: 'Act %', justify: 'right', },
+        ]);
+        gridColumnsString += ' max-content max-content';
+    } else { // targets only
+        headingSet.push(...[
+            { sortColumn: 'tgtValue', name: 'Tgt Value', justify: 'right', },
+            { sortColumn: 'tgtPercent', name: 'Tgt %', justify: 'right', },
         ]);
         gridColumnsString += ' max-content max-content';
     }
@@ -81,15 +88,18 @@ export const AssetAllocationBarTable: React.FC<IAssetAllocationBarTable> = ({ ta
                 tacRecords.map((rec) => { 
                     const isHoverAc = rec.consolidatedAssetClassId === hoverAc;
                     let barColor = rec.color;
-                    let subBarColor = hexToRgb(rec.color, 0.25);
-                    // let barBackgroundColor = config!.getColor(AppColors.appBackgroundColor);
-                    const percentageChange = rec.targetPercentage ? ((rec.actualPercentage - rec.targetPercentage) / rec.targetPercentage) : 
+                    let levelColor = hexToRgb(rec.color, 0.25);
+
+                    let percentageChange = 0; let percentageChangeStyle = {};
+                    if(aaDisplayActuals && aaDisplayTargets) {
+                        percentageChange = rec.targetPercentage ? ((rec.actualPercentage - rec.targetPercentage) / rec.targetPercentage) : 
                         (rec.actualPercentage > 0 ? 1 : 
                             (rec.actualPercentage < 0 ? -1 : 0)
                         );
-                    let percentageChangeStyle: any = {
-                        color: getChangeColor(percentageChange),
-                    };
+                        percentageChangeStyle = {
+                            color: getChangeColor(percentageChange),
+                        };
+                    }
 
                     // Create list of asset class level names to display (use blank where doesn't exist).
                     const assetClassLevelNames = new Array(numLevels);
@@ -111,29 +121,38 @@ export const AssetAllocationBarTable: React.FC<IAssetAllocationBarTable> = ({ ta
                             <div style={{ backgroundColor: barColor }} />
                             { assetClassLevelNames.map((level, index) => (
                                 <div key={"level" + index} className={'asset-class-allocation-bar-table--content nowrap' + (isHoverAc ? ' asset-class-allocation-bar-table--hover' : '')}
-                                    style={ level.length > 0 ? { backgroundColor: subBarColor, marginRight: '.25em' } : { marginRight: '.25em' } }
+                                    style={ level.length > 0 ? { backgroundColor: levelColor, marginRight: '.25em' } : { marginRight: '.25em' } }
                                 >
                                     {level}
                                 </div>
                             ))}
-                            <div className={'asset-class-allocation-bar-table--content right-justify' + (isHoverAc ? ' asset-class-allocation-bar-table--hover' : '')}>
-                                { formatBalance((rec.actualValue)) }
-                            </div>
-                            <div className={'asset-class-allocation-bar-table--content right-justify' + (isHoverAc ? ' asset-class-allocation-bar-table--hover' : '')}>
-                                { formatChangePercentage((rec.actualPercentage)) }
-                            </div>
-                            { displayTargetAssetClassAllocations &&
+                            { aaDisplayActuals &&
                                 <Fragment>
                                     <div className={'asset-class-allocation-bar-table--content right-justify' + (isHoverAc ? ' asset-class-allocation-bar-table--hover' : '')}>
-                                        { formatChangePercentage((rec.targetPercentage)) }
+                                        { formatBalance((rec.actualValue)) }
                                     </div>
-                                    <div 
-                                        className={'asset-class-allocation-bar-table--content right-justify' + (isHoverAc ? ' asset-class-allocation-bar-table--hover' : '')}
-                                        style={percentageChangeStyle}
-                                    >
-                                        { formatChangePercentage(percentageChange) }
+                                    <div className={'asset-class-allocation-bar-table--content right-justify' + (isHoverAc ? ' asset-class-allocation-bar-table--hover' : '')}>
+                                        { formatChangePercentage((rec.actualPercentage)) }
                                     </div>
                                 </Fragment>
+                            }
+                            { (aaDisplayTargets && !aaDisplayActuals) &&
+                                <div className={'asset-class-allocation-bar-table--content right-justify' + (isHoverAc ? ' asset-class-allocation-bar-table--hover' : '')}>
+                                    { formatBalance((rec.targetValue)) }
+                                </div>
+                            }
+                            { aaDisplayTargets &&
+                                <div className={'asset-class-allocation-bar-table--content right-justify' + (isHoverAc ? ' asset-class-allocation-bar-table--hover' : '')}>
+                                    { formatChangePercentage((rec.targetPercentage)) }
+                                </div>
+                            }
+                            { (aaDisplayActuals && aaDisplayTargets) &&
+                                <div 
+                                    className={'asset-class-allocation-bar-table--content right-justify' + (isHoverAc ? ' asset-class-allocation-bar-table--hover' : '')}
+                                    style={percentageChangeStyle}
+                                >
+                                    { formatChangePercentage(percentageChange) }
+                                </div>
                             }
                         </div>
                     ) 
