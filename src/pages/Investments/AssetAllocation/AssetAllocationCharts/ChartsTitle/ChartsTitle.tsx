@@ -1,5 +1,5 @@
-import { formatBalanceWithoutCents } from '../../../../utils/general';
-import { ColoredPercentage } from '../../../../components/ColoredPercentage';
+import { formatBalanceWithoutCents } from '../../../../../utils/general';
+import { ColoredPercentage } from '../../../../../components/ColoredPercentage';
 import './ChartsTitle.css';
 
 

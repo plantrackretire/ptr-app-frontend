@@ -10,8 +10,13 @@
     display: grid;
     grid-template-columns: .5fr .5fr;
     column-gap: 0em;
-    transition: grid-template-columns .25s ease-in-out;
     overflow: hidden;
-    /* display: flex;
-    justify-content: space-evenly; */
+}
+
+.asset-allocation--pie-charts--no-targets {
+    border: 1px solid var(--medium-grey);
+    margin: 2em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

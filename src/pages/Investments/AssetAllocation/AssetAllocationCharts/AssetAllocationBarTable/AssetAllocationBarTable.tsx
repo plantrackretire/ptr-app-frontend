@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
-import { formatBalance, formatChangePercentage, hexToRgb } from '../../../../utils/general';
-import { ITargetAssetClassRecord } from '../AssetAllocation';
+import { formatBalance, formatChangePercentage, hexToRgb } from '../../../../../utils/general';
+import { ITargetAssetClassRecord } from '../../AssetAllocation';
 import { AssetAllocationBarTablePlaceholder } from './AssetAllocationBarTablePlaceholder';
 import { AssetAllocationBarTableHeadings } from './AssetAllocationBarTableHeadings';
 import './AssetAllocationBarTable.css';
