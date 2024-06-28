@@ -9,8 +9,6 @@ import { AaDisplayTypes, ITargetAssetAllocation, ITargetAssetClassRecord } from 
 import './AssetAllocationCharts.css';
 
 
-// TODO: FIGURE OUT WHICH INTERFACES SHOULD BE HERE OR ABOVE COMPONENT
-
 interface IAssetAllocationCharts {
     aaDisplayType: AaDisplayTypes,
     setAaDisplayType: (value: AaDisplayTypes) => void,
@@ -19,7 +17,7 @@ interface IAssetAllocationCharts {
     filterBarValues: IFilterBarValues,
     totalValue: number | null,
     maxLevel: number | null,
-    maxLevelNumAssetClasses: number,
+    numAssetClasses: number,
     changeFromStartDate: number | null,
     dbTargetAssetClassAllocations: ITargetAssetAllocation[] | null,
     tacRecords: ITargetAssetClassRecord[] | null,
@@ -51,7 +49,7 @@ const chartColors = [
 const otherAssetClassId = -1; 
 
 export const AssetAllocationCharts: React.FC<IAssetAllocationCharts> = ({ aaDisplayType, aaDisplayLevel, setAaDisplayLevel, filterBarValues, totalValue, 
-    maxLevel, maxLevelNumAssetClasses, changeFromStartDate, setAaDisplayType, dbTargetAssetClassAllocations, tacRecords }) => {
+    maxLevel, numAssetClasses, changeFromStartDate, setAaDisplayType, dbTargetAssetClassAllocations, tacRecords }) => {
     const [sortColumn, setSortColumn] = useState<string>("actPercent");
     const [sortDirection, setSortDirection] = useState<string>("desc");
     const [hoverAc, setHoverAc] = useState<number>(0); 
@@ -154,7 +152,7 @@ export const AssetAllocationCharts: React.FC<IAssetAllocationCharts> = ({ aaDisp
                 setHoverAc(ac);
               }}
               numLevels={(aaDisplayLevel === -1) ? (maxLevel ? (maxLevel+1) : 1) : (aaDisplayLevel+1)}
-              maxRecords={maxLevelNumAssetClasses}
+              maxRecords={numAssetClasses}
               aaDisplayActuals={displayActuals}
               aaDisplayTargets={displayTargets}
               sortColumn={sortColumn}

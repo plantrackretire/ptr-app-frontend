@@ -146,20 +146,21 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
     }
 
     // Calc total holdings and change from start date for title.
-    let changeFromStartDate = null; let total = null;
+    let changeFromStartDate = null; let total = null; let numAssetClasses = 0;
     if(holdings !== null) {
       const totals = calcHoldingsTotals(holdings);
       changeFromStartDate = totals.changeInValue;
       total = totals.endTotal;
+      numAssetClasses = totals.uniqueAssetClasses;
     }
 
     // Create temp target records tree to calc max level.  
     // Will have to do again later after asset classes are updated for display level, but this must be done before that update to get the correct number of levels available.
     // TODO: If performance issues consider storing this as state to avoid repeating.
-    let maxLevel = null; let maxLevelNumAssetClasses = 0; // maxLevel has to start as null as it tells other components to show placeholders.
+    let maxLevel = null; // maxLevel has to start as null as it tells other components to show placeholders.
     if(holdings !== null) {
       const [_tmpAcChildToTargetMapping, tmpTacRecordsTree] = createAcMappingAndTree(holdings, dbAssetClasses!, targetAssetClassAllocations!, displayActuals);
-      [maxLevel, maxLevelNumAssetClasses] = getMaxAssetClassLevel(tmpTacRecordsTree, dbAssetClasses!);
+      maxLevel = getMaxAssetClassLevel(tmpTacRecordsTree, dbAssetClasses!);
     }
 
     // If viewing an asset class level other than the lowest level (highest number or -1) then make a copy of holdings and targets and set asset class id's accordingly.
@@ -212,7 +213,7 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
                   filterBarValues={filterBarValues}
                   totalValue={total}
                   maxLevel={maxLevel}
-                  maxLevelNumAssetClasses={maxLevelNumAssetClasses}
+                  numAssetClasses={numAssetClasses}
                   changeFromStartDate={changeFromStartDate}
                   dbTargetAssetClassAllocations={dbTargetAssetClassAllocations}
                   tacRecords={tacRecords}
@@ -284,15 +285,7 @@ const getMaxAssetClassLevel = (tacRecords: ITargetAssetClassRecords, assetClasse
     }
   });
 
-  // Get the number of asset classes at the lowest level of all asset classes.  This is so the animation of rows in the table always works.
-  // The number of rows in the grid has to be the same to animate, if we calculate this based on actual asset classes then it can vary when changing view type.
-  const assetClassLevelTree: { [index: number]: number } = {};
-  assetClasses.forEach(ac => { if(ac.assetClassLevel in assetClassLevelTree) assetClassLevelTree[ac.assetClassLevel] += 1; else assetClassLevelTree[ac.assetClassLevel] = 1; });
-  const generalMaxLevel: number = 
-    (Object.keys(assetClassLevelTree).sort((a: string, b: string) => (a as unknown as number) <= (b as unknown as number) ? 1 : -1))[0] as unknown as number;
-  const maxLevelNumAssetClasses = assetClassLevelTree[generalMaxLevel];
-
-  return [maxLevel, maxLevelNumAssetClasses];
+  return maxLevel;
 }
 
 const createHoldingsWithAssetClassLevel = (records: IHolding[], aaViewLevel: number, assetClasses: IAssetClass[]): IHolding[] => {

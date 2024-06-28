@@ -135,8 +135,8 @@ export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, filte
     }
   });
   
-  let accountTypeCategoryId = null; let accountTypeCategoryName = null;
-  let assetClassIdList = null; let assetClassName = null;
+  let accountTypeCategoryId: number | null = null; let accountTypeCategoryName: string | null = null;
+  let assetClassIdList: number[] | null = null; let assetClassName: string | null = null;
   if(accountFilter) {
     filterScope = (filterScope.length > 0 ? filterScope + ' in ' : '') + accountFilter['label'];
 
@@ -283,13 +283,17 @@ const applyFilterToRecord = (record: IHolding, accounts: {[index: number]: IAcco
 };
 
 // Returns total start value, total end value, and change in value.
-export const calcHoldingsTotals = (holdings: IHolding[]): { startTotal: number, endTotal: number, changeInValue: number | null } => {
+export const calcHoldingsTotals = (holdings: IHolding[]): { startTotal: number, endTotal: number, changeInValue: number | null, uniqueAssetClasses: number } => {
   let totalStart = 0;
   let totalEnd = 0;
+  const uniqueAssetClasses: { [index: number]: number } = {};
 
   holdings.forEach(holding => {
     totalStart += holding.startDateValue ? holding.startDateValue : 0;
     totalEnd += holding.balance ? holding.balance : 0;
+    if(!(holding.assetClassId in uniqueAssetClasses)) {
+      uniqueAssetClasses[holding.assetClassId] = holding.assetClassId;
+    }
   });
 
   if(totalStart === 0) {
@@ -297,12 +301,14 @@ export const calcHoldingsTotals = (holdings: IHolding[]): { startTotal: number, 
       startTotal: totalStart, 
       endTotal: totalEnd, 
       changeInValue: null,
+      uniqueAssetClasses: Object.values(uniqueAssetClasses).length,
     };
   } else {
     return {
       startTotal: totalStart, 
       endTotal: totalEnd, 
       changeInValue: (totalEnd - totalStart) / totalStart,
+      uniqueAssetClasses: Object.values(uniqueAssetClasses).length,
     };
   }
 };
