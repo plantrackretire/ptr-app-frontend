@@ -90,7 +90,7 @@ export const createDateStringFromDayValue = (dt: DayValue): string => {
 export const createDateStringFromDate = (dt: Date): string => {
     if(!dt) return "";
 
-    return (dt.getFullYear() + "-" + (dt.getMonth()+1) + "-" + dt.getDate());
+    return (dt.getFullYear() + "-" + (dt.getMonth()+1).toString().padStart(2, '0') + "-" + dt.getDate().toString().padStart(2, '0'));
 };
 
 export const getBeginningOfYear = (dt: Date): Date => {

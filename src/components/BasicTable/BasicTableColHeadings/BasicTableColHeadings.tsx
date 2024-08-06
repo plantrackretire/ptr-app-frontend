@@ -21,7 +21,7 @@ export const BasicTableColHeadings: React.FC<IBasicTableColHeadings> = ({ headin
       <tr>
         { headingSet &&
             headingSet.map(heading => 
-              <th key={heading.name}>
+              <th key={heading.name} className='nowrap'>
                 <button 
                   className={"basic-table--col-headings--button button-el light" + (sortColumn === heading.sortColumn ? " active-light-clickable" : "")}
                   onClick={() => { 

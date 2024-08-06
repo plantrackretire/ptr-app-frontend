@@ -2,11 +2,20 @@ import { SectionHeading, SectionHeadingSizeType } from '../SectionHeading';
 import { useState } from 'react';
 import { AccountGroupList } from './AccountGroupList';
 import { IHolding, IHoldingsFilter, HoldingsFilterTypes, holdingsFilterAll } from '../HoldingView';
-import { AggregateValues } from '../../utils/calcs';
+import { AggregateValues, getReturn, isNumber } from '../../utils/calcs';
 import { AccountViewPlaceholder } from './AccountViewPlaceholder';
+import { IReturn } from '../../pages/Investments/Performance';
 import './AccountView.css';
 
 
+export interface IAccountViewColumns {
+  allocationPercentage?: boolean,
+  value?: boolean,
+  ytdChange?: boolean,
+  ytdReturn?: boolean,
+  costBasis?: boolean,
+  unrealizedGain?: boolean,
+}
 interface IAccountView {
   title: string,
   startDate: Date,
@@ -17,6 +26,8 @@ interface IAccountView {
   accountGroupCategoryFilterType: HoldingsFilterTypes, // Type of filter to apply when an account group category is clicked
   holdingsFilters: IHoldingsFilter[],
   setHoldingsFilters: (filters: IHoldingsFilter[]) => void,
+  columns: IAccountViewColumns,
+  returns?: { [index: string]: { [index: string]: IReturn } } | null, // Required if ytdChange being included.
 }
 export interface IAccountGroup {
   accountGroupCategory: IAccountGroupCategory,
@@ -24,9 +35,11 @@ export interface IAccountGroup {
   hasNonZeroAccounts: boolean,
 }
 export interface IAccountGroupCategoryValues {
+  accountGroupCategoryType: string,
   accountGroupCategoryId: number,
   accountGroupCategoryName: string,
   accountGroupCategoryFilterValue: number[],
+  returnValue?: number | string | null,
 }
 export interface IAccountGroupCategory extends IAccountGroupCategoryValues {
   aggValues: AggregateValues, // Used to track start and end agg balances and to calc change in value
@@ -41,10 +54,11 @@ export interface IAccount {
   accountName: string,
   aggValues?: AggregateValues, // Used to track start and end agg balances and to calc change in value
   hasNonZeroHoldings?: boolean,
+  returnValue?: number | string | null,
 }
 
 export const AccountView: React.FC<IAccountView> = ({ title, startDate, asOfDate, accounts, holdings, getAccountGroupValues, accountGroupCategoryFilterType,
-  holdingsFilters, setHoldingsFilters }) => {
+  holdingsFilters, setHoldingsFilters, columns, returns}) => {
   const [sortColumn, setSortColumn] = useState<string>("name");
   const [sortDirection, setSortDirection] = useState<string>("asc");
 
@@ -55,7 +69,8 @@ export const AccountView: React.FC<IAccountView> = ({ title, startDate, asOfDate
     return <h1>No data found, please adjust your filters.</h1>
   }
 
-  const accountGroups = createAccountGroups(startDate, asOfDate, holdings, accounts, getAccountGroupValues);
+  const includeReturns = ('ytdReturn' in columns && columns.ytdReturn) ? true : false;
+  const accountGroups = createAccountGroups(startDate, asOfDate, holdings, accounts, getAccountGroupValues, includeReturns, includeReturns ? returns! : null);
 
   const sortFunctionsFirstLevel = sortFunctionSetFirstLevel[sortColumn][sortDirection];
   const sortFunctionsSecondLevel = sortFunctionSetSecondLevel[sortColumn][sortDirection];
@@ -72,6 +87,7 @@ export const AccountView: React.FC<IAccountView> = ({ title, startDate, asOfDate
       />
       <AccountGroupList
         accountGroups={accountGroupsSorted}
+        columns={columns}
         accountSortFunction={sortFunctionsSecondLevel}
         accountGroupCategoryFilterType={accountGroupCategoryFilterType}
         holdingsFilters={holdingsFilters}
@@ -88,6 +104,7 @@ export const AccountView: React.FC<IAccountView> = ({ title, startDate, asOfDate
 const createAccountGroups = (startDate: Date, asOfDate: Date, 
     holdings: IHolding[], accounts: { [index: string]: IAccount },
     getAccountGroupValues: (holding: IHolding, account: IAccount) => IAccountGroupCategoryValues,
+    includeReturns: boolean, returns: { [index: string]: { [index: string]: IReturn } } | null
   ): { [index: string]: IAccountGroup } => {
   let ag: { [index: string]: IAccountGroup } = {};
   let total = 0;
@@ -100,7 +117,7 @@ const createAccountGroups = (startDate: Date, asOfDate: Date,
 
     // Create new IAccountGroup (to hold category and related accounts) if it doesn't exist
     if(!ag[accountGroupValues.accountGroupCategoryId]) {
-      ag[accountGroupValues.accountGroupCategoryId] = {
+      const newAg: IAccountGroup = {
         accountGroupCategory: {
           ...accountGroupValues,
           aggValues: new AggregateValues(startDate, asOfDate),
@@ -108,23 +125,34 @@ const createAccountGroups = (startDate: Date, asOfDate: Date,
         accounts: {},
         hasNonZeroAccounts: false,
       }
+      if(includeReturns) {
+        // Set return to null if returns are null (denotes a placeholder should be displayed).
+        const ytdReturn = returns === null ? null : getReturn(returns ? returns.accountTypeCategories : {}, accountGroupValues.accountGroupCategoryId);
+        newAg.accountGroupCategory.returnValue = ytdReturn;
+      }
+      ag[accountGroupValues.accountGroupCategoryId] = newAg;
     }
 
     const rec = ag[accountGroupValues.accountGroupCategoryId];
-    // Update aggregates on account type category
-    rec.accountGroupCategory.aggValues.addValues(holding.startDateValue ? holding.startDateValue : 0, holding.balance);
+    // Update aggregates on category
+    rec.accountGroupCategory.aggValues.addValues(holding.startDateValue ? holding.startDateValue : 0, holding.balance, holding.costBasis ? holding.costBasis : 0);
 
     // Process account
-    // If account does not exist on account type category group then add it
+    // If account does not exist on category group then add it
     if(!rec.accounts[holdingAccount.accountId]) {
-      const account = {...holdingAccount,
+      const account: IAccount = {...holdingAccount,
         aggValues: new AggregateValues(startDate, asOfDate),
         hasNonZeroHoldings: false,
+      }
+      if(includeReturns) {
+        // Set return to null if returns are null (denotes a placeholder should be displayed).
+        const ytdReturn = returns === null ? null : getReturn(returns ? returns.accounts : {}, account.accountId);
+        account.returnValue = ytdReturn;
       }
       rec.accounts[holdingAccount.accountId] = account;
     }
     const account = rec.accounts[holdingAccount.accountId];
-    account.aggValues!.addValues(holding.startDateValue ? holding.startDateValue : 0, holding.balance);
+    account.aggValues!.addValues(holding.startDateValue ? holding.startDateValue : 0, holding.balance, holding.costBasis ? holding.costBasis : 0);
     if(!account.hasNonZeroHoldings && holding.quantity != 0) {
       account.hasNonZeroHoldings = true;
       if(!rec.hasNonZeroAccounts)
@@ -169,6 +197,33 @@ const sortFunctionSetFirstLevel: { [index: string]: { [index: string]: (a: IAcco
       'desc': (a: IAccountGroup,b: IAccountGroup) => 
         a.accountGroupCategory.aggValues.getAggregateEndValue() <= b.accountGroupCategory.aggValues.getAggregateEndValue() ? 1 : -1,
     },
+  'ytdReturn': 
+    {
+      'asc': (a: IAccountGroup,b: IAccountGroup) => {
+        const aReturnValue = 'returnValue' in a.accountGroupCategory && isNumber(a.accountGroupCategory.returnValue) ? a.accountGroupCategory.returnValue : 0;
+        const bReturnValue = 'returnValue' in b.accountGroupCategory && isNumber(b.accountGroupCategory.returnValue) ? b.accountGroupCategory.returnValue : 0;
+        return aReturnValue! >= bReturnValue! ? 1 : -1
+      },
+      'desc': (a: IAccountGroup,b: IAccountGroup) => {
+        const aReturnValue = 'returnValue' in a.accountGroupCategory && isNumber(a.accountGroupCategory.returnValue) ? a.accountGroupCategory.returnValue : 0;
+        const bReturnValue = 'returnValue' in b.accountGroupCategory && isNumber(b.accountGroupCategory.returnValue) ? b.accountGroupCategory.returnValue : 0;
+        return aReturnValue! <= bReturnValue! ? 1 : -1
+      },
+    },
+  'costBasis': 
+    {
+      'asc': (a: IAccountGroup,b: IAccountGroup) => 
+        a.accountGroupCategory.aggValues.getAggregateEndCostBasis() >= b.accountGroupCategory.aggValues.getAggregateEndCostBasis() ? 1 : -1,
+      'desc': (a: IAccountGroup,b: IAccountGroup) => 
+        a.accountGroupCategory.aggValues.getAggregateEndCostBasis() <= b.accountGroupCategory.aggValues.getAggregateEndCostBasis() ? 1 : -1,
+    },
+  'unrealized': 
+    {
+      'asc': (a: IAccountGroup,b: IAccountGroup) => 
+        a.accountGroupCategory.aggValues.calcUnrealizedGainLoss() >= b.accountGroupCategory.aggValues.calcUnrealizedGainLoss() ? 1 : -1,
+      'desc': (a: IAccountGroup,b: IAccountGroup) => 
+        a.accountGroupCategory.aggValues.calcUnrealizedGainLoss() <= b.accountGroupCategory.aggValues.calcUnrealizedGainLoss() ? 1 : -1,
+    },
 };
 
 const sortFunctionSetSecondLevel: { [index: string]: { [index: string]: (a: IAccount, b: IAccount) => number } } = {
@@ -191,5 +246,32 @@ const sortFunctionSetSecondLevel: { [index: string]: { [index: string]: (a: IAcc
     {
       'asc': (a: IAccount,b: IAccount) => a.aggValues!.getAggregateEndValue()! >= b.aggValues!.getAggregateEndValue()! ? 1 : -1,
       'desc': (a: IAccount,b: IAccount) => a.aggValues!.getAggregateEndValue()! <= b.aggValues!.getAggregateEndValue()! ? 1 : -1,
+    },
+  'ytdReturn': 
+    {
+      'asc': (a: IAccount,b: IAccount) => {
+        const aReturnValue = 'returnValue' in a && isNumber(a.returnValue) ? a.returnValue : 0;
+        const bReturnValue = 'returnValue' in b && isNumber(b.returnValue) ? b.returnValue : 0;
+        return aReturnValue! >= bReturnValue! ? 1 : -1
+      },
+      'desc': (a: IAccount,b: IAccount) => {
+        const aReturnValue = 'returnValue' in a && isNumber(a.returnValue) ? a.returnValue : 0;
+        const bReturnValue = 'returnValue' in b && isNumber(b.returnValue) ? b.returnValue : 0;
+        return aReturnValue! <= bReturnValue! ? 1 : -1
+      },
+    },
+  'costBasis': 
+    {
+      'asc': (a: IAccount,b: IAccount) => 
+        a.aggValues!.getAggregateEndCostBasis() >= b.aggValues!.getAggregateEndCostBasis() ? 1 : -1,
+      'desc': (a: IAccount,b: IAccount) => 
+        a.aggValues!.getAggregateEndCostBasis() <= b.aggValues!.getAggregateEndCostBasis() ? 1 : -1,
+    },
+  'unrealized': 
+    {
+      'asc': (a: IAccount,b: IAccount) => 
+        a.aggValues!.calcUnrealizedGainLoss() >= b.aggValues!.calcUnrealizedGainLoss() ? 1 : -1,
+      'desc': (a: IAccount,b: IAccount) => 
+        a.aggValues!.calcUnrealizedGainLoss() <= b.aggValues!.calcUnrealizedGainLoss() ? 1 : -1,
     },
 };

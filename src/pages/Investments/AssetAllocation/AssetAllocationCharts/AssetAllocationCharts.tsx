@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { IFilterBarValues } from '../../../../components/FilterBar';
 import { IPieChartItem, PieChart } from '../../../../components/PieChart';
 import { formatBalance, formatChangePercentage } from '../../../../utils/general';
 import { AssetAllocationBarTable } from './AssetAllocationBarTable';
-import { ChartsTitle } from './ChartsTitle';
 import { ChartsOptions } from './ChartsOptions';
 import { AaDisplayTypes, ITargetAssetAllocation, ITargetAssetClassRecord } from '../AssetAllocation';
+import { ConfigContext } from '../../../../providers/ConfigProvider';
+import { ChartsTitle } from '../../../../components/Charts/ChartsTitle';
 import './AssetAllocationCharts.css';
 
 
@@ -30,21 +31,6 @@ export enum TargetAaDisplayReasons {
   noTargetsForTag = "noTargetsForTag",
 };
 
-// Color scheme for pie chart and bar chart, excludes greens and reds
-const chartColors = [
-    '#0066cc',
-    '#009596',
-    '#5752D1',
-    '#F4C145',
-    '#003737',
-    '#EC7A08',
-    '#B8BBBE',
-    '#002F5D',
-    '#C58C00',
-    '#2A265F',
-    '#8F4700',
-    '#6A6E73',
-];
 // Records with indexes greater than the number of colors are grouped under 'Other', using this index to highglight them on hover and handle click.
 const otherAssetClassId = -1; 
 
@@ -54,13 +40,15 @@ export const AssetAllocationCharts: React.FC<IAssetAllocationCharts> = ({ aaDisp
     const [sortDirection, setSortDirection] = useState<string>("desc");
     const [hoverAc, setHoverAc] = useState<number>(0); 
     const [hoverAcChart, setHoverAcChart] = useState<number>(0); 
+    const config = useContext(ConfigContext);
+    const chartColors = config?.chartColors!;
 
     // Set a boolean to easily determine if actuals should be displayed.
     const displayActuals = (aaDisplayType === AaDisplayTypes.actualsOnly || aaDisplayType === AaDisplayTypes.actualsVsTargets) ? true : false;
 
     // Figure out if targets should be displayed, and if not the reason.
     const displayTargetsReason = determineDisplayTargets(filterBarValues, dbTargetAssetClassAllocations ? dbTargetAssetClassAllocations : []);
-    const displayTargets = (aaDisplayType === AaDisplayTypes.actualsVsTargets || aaDisplayType === AaDisplayTypes.targetsOnly) &&
+    let displayTargets = (aaDisplayType === AaDisplayTypes.actualsVsTargets || aaDisplayType === AaDisplayTypes.targetsOnly) &&
       (displayTargetsReason === TargetAaDisplayReasons.okToDisplay);
     
     const handlePieChartHover = (keyValue: number) => {
@@ -116,7 +104,7 @@ export const AssetAllocationCharts: React.FC<IAssetAllocationCharts> = ({ aaDisp
       tacRecords = tacRecords.sort(sortFunc);
 
       // Consolidate records if there are more records than colors available.
-      consolidateRecords(tacRecords, chartColors);
+      consolidateRecords(tacRecords, chartColors.sequenceColors);
 
       // Reduce records into format for pie chart, one set for actuals (if included) and one for targets (if included).
       if(displayActuals) {
@@ -125,6 +113,9 @@ export const AssetAllocationCharts: React.FC<IAssetAllocationCharts> = ({ aaDisp
       if(displayTargets) {
         targetsPieChartRecords = consolidateTacRecords(tacRecords, 'targets');
       }
+    } else {
+      // If waiting on data make sure targets placeholder is displayed.
+      displayTargets = true;
     }
 
     // Create label for source of targets.
@@ -166,6 +157,7 @@ export const AssetAllocationCharts: React.FC<IAssetAllocationCharts> = ({ aaDisp
                     pieChartItems={actualsPieChartRecords}
                     title='Actuals'
                     height='250px'
+                    hoverOffset={35}
                     hoverLookupValue={hoverAc}
                     hoverLookupType={(hoverAcChart === 2 ? 'internal' : 'external')}
                     createTooltipLabel={createPieChartTooltipLabel}
@@ -181,6 +173,7 @@ export const AssetAllocationCharts: React.FC<IAssetAllocationCharts> = ({ aaDisp
                     pieChartItems={targetsPieChartRecords}
                     title='Targets'
                     height='250px'
+                    hoverOffset={35}
                     hoverLookupValue={hoverAc}
                     hoverLookupType={(hoverAcChart === 3 ? 'internal' : 'external')}
                     createTooltipLabel={createPieChartTooltipLabel}

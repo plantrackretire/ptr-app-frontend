@@ -1,0 +1,23 @@
+.performance-charts {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    align-items: center;
+    justify-content: center;
+}
+
+.performance-charts--aggregates {
+    width: 100%;
+    display: grid;
+    gap: 1em;
+    align-items: center;
+}
+
+.performance-charts--aggregates > div {
+    padding: .5em;
+    border: 1px solid var(--medium-grey);
+}
+
+.performance-charts--years {
+    width: 100%;
+}

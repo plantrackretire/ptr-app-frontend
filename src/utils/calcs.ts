@@ -1,4 +1,5 @@
 
+import { IReturn } from "../pages/Investments/Performance";
 import { calcDaysInYear, calcDiffInDays, compareDates, getYearFromStringDate } from "./dates";
 
 // Functions to calculate aggregate gain/loss in value based on gain/loss in value percentage of individual records.
@@ -20,6 +21,8 @@ export const processAggChangeRecord = (aggValueChange: IAggValueChange, balance:
 }
 export const calcAggChange = (aggValueChange: IAggValueChange) => 
     aggValueChange.aggChangeDenominator ? aggValueChange.aggChangeNumerator / aggValueChange.aggChangeDenominator : 0.0;
+
+export const isNumber = (value: unknown) => (typeof(value) === 'number' || typeof(value) === "string" && value.trim() !== '') && !isNaN(value as number);
 
 // Assumes date format x/x/xxxx, assumes dates are in chronological ascending order
 export const calcYtdChangeFromDataSet = (dates: string[], values: number[]) => {
@@ -73,6 +76,7 @@ export class AggregateValues {
     private endDate: Date;
     private aggreateStartValue: number;
     private aggregateEndValue: number;
+    private aggregateEndCostBasis: number;
     private percentageOfTotal: number | null;
 
     public constructor(startDate: Date, endDate: Date) {
@@ -80,6 +84,7 @@ export class AggregateValues {
         this.endDate = endDate;
         this.aggreateStartValue = 0;
         this.aggregateEndValue = 0;
+        this.aggregateEndCostBasis = 0;
         this.percentageOfTotal = null;
     }
 
@@ -95,6 +100,9 @@ export class AggregateValues {
     public getAggregateEndValue() {
         return this.aggregateEndValue;
     }
+    public getAggregateEndCostBasis() {
+        return this.aggregateEndCostBasis;
+    }
     public getPercentageOfTotal() {
         return this.percentageOfTotal;
     }
@@ -108,18 +116,20 @@ export class AggregateValues {
     }
 
     // Assumes passed in values are valid for given start and end dates
-    public addValues(startValue: number, endValue: number) {
+    public addValues(startValue: number, endValue: number, endCostBasis: number) {
         this.aggreateStartValue += startValue;
         this.aggregateEndValue += endValue;
+        this.aggregateEndCostBasis += endCostBasis;
     }
 
     // Validates that values are valid for given start and end dates before including.
-    public addValuesWithDates(startDate: Date, endDate: Date, startValue: number, endValue: number) {
+    public addValuesWithDates(startDate: Date, endDate: Date, startValue: number, endValue: number, endCostBasis: number) {
         if(compareDates(startDate, this.startDate) <= 0) {
             this.aggreateStartValue += startValue;
         }
         if(compareDates(endDate, this.endDate) <= 0)
             this.aggregateEndValue += endValue;
+            this.aggregateEndCostBasis += endCostBasis;
     }
 
     // TODO: When start value is 0 or negative should always return null and handle it (display N/A).
@@ -131,4 +141,17 @@ export class AggregateValues {
             return (this.aggregateEndValue - this.aggreateStartValue) / this.aggreateStartValue;
         }
     }
+
+    public calcUnrealizedGainLoss(): number {
+        return this.aggregateEndValue - this.aggregateEndCostBasis;
+    }
+}
+
+export const getReturn = (returns: { [index: string]: IReturn }, recordId: number) => {
+  if(recordId in returns) {
+    return returns[recordId].xirr;
+  } else {
+    return 'N/A';
+  }
+
 }

@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
-import { AccountView, IAccount, IAccountGroupCategoryValues } from '../../../components/AccountView';
-import { HoldingView, HoldingsFilterTypes, IHolding, IHoldingsFilter, calcHoldingsTotals, holdingsFilterAll } from '../../../components/HoldingView';
+import { AccountView, IAccount, IAccountGroupCategoryValues, IAccountViewColumns } from '../../../components/AccountView';
+import { HoldingView, HoldingsFilterTypes, IHolding, IHoldingViewColumns, IHoldingsFilter, calcHoldingsTotals, holdingsFilterAll } from '../../../components/HoldingView';
 import { createDateFromDayValue, getBeginningOfYear } from '../../../utils/dates';
 import { IFilterBarValues } from '../../../components/FilterBar';
 import { convertStringToArray, fetchData, getUserToken } from '../../../utils/general';
@@ -148,10 +148,10 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
     // Calc total holdings and change from start date for title.
     let changeFromStartDate = null; let total = null; let numAssetClasses = 0;
     if(holdings !== null) {
-      const totals = calcHoldingsTotals(holdings);
+      const totals = calcHoldingsTotals(holdings, true);
       changeFromStartDate = totals.changeInValue;
       total = totals.endTotal;
-      numAssetClasses = totals.uniqueAssetClasses;
+      numAssetClasses = totals.uniqueAssetClasses!;
     }
 
     // Create temp target records tree to calc max level.  
@@ -188,6 +188,7 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
         const tacRecord: ITargetAssetClassRecord = tacRecordsTree[acChildToTargetMapping[holding.assetClassId]];
 
         return {
+            accountGroupCategoryType: 'assetClasses',
             accountGroupCategoryId: tacRecord.assetClassId,
             accountGroupCategoryName: tacRecord.assetClassFullName.replace(/:/g, " - "),
             accountGroupCategoryFilterValue: tacRecord.childAssetClassIdArray!,
@@ -201,6 +202,19 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
     if(holdings !== null && tacRecords !== null && tacRecords.length === 0) {
       return <div className="no-data-found"><h1>No data found, please adjust your filters.</h1></div>;
     }
+
+    const accountViewColumns: IAccountViewColumns = {
+      allocationPercentage: true,
+      value: true,
+      ytdChange: true,
+    };
+
+    const holdingViewColumns: IHoldingViewColumns = {
+        price: true,
+        quantity: true,
+        balance: true,
+        ytdChangeUnderBalance: true,
+    };
 
     return (
         <div className='content-two-col scrollable'>
@@ -221,6 +235,7 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
                 { displayActuals &&
                   <AccountView
                       title="Accounts by Asset Class"
+                      columns={accountViewColumns}
                       startDate={startDate}
                       asOfDate={asOfDate}
                       accounts={dbAccounts}
@@ -235,6 +250,8 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
             <div className='content-two-col--col scrollable'>
                 { displayActuals ?
                   <HoldingView 
+                      columns={holdingViewColumns}
+                      includeSubRows={true}
                       startDate={startDate} 
                       asOfDate={asOfDate} 
                       holdings={holdings}

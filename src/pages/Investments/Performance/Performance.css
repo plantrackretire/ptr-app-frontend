@@ -1,0 +1,15 @@
+.performance--chart-area {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+.performance--pie-charts {
+    width: 100%;
+    margin-top: 1em;
+    display: grid;
+    grid-template-columns: .5fr .5fr;
+    column-gap: 0em;
+    transition: grid-template-columns .25s ease-in-out;
+    overflow: hidden;
+}

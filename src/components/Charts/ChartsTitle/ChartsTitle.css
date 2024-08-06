@@ -1,20 +1,20 @@
-.networth-chart--title {
+.charts--title {
     display: flex;
     gap: 1.5em;
     align-items: center;
 }
 
-.networth-chart--title-section {
+.charts--title-section {
     display: flex;
     gap: .5em;
     align-items: center;
 }
 
-.networth-chart--title-section--label {
+.charts--title-section--label {
     color: var(--medium-grey);
     font-size: 1.2em;
 }
 
-.networth-chart--title-section--value {
+.charts--title-section--value {
     font-size: 1.3em;
 }

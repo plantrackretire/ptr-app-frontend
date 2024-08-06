@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
-import { AccountView, IAccount, IAccountGroupCategoryValues } from '../../../components/AccountView';
-import { HoldingView, HoldingsFilterTypes, IHolding, IHoldingsFilter, holdingsFilterAll } from '../../../components/HoldingView';
-import { NetworthChart } from '../../../components/NetworthChart';
+import { AccountView, IAccount, IAccountGroupCategoryValues, IAccountViewColumns } from '../../../components/AccountView';
+import { HoldingView, HoldingsFilterTypes, IHolding, IHoldingViewColumns, IHoldingsFilter, holdingsFilterAll } from '../../../components/HoldingView';
+import { NetworthChart } from './NetworthChart';
 import { createDateFromDayValue, createDateStringFromDate, getBeginningOfYear, getPriorMonthEnd } from '../../../utils/dates';
 import { IFilterBarValues, formatFilterBarValuesForServer } from '../../../components/FilterBar';
 import { PtrAppApiStack } from '../../../../../ptr-app-backend/cdk-outputs.json';
@@ -82,6 +82,7 @@ export const Networth: React.FC<INetworth> = ({ filterBarValues, dbHoldings, dbA
     // Used to determine how accounts are grouped in the account view.
     const getAccountGroupValues = (_holding: IHolding, account: IAccount): IAccountGroupCategoryValues => {
         return {
+            accountGroupCategoryType: 'accountTypeCategories',
             accountGroupCategoryId: account.accountTypeCategoryId,
             accountGroupCategoryName: account.accountTypeCategoryName,
             accountGroupCategoryFilterValue: [account.accountTypeCategoryId],
@@ -95,6 +96,19 @@ export const Networth: React.FC<INetworth> = ({ filterBarValues, dbHoldings, dbA
         return <div className="no-data-found"><h1>No data found, please adjust your filters.</h1></div>;
     }
 
+    const accountViewColumns: IAccountViewColumns = {
+      allocationPercentage: true,
+      value: true,
+      ytdChange: true,
+    };
+
+    const holdingViewColumns: IHoldingViewColumns = {
+        price: true,
+        quantity: true,
+        balance: true,
+        ytdChangeUnderBalance: true,
+    };
+
     return (
         <div className='content-two-col scrollable'>
             <div className='content-two-col--col scrollable'>
@@ -105,6 +119,7 @@ export const Networth: React.FC<INetworth> = ({ filterBarValues, dbHoldings, dbA
                 />
                 <AccountView 
                     title="Accounts by Account Category"
+                    columns={accountViewColumns}
                     startDate={startDate}
                     asOfDate={asOfDate}
                     accounts={dbAccounts}
@@ -117,6 +132,8 @@ export const Networth: React.FC<INetworth> = ({ filterBarValues, dbHoldings, dbA
             </div>
             <div className='content-two-col--col scrollable'>
                 <HoldingView 
+                    columns={holdingViewColumns}
+                    includeSubRows={true}
                     startDate={startDate} 
                     asOfDate={asOfDate} 
                     holdings={dbHoldings} 

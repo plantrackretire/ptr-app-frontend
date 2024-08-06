@@ -14,6 +14,8 @@ import { PiggyBankIcon } from '../../assets/PiggyBankIcon';
 import { PieChartIcon } from '../../assets/PieChartIcon';
 import { INavItem } from '../../components/Navlist';
 import { AssetAllocation } from './AssetAllocation';
+import { Performance } from './Performance';
+import { PerformanceChartIcon } from '../../assets/PerformanceChartIcon';
 import './Investments.css';
 
 
@@ -120,6 +122,13 @@ export const Investments: React.FC = () => {
                         dbAccounts={dbAccounts}
                     />
                 }
+                { subPage === SubPageType.performance &&
+                    <Performance 
+                        filterBarValues={filterBarValues} 
+                        dbHoldings={dbHoldings}
+                        dbAccounts={dbAccounts}
+                    />
+                }
             </div>
         </div>
     );
@@ -164,9 +173,10 @@ const navItems: INavItem[] = [
       value: SubPageType.assetallocation,
       title: 'Asset Allocation',
     },
-    // {
-    //   icon: PerformanceChartIcon,
-    //   label: "Performance",
-    //   title: 'Performance',
-    // },
+    {
+      icon: PerformanceChartIcon,
+      label: "Performance",
+      value: SubPageType.performance,
+      title: 'Performance',
+    },
   ]

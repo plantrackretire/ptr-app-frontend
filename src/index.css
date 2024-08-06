@@ -88,7 +88,7 @@ h3 {
 
 h4 {
   display: inherit;
-  font-size: calc(var(--h1-font-size) - .6em);
+  font-size: calc(var(--h1-font-size) - .5em);
   font-weight: 400;
   font-style: italic;
   margin: 0;
@@ -216,6 +216,15 @@ ul {
 .center-justify {
   text-align: center;
   justify-content: center;
+}
+
+/* Aligns both text and content to the right.  Put class on parent container of content you want to align. */
+.align-content-right {
+  width: 100%;
+  display: flex;
+}
+.align-content-right * {
+  margin-left: auto;
 }
 
 /* Create content with two lines, with second line de-emphasized */

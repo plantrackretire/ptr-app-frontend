@@ -1,5 +1,5 @@
 import { Fragment } from 'react';
-import { IAccount, IAccountGroup } from '..';
+import { IAccount, IAccountGroup, IAccountViewColumns } from '..';
 import { AccountGroupCategoryHeading } from './AccountGroupCategoryHeading';
 import { AccountRec } from '../AccountRec';
 import { BasicTable } from '../../BasicTable';
@@ -12,6 +12,7 @@ import './AccountGroupList.css';
 
 interface IAccountGroupList {
   accountGroups: IAccountGroup[],
+  columns: IAccountViewColumns,
   accountSortFunction: (a: IAccount, b: IAccount) => number,
   accountGroupCategoryFilterType: HoldingsFilterTypes,
   holdingsFilters: IHoldingsFilter[],
@@ -22,19 +23,34 @@ interface IAccountGroupList {
   setSortDirection:(value: string) => void,
 }
 
-export const AccountGroupList: React.FC<IAccountGroupList> = ({ accountGroups, accountSortFunction, accountGroupCategoryFilterType,
+export const AccountGroupList: React.FC<IAccountGroupList> = ({ accountGroups, columns, accountSortFunction, accountGroupCategoryFilterType,
   holdingsFilters, setHoldingsFilters, sortColumn, sortDirection, setSortColumn, setSortDirection }) => {
+  const headingSet = [{ name: "Name", sortColumn: "name" },];
+  if('allocationPercentage' in columns && columns.allocationPercentage) {
+    headingSet.push({ name: "% Alloc", sortColumn: "alloc" });
+  }
+  if('ytdChange' in columns && columns.ytdChange) {
+    headingSet.push({ name: "YTD Chg", sortColumn: "change" });
+  }
+  if('ytdReturn' in columns && columns.ytdReturn) {
+    headingSet.push({ name: "YTD Return", sortColumn: "ytdReturn" });
+  }
+  if('value' in columns && columns.value) {
+    headingSet.push({ name: "Value", sortColumn: "balance" });
+  }
+  if('costBasis' in columns && columns.costBasis) {
+    headingSet.push({ name: "Cost Basis", sortColumn: "costBasis" });
+  }
+  if('unrealizedGain' in columns && columns.unrealizedGain) {
+    headingSet.push({ name: "Unrealized", sortColumn: "unrealized" });
+  }
+
   return (
     <div className="account-view-table">
       <BasicTable areRowsClickable={true} highlightRowsOnHover={true}>
         <Fragment>
           <BasicTableColHeadings
-            headingSet={[
-              { name: "Name", sortColumn: "name" },
-              { name: "% Alloc", sortColumn: "alloc" },
-              { name: "YTD Chg", sortColumn: "change" },
-              { name: "Value", sortColumn: "balance" },
-            ]}
+            headingSet={headingSet}
             sortColumn={sortColumn}
             sortDirection={sortDirection}
             setSortColumn={setSortColumn}
@@ -46,6 +62,7 @@ export const AccountGroupList: React.FC<IAccountGroupList> = ({ accountGroups, a
                 <BasicTableHeading>
                   <AccountGroupCategoryHeading
                     accountGroupCategory={accountGroup.accountGroupCategory} 
+                    columns={columns}
                     handleAccountGroupCategoryButtonClick={() => { 
                       setHoldingsFilters([{
                         type: accountGroupCategoryFilterType,
@@ -64,6 +81,7 @@ export const AccountGroupList: React.FC<IAccountGroupList> = ({ accountGroups, a
                       <AccountRec
                         key={account.accountId}
                         account={account}
+                        columns={columns}
                         handleAccountButtonClick={() => { 
                           setHoldingsFilters([
                             {

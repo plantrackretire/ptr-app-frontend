@@ -1,6 +1,6 @@
 import { SectionHeading, SectionHeadingSizeType } from '../SectionHeading';
 import { useEffect, useState } from 'react';
-import { AggregateValues } from '../../utils/calcs';
+import { AggregateValues, getReturn, isNumber } from '../../utils/calcs';
 import { HoldingGroupList } from './HoldingGroupList';
 import { compareDates } from '../../utils/dates';
 import { HoldingViewPlaceholder } from './HoldingViewPlaceholder';
@@ -8,10 +8,21 @@ import { ModalType, useModalContext } from '../../providers/Modal';
 import { IFilterBarValues } from '../FilterBar';
 import { TransactionView } from '../TransactionView';
 import { IAccount } from '../AccountView';
+import { IReturn } from '../../pages/Investments/Performance';
 import './HoldingView.css';
 
 
+export interface IHoldingViewColumns {
+  price?: boolean,
+  quantity?: boolean,
+  balance?: boolean,
+  ytdChangeUnderBalance?: boolean,
+  ytdReturn?: boolean,
+  costBasis?: boolean,
+  unrealizedGain?: boolean,
+}
 interface IHoldingView {
+  columns: IHoldingViewColumns;
   startDate: Date,
   asOfDate: Date,
   filters: IHoldingsFilter[],
@@ -19,6 +30,8 @@ interface IHoldingView {
   accounts: {[index: number]: IAccount} | null,
   filterBarValues: IFilterBarValues,
   handleZeroFilterResults?: () => void, // If included, function is called when filtering results in zero records
+  includeSubRows?: boolean,
+  returns?: { [index: string]: { [index: string]: IReturn } } | null, // Required if ytdChange being included.
 }
 
 // Used to aggregate calculations to determine the aggregate gain/loss for a grouping
@@ -41,12 +54,14 @@ export interface IHolding {
   balance: number,
   quantity: number,
   price: number,
+  costBasis: number | null,
   lastQuantityUpdateDate?: Date,
   lastPriceUpdateDate?: Date,
   startDatePositionDate?: Date,
   startDateValue?: number,
   changeInValue?: number,
   overrideAssetClassId?: number,
+  returnValue?: number | string | null,
 }
 
 export enum HoldingsFilterTypes {
@@ -74,7 +89,7 @@ export interface IHandleHoldingActionButtonClick {
   assetClassIdList?: number[], assetClassName?: string,
 };
 
-export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, filters, holdings, accounts, filterBarValues, handleZeroFilterResults }) => {
+export const HoldingView: React.FC<IHoldingView> = ({ columns, startDate, asOfDate, filters, holdings, accounts, filterBarValues, handleZeroFilterResults, includeSubRows, returns }) => {
   const [sortColumn, setSortColumn] = useState<string>("securityName");
   const [sortDirection, setSortDirection] = useState<string>("asc");
   const modalContext = useModalContext();
@@ -118,11 +133,15 @@ export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, filte
     );
   }
 
-  const holdingGroups = createHoldingGroups(startDate, asOfDate, filteredHoldings);
+  const includeReturns = ('ytdReturn' in columns && columns.ytdReturn) ? true : false;
+
+  const holdingGroups = createHoldingGroups(startDate, asOfDate, filteredHoldings, includeReturns, includeReturns ? returns! : null);
 
   const sortFunctions = sortFunctionSet[sortColumn][sortDirection];
   const holdingGroupsSorted = Object.values(holdingGroups).sort(sortFunctions['firstLevel']);
   const accountHoldingSortFunction = sortFunctions['secondLevel'];
+
+  const includeSubRowsFinal = includeSubRows ? includeSubRows : false;
 
   // If more than one filter concatenates all non-account labels and appends ' in ' <account> on the end if there is an account filter.
   let filterScope = '';
@@ -181,6 +200,8 @@ export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, filte
       />
       <HoldingGroupList
         holdingGroups={holdingGroupsSorted}
+        columns={columns}
+        includeSubRows={includeSubRowsFinal}
         filters={filters}
         handleHoldingActionButtonClick={handleHoldingActionButtonClick}
         accountHoldingSortFunction={accountHoldingSortFunction}
@@ -194,7 +215,8 @@ export const HoldingView: React.FC<IHoldingView> = ({ startDate, asOfDate, filte
 };
 
 // Group holdings by security, calculating aggregate numbers and a list of holdings per security
-const createHoldingGroups = (startDate: Date, asOfDate: Date, holdings: IHolding[]): { [index: string]: IHoldingGroup } => {
+const createHoldingGroups = (startDate: Date, asOfDate: Date, holdings: IHolding[], includeReturns: boolean, 
+  returns: { [index: string]: { [index: string]: IReturn } } | null): { [index: string]: IHoldingGroup } => {
   let gh: { [index: string]: IHoldingGroup } = {};
   const groupedHoldings = holdings.reduce((gh, item) => {
     if(!gh[item.securityId]) {
@@ -204,18 +226,25 @@ const createHoldingGroups = (startDate: Date, asOfDate: Date, holdings: IHolding
         aggValues: new AggregateValues(startDate, asOfDate),
         hasNonZeroHoldings: item.quantity != 0,
       }
-      gh[item.securityId].aggValues.addValues(item.startDateValue || 0, item.balance);
+      if(gh[item.securityId].costBasis === null) gh[item.securityId].costBasis = 0;
+      gh[item.securityId].aggValues.addValues(item.startDateValue || 0, item.balance, item.costBasis ? item.costBasis : 0);
+      if(includeReturns) {
+        // Set return to null if returns are null (denotes a placeholder should be displayed).
+        const ytdReturn = returns === null ? null : getReturn(returns ? returns.assets : {}, item.securityId);
+        gh[item.securityId].returnValue = ytdReturn;
+      }
     } else  {
       const rec = gh[item.securityId];
       rec.quantity += item.quantity;
       rec.balance += item.balance;
+      rec.costBasis! += item.costBasis ? item.costBasis : 0;
       rec.accountId = 0;
       rec.accountName = 'Multi';
       if('lastPriceUpdateDate' in rec && compareDates(rec.lastPriceUpdateDate!, item.lastPriceUpdateDate!))
         delete rec.lastPriceUpdateDate;
       if('lastQuantityUpdateDate' in rec && compareDates(rec.lastQuantityUpdateDate!, item.lastQuantityUpdateDate!))
         delete rec.lastQuantityUpdateDate;
-      rec.aggValues.addValues(item.startDateValue || 0, item.balance);
+      rec.aggValues.addValues(item.startDateValue || 0, item.balance, item.costBasis ? item.costBasis : 0);
       if(!rec.hasNonZeroHoldings && item.quantity != 0)
         rec.hasNonZeroHoldings = true;
       rec.holdings.push(item);
@@ -283,7 +312,8 @@ const applyFilterToRecord = (record: IHolding, accounts: {[index: number]: IAcco
 };
 
 // Returns total start value, total end value, and change in value.
-export const calcHoldingsTotals = (holdings: IHolding[]): { startTotal: number, endTotal: number, changeInValue: number | null, uniqueAssetClasses: number } => {
+export const calcHoldingsTotals = (holdings: IHolding[], includeUniqueAssetClasses: boolean): 
+  { startTotal: number, endTotal: number, changeInValue: number | null, uniqueAssetClasses?: number } => {
   let totalStart = 0;
   let totalEnd = 0;
   const uniqueAssetClasses: { [index: number]: number } = {};
@@ -291,24 +321,27 @@ export const calcHoldingsTotals = (holdings: IHolding[]): { startTotal: number, 
   holdings.forEach(holding => {
     totalStart += holding.startDateValue ? holding.startDateValue : 0;
     totalEnd += holding.balance ? holding.balance : 0;
-    if(!(holding.assetClassId in uniqueAssetClasses)) {
+    if(includeUniqueAssetClasses && !(holding.assetClassId in uniqueAssetClasses)) {
       uniqueAssetClasses[holding.assetClassId] = holding.assetClassId;
     }
   });
 
-  if(totalStart === 0) {
+  let changeInValue: number | null = null;
+  if(totalStart !== 0) {
+    changeInValue = (totalEnd - totalStart) / totalStart
+  }
+  if(includeUniqueAssetClasses) {
     return {
       startTotal: totalStart, 
       endTotal: totalEnd, 
-      changeInValue: null,
+      changeInValue: changeInValue,
       uniqueAssetClasses: Object.values(uniqueAssetClasses).length,
     };
   } else {
     return {
       startTotal: totalStart, 
       endTotal: totalEnd, 
-      changeInValue: (totalEnd - totalStart) / totalStart,
-      uniqueAssetClasses: Object.values(uniqueAssetClasses).length,
+      changeInValue: changeInValue,
     };
   }
 };
@@ -378,6 +411,77 @@ const sortFunctionSet: { [index: string]: { [index: string]: { [index: string]: 
         {
           'firstLevel': (a: IHolding,b: IHolding) => a.balance <= b.balance ? 1 : -1,
           'secondLevel': (a: IHolding,b: IHolding) => a.balance <= b.balance ? 1 : -1,
+        },
+    },
+  ytdReturn: 
+    {
+      'asc': 
+        {
+          'firstLevel': (a: IHolding,b: IHolding) => {
+            const aReturnValue = 'returnValue' in a && isNumber(a.returnValue) ? a.returnValue : 0;
+            const bReturnValue = 'returnValue' in b && isNumber(b.returnValue) ? b.returnValue : 0;
+            return aReturnValue! >= bReturnValue! ? 1 : -1
+          },
+          'secondLevel': (a: IHolding,b: IHolding) => {
+            const aReturnValue = 'returnValue' in a && isNumber(a.returnValue) ? a.returnValue : 0;
+            const bReturnValue = 'returnValue' in b && isNumber(b.returnValue) ? b.returnValue : 0;
+            return aReturnValue! >= bReturnValue! ? 1 : -1
+          },
+        },
+      'desc':
+        {
+          'firstLevel': (a: IHolding,b: IHolding) => {
+            const aReturnValue = 'returnValue' in a && isNumber(a.returnValue) ? a.returnValue : 0;
+            const bReturnValue = 'returnValue' in b && isNumber(b.returnValue) ? b.returnValue : 0;
+            return aReturnValue! <= bReturnValue! ? 1 : -1
+          },
+          'secondLevel': (a: IHolding,b: IHolding) => {
+            const aReturnValue = 'returnValue' in a && isNumber(a.returnValue) ? a.returnValue : 0;
+            const bReturnValue = 'returnValue' in b && isNumber(b.returnValue) ? b.returnValue : 0;
+            return aReturnValue! <= bReturnValue! ? 1 : -1
+          },
+        },
+    },
+  costBasis: 
+    {
+      'asc': 
+        {
+          'firstLevel': (a: IHolding,b: IHolding) => ('costBasis' in a && a.costBasis ? a.costBasis : 0) >= ('costBasis' in b && b.costBasis ? b.costBasis : 0) ? 1 : -1,
+          'secondLevel': (a: IHolding,b: IHolding) => ('costBasis' in a && a.costBasis ? a.costBasis : 0) >= ('costBasis' in b && b.costBasis ? b.costBasis : 0) ? 1 : -1,
+        },
+      'desc':
+        {
+          'firstLevel': (a: IHolding,b: IHolding) => ('costBasis' in a && a.costBasis ? a.costBasis : 0) <= ('costBasis' in b && b.costBasis ? b.costBasis : 0) ? 1 : -1,
+          'secondLevel': (a: IHolding,b: IHolding) => ('costBasis' in a && a.costBasis ? a.costBasis : 0) <= ('costBasis' in b && b.costBasis ? b.costBasis : 0) ? 1 : -1,
+        },
+    },
+  unrealized: 
+    {
+      'asc': 
+        {
+          'firstLevel': (a: IHolding,b: IHolding) => {
+            const aUnrealized = a.balance - (('costBasis' in a && a.costBasis ? a.costBasis : 0));
+            const bUnrealized = b.balance - (('costBasis' in b && b.costBasis ? b.costBasis : 0));
+            return aUnrealized >= bUnrealized ? 1 : -1
+          },
+          'secondLevel': (a: IHolding,b: IHolding) => {
+            const aUnrealized = a.balance - (('costBasis' in a && a.costBasis ? a.costBasis : 0));
+            const bUnrealized = b.balance - (('costBasis' in b && b.costBasis ? b.costBasis : 0));
+            return aUnrealized >= bUnrealized ? 1 : -1
+          },
+        },
+      'desc':
+        {
+          'firstLevel': (a: IHolding,b: IHolding) => {
+            const aUnrealized = a.balance - (('costBasis' in a && a.costBasis ? a.costBasis : 0));
+            const bUnrealized = b.balance - (('costBasis' in b && b.costBasis ? b.costBasis : 0));
+            return aUnrealized <= bUnrealized ? 1 : -1
+          },
+          'secondLevel': (a: IHolding,b: IHolding) => {
+            const aUnrealized = a.balance - (('costBasis' in a && a.costBasis ? a.costBasis : 0));
+            const bUnrealized = b.balance - (('costBasis' in b && b.costBasis ? b.costBasis : 0));
+            return aUnrealized <= bUnrealized ? 1 : -1
+          },
         },
     },
 };

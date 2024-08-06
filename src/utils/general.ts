@@ -69,14 +69,14 @@ export const hexToRgb = (hex: string, opacity?: number): string => {
 
 // Re-use canvas object for better performance
 let canvas = document.createElement("canvas")
-export function getTextWidth(text: string, font: string): number {
+export function getTextWidth(text: string, font: string): [number, number] {
   if(!canvas) {
       canvas = document.createElement("canvas");
   }
   const context = canvas.getContext("2d");
   context!.font = font;
   const metrics = context!.measureText(text);
-  return metrics.width;
+  return [metrics.width, metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent];
 }
 
 // Re-use formatter for better performance
@@ -95,6 +95,45 @@ export const formatBalanceWithoutCents = (balance: number): string => {
 const priceFormatter = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2, style: 'currency', currency: 'USD' });
 export const formatPrice = (price: number): string => {
   return priceFormatter.format(price);
+}
+
+export const invalidValue: number = 0.000001234567890;
+export const formatAnnotatedChangePercentage = (percent: number): string => {
+  let formattedData = '';
+
+  if(percent == invalidValue) {
+    formattedData = "Not Available";
+  } else {
+    switch(true) {
+      case percent > 0: 
+        formattedData = "▲ " + formatChangePercentage(percent); break;
+      case percent < 0: 
+        formattedData = "▼ " + formatChangePercentage(percent); break;
+      default:
+        formattedData = formatChangePercentage(percent); break;
+    }
+  }
+
+  return formattedData;
+}
+
+export const formatAnnotatedValue = (value: number): string => {
+  let formattedData = '';
+
+  if(value == invalidValue) {
+    formattedData = "Not Available";
+  } else {
+    switch(true) {
+      case value > 0: 
+        formattedData = "▲ " + formatBalanceWithoutCents(value); break;
+      case value < 0: 
+        formattedData = "▼ " + formatBalanceWithoutCents(value); break;
+      default:
+        formattedData = formatBalanceWithoutCents(value); break;
+    }
+  }
+
+  return formattedData;
 }
 
 // Re-use formatter for better performance

@@ -1,4 +1,4 @@
-import { formatChangePercentage } from '../../utils/general';
+import { formatAnnotatedChangePercentage } from '../../utils/general';
 import './ColoredPercentage.css';
 
 interface IColoredPercentage {
@@ -8,18 +8,17 @@ interface IColoredPercentage {
 }
 
 export const ColoredPercentage: React.FC<IColoredPercentage> = ({ percentage, classes }) => {
-  let arrow = "▲ ";
   let className = "color-modifier--positive-value-change";
   if(percentage < 0) {
-    arrow = "▼ ";
     className = "color-modifier--negative-value-change";
   }
 
+  const formattedPercentage = formatAnnotatedChangePercentage(percentage);
   className = className + (classes ? " " + classes : "");
 
   return (
     <span className={className}>
-      { arrow + formatChangePercentage(percentage) }
+      { formattedPercentage }
     </span>
   );
 };
