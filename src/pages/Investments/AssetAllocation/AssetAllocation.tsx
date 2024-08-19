@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { AccountView, IAccount, IAccountGroupCategoryValues, IAccountViewColumns } from '../../../components/AccountView';
 import { HoldingView, HoldingsFilterTypes, IHolding, IHoldingViewColumns, IHoldingsFilter, calcHoldingsTotals, holdingsFilterAll } from '../../../components/HoldingView';
-import { createDateFromDayValue, getBeginningOfYear } from '../../../utils/dates';
+import { createDateFromDayValue, createDateStringFromDayValue, getBeginningOfYear } from '../../../utils/dates';
 import { IFilterBarValues } from '../../../components/FilterBar';
 import { convertStringToArray, fetchData, getUserToken } from '../../../utils/general';
 import { AuthenticatorContext } from '../../../providers/AppAuthenticatorProvider';
@@ -66,6 +66,7 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
           const url = PtrAppApiStack.PtrAppApiEndpoint + "GetRefData";
           // Assumes only one tag chosen at a time, if more than one can be chosen the the first one is being used.
           const tagId = filterBarValues.tags.length > 0 ? filterBarValues.tags[0].value : 0;
+          const asOfDate = createDateStringFromDayValue(filterBarValues.asOfDate);
           const includeTargets =
             !(filterBarValues.accounts.length > 0 || filterBarValues.accountTypes.length > 0 || filterBarValues.assetClasses.length > 0 || filterBarValues.assets.length > 0);
           const bodyHoldings = { 
@@ -73,6 +74,7 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
             queryType: "getAssetClasses", 
             tagId: tagId, 
             includeTargetAllocations: includeTargets, 
+            asOfDate: asOfDate,
           };
 
           const token = await getUserToken(appUserAttributes!.signOutFunction!, modalContext);
