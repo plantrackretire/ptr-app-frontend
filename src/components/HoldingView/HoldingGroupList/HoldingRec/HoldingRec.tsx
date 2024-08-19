@@ -103,7 +103,7 @@ export const HoldingRec: React.FC<IHoldingRec> = ({ holding, columns, filters, h
         </td>
       }
       { ('ytdReturn' in columns && columns.ytdReturn) &&
-        <td className='nowrap align-content-right'>
+        <td className='nowrap'>
           <FormattedReturnValue record={holding} returnLabel='returnValue' maxWidth="3em" />
         </td>
       }

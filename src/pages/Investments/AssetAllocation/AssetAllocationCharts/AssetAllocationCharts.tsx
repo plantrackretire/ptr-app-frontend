@@ -135,22 +135,24 @@ export const AssetAllocationCharts: React.FC<IAssetAllocationCharts> = ({ aaDisp
               displayTargetsReason={displayTargetsReason}
               targetsSource={targetsSource}
           />
-          <AssetAllocationBarTable
-              tacRecords={tacRecords}
-              hoverAc={hoverAc}
-              setHoverAc={(ac: number) => {
-                setHoverAcChart(1);
-                setHoverAc(ac);
-              }}
-              numLevels={(aaDisplayLevel === -1) ? (maxLevel ? (maxLevel+1) : 1) : (aaDisplayLevel+1)}
-              maxRecords={numAssetClasses}
-              aaDisplayActuals={displayActuals}
-              aaDisplayTargets={displayTargets}
-              sortColumn={sortColumn}
-              sortDirection={sortDirection}
-              setSortColumn={setSortColumn}
-              setSortDirection={setSortDirection}
-          />
+          <div className="asset-allocation--table">
+            <AssetAllocationBarTable
+                tacRecords={tacRecords}
+                hoverAc={hoverAc}
+                setHoverAc={(ac: number) => {
+                  setHoverAcChart(1);
+                  setHoverAc(ac);
+                }}
+                numLevels={(aaDisplayLevel === -1) ? (maxLevel ? (maxLevel+1) : 1) : (aaDisplayLevel+1)}
+                maxRecords={numAssetClasses}
+                aaDisplayActuals={displayActuals}
+                aaDisplayTargets={displayTargets}
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                setSortColumn={setSortColumn}
+                setSortDirection={setSortDirection}
+            />
+          </div>
           <div className='asset-allocation--pie-charts'>
               { displayActuals ?
                 <PieChart

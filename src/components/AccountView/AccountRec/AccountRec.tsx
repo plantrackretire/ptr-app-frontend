@@ -44,7 +44,7 @@ export const AccountRec: React.FC<IAccountRec> = ({ account, columns, handleAcco
           </td>
         }
         { ('ytdReturn' in columns && columns.ytdReturn) &&
-          <td className='align-content-right'>
+          <td>
             <FormattedReturnValue record={account} returnLabel='returnValue' maxWidth='3em' />
           </td>
         }

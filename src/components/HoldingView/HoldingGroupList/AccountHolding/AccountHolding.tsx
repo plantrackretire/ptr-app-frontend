@@ -64,7 +64,7 @@ export const AccountHolding: React.FC<IAccountHolding> = ({ accountHolding, colu
           </td>
         }
         { ('ytdReturn' in columns && columns.ytdReturn) &&
-          <td className='nowrap align-content-right'>
+          <td className='nowrap'>
             <FormattedReturnValue record={accountHolding} returnLabel='returnValue' maxWidth='3em' />
           </td>
         }
