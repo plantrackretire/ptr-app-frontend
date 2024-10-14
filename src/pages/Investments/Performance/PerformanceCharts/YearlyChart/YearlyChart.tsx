@@ -20,6 +20,7 @@ import {
   Tick,
 } from 'chart.js';
 import './YearlyChart.css';
+import { InfoButton } from '../../../../../components/InfoButton';
 
 export const defaultYearlyChartHeight = "350px";
 
@@ -68,7 +69,10 @@ export const YearlyChart: React.FC<IYearlyChart> = memo(({ returns }) => {
 
   return (
     <div className="yearly-chart">
-      <ChartTitle title='Annual Returns' />
+      <div className="multi-year-chart--title">
+        <ChartTitle title='Annual Returns' />
+        <InfoButton content={averageAnnualReturnsInfo} />
+      </div>
       <div className="yearly-chart--chart"  style={{ height: chartHeight }}>
         <BarChart
             labels={dataLabels}
@@ -86,3 +90,10 @@ export const YearlyChart: React.FC<IYearlyChart> = memo(({ returns }) => {
     </div>
   );
 });
+
+const averageAnnualReturnsInfo = 
+<div className="info-button--info">
+  <h2>Annual Returns</h2>
+  <div>The "Annual Returns" shows the annual return for each year where data is available, calculated using the Internal Rate of Return (IRR) method. This covers the period from the earliest year with activity up to the 'As of Date.'</div>
+  <div>For years that don’t have a full year of data—either because the first year starts after January 1 or the last year ends before December 31—the return will reflect only the period for which data is available. This means it is not annualized, showing the return for that specific timeframe instead.</div>
+</div>;

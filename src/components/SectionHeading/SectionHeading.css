@@ -1,6 +1,6 @@
 .section-heading {
   display: flex;
-  gap: .85em;
+  gap: .5em;
   align-items: center;
 }
 
@@ -11,18 +11,21 @@
 }
 
 .section-heading--clear-button {
+  margin-left: .25em;
   display: flex;
   gap: .85em;
   align-items: center;
 }
 
 .section-heading--sub-heading:not(.section-heading-light),
-.section-heading:not(.section-heading-light) .section-heading--clear-button {
+.section-heading:not(.section-heading-light) .section-heading--clear-button,
+.section-heading:not(.section-heading-light) .section-heading--info-button {
   color: var(--medium-grey);
   fill: var(--medium-grey);
 }
 
-.section-heading--sub-heading.section-heading-light {
+.section-heading--sub-heading.section-heading-light,
+.section-heading--info-button.section-heading-light {
   color: var(--light-text);
   fill: var(--light-text);
 }
@@ -63,35 +66,40 @@
   }
 }
 
-.section-heading--action-button.section-heading--size-tiny {
+.section-heading--action-button.section-heading--size-tiny,
+.section-heading--info-button.section-heading--size-tiny {
   font-size: .75em;
   .svg-container {
     width: .9em;
     height: .9em;
   }
 }
-.section-heading--action-button.section-heading--size-regular {
+.section-heading--action-button.section-heading--size-regular,
+.section-heading--info-button.section-heading--size-regular {
   font-size: var(--default-font-size);
   .svg-container {
     width: var(--default-font-size);
     height: var(--default-font-size);
   }
 }
-.section-heading--action-button.section-heading--size-small {
+.section-heading--action-button.section-heading--size-small,
+.section-heading--info-button.section-heading--size-small {
   font-size: .85em;
   .svg-container {
     width: 1em;
     height: 1em;
   }
 }
-.section-heading--action-button.section-heading--size-medium {
+.section-heading--action-button.section-heading--size-medium,
+.section-heading--info-button.section-heading--size-medium {
   font-size: .95em;
   .svg-container {
     width: 1.1em;
     height: 1.1em;
   }
 }
-.section-heading--action-button.section-heading--size-large {
+.section-heading--action-button.section-heading--size-large,
+.section-heading--info-button.section-heading--size-large {
   font-size: 1.05em;
   .svg-container {
     width: 1.2em;

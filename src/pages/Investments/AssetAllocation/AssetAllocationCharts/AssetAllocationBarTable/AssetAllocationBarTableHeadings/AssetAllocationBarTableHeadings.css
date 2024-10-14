@@ -2,6 +2,11 @@
     display: contents;
 }
 
+.asset-allocation-bar-table--headings-heading {
+    display: flex;
+    gap: .5em;
+}
+
 .asset-allocation-bar-table--headings > div {
     padding: .5em .5em;
     margin-bottom: .25em;

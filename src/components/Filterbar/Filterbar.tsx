@@ -82,11 +82,11 @@ export interface IServerFilterValues {
   tags: number[],
 }
 
-export const activityRangeInit = {
+const activityRangeInit = {
   startDate: createDayFromDate(getBeginningOfYear(new Date())),
   endDate: utils('en').getToday(),
 }
-export const filterBarValuesInit = {
+const filterBarValuesInit = {
   asOfDate: utils('en').getToday(),
   accountTypes: [],
   accounts: [],
@@ -102,17 +102,12 @@ export const filterBarOptionsInit = {
   tags: [],
 }
 
-// Filters that use a dropdown list, share common rendering logic.
-const dropListFilters = [
-  { filterObjectName: 'tags', label: 'Tags', filterClearValue: [], },
-];
-
 // appliedFilterBarValues - filter values that have been 'applied' and fed upstream to use in data retreival.
 // filterBarValues - current value of each fitler, which may or may not have been fed upstream to apply.
 // When apply button is pressed filterBarValues are fed upstream to apply to data retreival and will come back in appliedFilterBarValues.
 // filterBarOptions - choices for each filter, loaded from db based on asOfDate, further filtered in memory based on values of other filters.
 export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setAppliedFilterBarValues, useApply }) => {
-  const [activityRange, setActivityRange] = useState<IActivityRange>(activityRangeInit);
+  const [activityRange, setActivityRange] = useState<IActivityRange>(getActivityRangeInit());
   const [filterBarValues, setFilterBarValues] = useState<IFilterBarValues>(filterBarValuesInit);
   const [filterBarOptions, setFilterBarOptions] = useState<IFilterBarOptions>(filterBarOptionsInit);
   const appUserAttributes = useContext(AuthenticatorContext);
@@ -132,12 +127,12 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
     const getActivityRange = async() => {
       const postResultJSON = await getDbActivityRange(appUserAttributes!, modalContext);
       if(postResultJSON === null) {
-        setActivityRange(activityRangeInit);
+        setActivityRange(getActivityRangeInit());
       }
 
       if(!ignoreResults) {
         if(!postResultJSON) {
-          setActivityRange(activityRangeInit);
+          setActivityRange(getActivityRangeInit());
         } else {
           setActivityRange({
             startDate: createDayFromDate(createLocalDateFromDateTimeString(postResultJSON.startDate as unknown as string)),
@@ -168,7 +163,7 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
             'Error retreiving reference data, please try again.',
         );
         setFilterBarOptions(filterBarOptionsInit);
-        updateFilterBarValues(filterBarValuesInit);
+        updateFilterBarValues(getFilterBarValuesInit());
         return () => { ignoreResults = true };
       }
 
@@ -202,7 +197,7 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
     }
   }
 
-  const handleFiltersClearButtonClick = () => updateFilterBarValues(filterBarValuesInit);
+  const handleFiltersClearButtonClick = () => updateFilterBarValues(getFilterBarValuesInit());
   const handleAsOfDateClearButtonClick = () => updateFilterBarValues({ ...activeFilterBarValues, asOfDate: utils('en').getToday() });
   const handleAccountsClearButtonClick = () => updateFilterBarValues({ ...activeFilterBarValues, accountTypes: [], accounts: [] });
   const handleAssetsClearButtonClick = () => updateFilterBarValues({ ...activeFilterBarValues, assetClasses: [], assets: [] });
@@ -269,7 +264,7 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
   const dropListFiltersElements = dropListFilters.map(filter => 
     createDropListFilterOption(filter.filterObjectName, filter.label, activeFilterBarValues[filter.filterObjectName as FilterableFilterBarCategories], 
       appliedFilterBarValues[filter.filterObjectName as FilterableFilterBarCategories], filter.filterClearValue, 
-      preparedFilterBarOptions[filter.filterObjectName as FilterableFilterBarCategories], 
+      preparedFilterBarOptions[filter.filterObjectName as FilterableFilterBarCategories], (filter.infoButtonContent ? filter.infoButtonContent : null),
       preparedFilterBarOptions, activeFilterBarValues, useApply, updateFilterBarValues,
       (filter.filterObjectName === 'accountTypes' || filter.filterObjectName === 'accounts') ? handleAccountTreeFilterClicked : 
       ((filter.filterObjectName === 'assetClasses' || filter.filterObjectName === 'assets') ? handleAssetTreeFilterClicked : undefined))
@@ -283,6 +278,7 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
         label="Filters" 
         handleClearButtonClick={handleFiltersClearButtonClick} 
         isClearAll={true} 
+        infoButtonContent={headingInfo}
       />
       <div className='filterbar--filters'>
         <div className={'filterbar--filter' +
@@ -293,6 +289,7 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
             size={SectionHeadingSizeType.small} 
             label="As of Date"
             handleClearButtonClick={handleAsOfDateClearButtonClick}
+            infoButtonContent={asOfDateInfo}
           />
           <DateFilter 
             selectedDay={activeFilterBarValues.asOfDate}
@@ -312,6 +309,7 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
             size={SectionHeadingSizeType.small}
             label='Accounts'
             handleClearButtonClick={handleAccountsClearButtonClick}
+            infoButtonContent={accountsInfo}
           />
           <div className='filterbar--filter-textbox' onClick={handleAccountTreeFilterClicked}>
             { activeFilterBarValues.accounts.length > 0 ? <div>{activeFilterBarValues.accounts[0].label}</div> : 
@@ -329,6 +327,7 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
             size={SectionHeadingSizeType.small}
             label='Assets'
             handleClearButtonClick={handleAssetsClearButtonClick}
+            infoButtonContent={assetsInfo}
           />
           <div className='filterbar--filter-textbox' onClick={handleAssetTreeFilterClicked}>
             { activeFilterBarValues.assets.length > 0 ? <div>{activeFilterBarValues.assets[0].label}</div> : 
@@ -354,6 +353,16 @@ export const FilterBar: React.FC<IFilterBar> = ({ appliedFilterBarValues, setApp
   );
 };
 
+export const getFilterBarValuesInit = () => {
+  filterBarValuesInit['asOfDate'] = utils('en').getToday();
+  return filterBarValuesInit;
+}
+
+export const getActivityRangeInit = () => {
+  activityRangeInit['endDate'] = utils('en').getToday();
+  return activityRangeInit;
+}
+
 const getDbActivityRange = async(appUserAttributes: IAuthenticatorContext, modalContext: ModalContextType) => {
   const url = PtrAppApiStack.PtrAppApiEndpoint + "GetRefData";
   const body = { userId: appUserAttributes!.userId, queryType: "activityRange" };
@@ -375,7 +384,7 @@ const getDbFilterBarOptions = async(appUserAttributes: IAuthenticatorContext, mo
 }
 
 const createDropListFilterOption = (filterObjectName: string, label: string, filterValues: DropListFilterBarValues, 
-  filterAppliedValues: DropListFilterBarValues, filterClearValue: DropListFilterBarValues, filterOptions: IFilterBarOption[], 
+  filterAppliedValues: DropListFilterBarValues, filterClearValue: DropListFilterBarValues, filterOptions: IFilterBarOption[], infoButtonContent: JSX.Element | null,
   allOptions: IFilterBarOptions, allValues: IFilterBarValues, useApply: boolean, setFilterBarValues: ((value: IFilterBarValues) => void),
   handleTreeFilterClicked?: () => void) => {
   const handleClearButtonClick = () => {
@@ -402,12 +411,14 @@ const createDropListFilterOption = (filterObjectName: string, label: string, fil
           label={label}
           handleActionButtonClick={handleTreeFilterClicked}
           handleClearButtonClick={handleClearButtonClick}
+          infoButtonContent={infoButtonContent ? infoButtonContent : undefined}
         />
       :
         <SectionHeading
           size={SectionHeadingSizeType.small}
           label={label}
           handleClearButtonClick={handleClearButtonClick}
+          infoButtonContent={infoButtonContent ? infoButtonContent : undefined}
         />
       }
       <DropdownList
@@ -711,3 +722,49 @@ export const formatFilterBarValuesForServer = (filterBarValues: IFilterBarValues
 
   return formattedFilterBarValues;
 };
+
+const headingInfo = 
+<div className="info-button--info">
+  <h2>Filters</h2>
+  <div>The Filters Bar allows you to narrow down the data shown in the main panels based on the selected filter options.</div>
+  <div>If you click 'clear all,' it resets the 'As of Date' to today and removes all other filters, so you can see all of the current data without any restrictions.</div>
+</div>;
+
+const asOfDateInfo = 
+<div className="info-button--info">
+  <h2>As of Date</h2>
+  <div>The "As of Date" sets the date for which the data is shown.</div>
+  <div>By default, it’s set to the current date, so you’ll see the most recent data.</div>
+  <div><br /></div>
+  <div>You can also choose a past date to view data from an earlier time. The dropdown list offers some common dates to pick from, or you can click on the date field to select a specific date from the calendar.</div>
+</div>;
+
+const accountsInfo = 
+<div className="info-button--info">
+  <h2>Accounts Filter</h2>
+  <div>The Accounts Filter lets you choose an account type or a specific account to view. Click on the account field to open the account selector.</div>
+  <div><br /></div>
+  <div>You can either select an account type to see data for all accounts in that category, or pick a specific account to view data just for that account.</div>
+  <div>If you're choosing a specific account, you can still filter by account type to narrow down the list of accounts.</div>
+</div>;
+
+const assetsInfo = 
+<div className="info-button--info">
+  <h2>Assets Filter</h2>
+  <div>The Asset Filter lets you choose an asset class or a specific asset to view. Click on the asset field to open the asset selector.</div>
+  <div>You can select an asset class from the list to see data for all assets in that class, or choose a specific asset to view data just for that asset.</div>
+  <div>If you're picking a specific asset, you can still filter by asset class to narrow down the list of assets.</div>
+</div>;
+
+const tagsInfo = 
+<div className="info-button--info">
+  <h2>Tags Filter</h2>
+  <div>Tags let you create custom groupings of accounts.</div>
+  <div>For example, you might have a tag for all accounts used for retirement or for your kid's college savings.</div>
+  <div>Select a tag to filter the data based on that group, making it easier to view and manage accounts for specific purposes.</div>
+</div>;
+
+// Filters that use a dropdown list, share common rendering logic.
+const dropListFilters = [
+  { filterObjectName: 'tags', label: 'Tags', filterClearValue: [], infoButtonContent: tagsInfo },
+];

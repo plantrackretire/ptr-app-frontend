@@ -8,9 +8,9 @@ interface IColoredPercentage {
 }
 
 export const ColoredPercentage: React.FC<IColoredPercentage> = ({ percentage, classes }) => {
-  let className = "color-modifier--positive-value-change";
+  let className = "color-modifier--positive-value-change nowrap";
   if(percentage < 0) {
-    className = "color-modifier--negative-value-change";
+    className = "color-modifier--negative-value-change nowrap";
   }
 
   const formattedPercentage = formatAnnotatedChangePercentage(percentage);

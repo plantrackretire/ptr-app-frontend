@@ -8,9 +8,9 @@ interface IColoredValue {
 }
 
 export const ColoredValue: React.FC<IColoredValue> = ({ value, classes }) => {
-  let className = "color-modifier--positive-value-change";
+  let className = "color-modifier--positive-value-change nowrap";
   if(value < 0) {
-    className = "color-modifier--negative-value-change";
+    className = "color-modifier--negative-value-change nowrap";
   }
 
   const formattedValue = formatAnnotatedValue(value);

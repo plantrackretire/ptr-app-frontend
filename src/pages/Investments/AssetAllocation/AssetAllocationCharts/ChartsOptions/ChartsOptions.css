@@ -4,6 +4,12 @@
     display: flex;
     justify-content: space-between;
     align-items: end;
+    .svg-container {
+        align-self: center;
+        width: .85em;
+        height: .85em;
+        fill: var(--medium-grey);
+    }
 }
 
 .charts-options--options {
@@ -25,7 +31,11 @@
 }
 
 .charts-options--options--options-set--label {
+    display: flex;
     color: var(--medium-grey);
+    span:first-child {
+        margin-right: .25em;
+    }
 }
 
 .charts-options--scope {

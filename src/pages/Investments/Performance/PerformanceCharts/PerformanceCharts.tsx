@@ -24,16 +24,16 @@ export const PerformanceCharts: React.FC<IPerformanceCharts> = ({ returns, total
   let averageAnnualReturn = null;
   
   if(returns !== null) {
-    const result = findReturn(returns.yearly, (new Date()).getFullYear().toString());
-    if(result === null) {
-      showYtdCard = false;
-    } else {
-      ytdReturn = result;
-    }
-
     averageAnnualReturn = findReturn(returns.multiYear, 'maxYears');
     yearlyReturns = sortYearlyReturns(returns.yearly);
     multiYearReturns = sortMultiYearReturns(returns.multiYear);
+
+    const result = yearlyReturns.length > 0 ? yearlyReturns[yearlyReturns.length-1] : null;
+    if(result === null) {
+      showYtdCard = false;
+    } else {
+      ytdReturn = result.xirr;
+    }
 
     showYearlyReturns = Object.values(yearlyReturns).length > 0;
     if(Object.values(yearlyReturns).length === 1 && showYtdCard) { // No need to show yearly returns if only has current year.

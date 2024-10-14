@@ -8,6 +8,12 @@
     display: flex;
     gap: .5em;
     align-items: center;
+    .svg-container {
+        align-self: center;
+        width: .85em;
+        height: .85em;
+        fill: var(--medium-grey);
+    }
 }
 
 .charts--title-section--label {

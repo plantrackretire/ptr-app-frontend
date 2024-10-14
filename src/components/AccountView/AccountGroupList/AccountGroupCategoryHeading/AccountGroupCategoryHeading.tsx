@@ -34,14 +34,14 @@ export const AccountGroupCategoryHeading: React.FC<IAccountGroupCategoryHeading>
             <ColoredPercentage percentage={accountGroupCategory.aggValues.calcChangeInValuePercentage() || 0} />
           </th>
         }
-        { ('ytdReturn' in columns && columns.ytdReturn) &&
-          <th className='align-content-right'>
-            <FormattedReturnValue record={accountGroupCategory} returnLabel='returnValue' maxWidth='3em' />
-          </th>
-        }
         { ('value' in columns && columns.value) &&
           <th>
             { formatBalance(accountGroupCategory.aggValues.getAggregateEndValue()) }
+          </th>
+        }
+        { ('ytdReturn' in columns && columns.ytdReturn) &&
+          <th className='align-content-right'>
+            <FormattedReturnValue record={accountGroupCategory} returnLabel='returnValue' maxWidth='3em' />
           </th>
         }
         { ('costBasis' in columns && columns.costBasis) &&

@@ -197,6 +197,7 @@ export const HoldingView: React.FC<IHoldingView> = ({ columns, startDate, asOfDa
               'Please select an individual account to view all transactions.',
           )
         }
+        infoButtonContent={headingInfo}
       />
       <HoldingGroupList
         holdingGroups={holdingGroupsSorted}
@@ -230,7 +231,7 @@ const createHoldingGroups = (startDate: Date, asOfDate: Date, holdings: IHolding
       gh[item.securityId].aggValues.addValues(item.startDateValue || 0, item.balance, item.costBasis ? item.costBasis : 0);
       if(includeReturns) {
         // Set return to null if returns are null (denotes a placeholder should be displayed).
-        const ytdReturn = returns === null ? null : getReturn(returns ? returns.assets : {}, item.securityId);
+        const ytdReturn = returns === null ? null : getReturn((returns && returns.assets) ? returns.assets : {}, item.securityId);
         gh[item.securityId].returnValue = ytdReturn;
       }
     } else  {
@@ -485,3 +486,17 @@ const sortFunctionSet: { [index: string]: { [index: string]: { [index: string]: 
         },
     },
 };
+
+const headingInfo = 
+<div className="info-button--info">
+  <h2>Holding View</h2>
+  <div>The "Holdings View" shows all the holdings for the selected scope (which is displayed in the section heading).</div>
+  <div>These holdings come from all accounts within that scope.</div>
+  <div><br /></div>
+  <div>If a security is held in more than one account, you’ll see the individual account values listed below the security—except on the 'Performance' page, which doesn’t show account details.</div>
+  <div><br /></div>
+  <div>You can click on any holding or account to see all of the transactions for that selection.</div>
+  <div><br /></div>
+  <div>Even if a holding currently has no value, it may still appear if it had a value at the start of the comparison period.</div>
+  <div className="info-button--info-indent">For example, if you're viewing the Year-to-Date Change (YTD Chg), a holding will be shown if it had a balance either at the start of the year or on the 'As of Date.'</div>
+</div>;

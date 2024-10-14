@@ -8,6 +8,7 @@ import { ChartTitle } from '../../../../../components/Charts/ChartTitle';
 import { Tick } from 'chart.js';
 import { BarChart } from '../../../../../components/Charts/BarChart';
 import './MultiYearChart.css';
+import { InfoButton } from '../../../../../components/InfoButton';
 
 interface IMultiYearChart {
   returns: IReturn[] | null,
@@ -42,7 +43,10 @@ export const MultiYearChart: React.FC<IMultiYearChart> = memo(({ returns }) => {
   
   return (
       <div className="multi-year-chart">
-          <ChartTitle title='Average Annualized Returns' />
+          <div className="multi-year-chart--title">
+            <ChartTitle title='Average Annualized Returns' />
+            <InfoButton content={averageAnnualizedReturnsInfo} />
+          </div>
           <div className="multi-year-chart--chart">
             <BarChart
                 labels={dataLabels}
@@ -60,3 +64,11 @@ export const MultiYearChart: React.FC<IMultiYearChart> = memo(({ returns }) => {
       </div>
     );
 });
+
+const averageAnnualizedReturnsInfo = 
+<div className="info-button--info">
+  <h2>Average Annualized Returns</h2>
+  <div>The "Average Annual Returns" shows the average annual return for a specified time period, calculated using the Internal Rate of Return (IRR) method. Each bar represents the average return based on the filters you’ve set in the Filter Bar.</div>
+  <div><br /></div>
+  <div>The time period is calculated backwards from the 'As of Date.' For example, if the 'As of Date' is March 15, 2020, the '3 Year' return will look at the period from March 16, 2017, to March 15, 2020. It then calculates the IRR for that period and annualizes the result to show the average annual return.</div>
+</div>;

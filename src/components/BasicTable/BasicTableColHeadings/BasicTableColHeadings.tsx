@@ -1,10 +1,13 @@
+import { InfoButton } from '../../InfoButton';
 import './BasicTableColHeadings.css';
 
 
-interface IBasicTableColHeadingsSet {
+export interface IBasicTableColHeadingsSet {
   sortColumn: string,
   name: string,
   subName?: string,
+  justify?: string,
+  infoButtonContent?: JSX.Element,
 }
 interface IBasicTableColHeadings {
   headingSet: IBasicTableColHeadingsSet[],
@@ -22,30 +25,38 @@ export const BasicTableColHeadings: React.FC<IBasicTableColHeadings> = ({ headin
         { headingSet &&
             headingSet.map(heading => 
               <th key={heading.name} className='nowrap'>
-                <button 
-                  className={"basic-table--col-headings--button button-el light" + (sortColumn === heading.sortColumn ? " active-light-clickable" : "")}
-                  onClick={() => { 
-                    setSortColumn(heading.sortColumn); 
-                    setSortDirection(sortColumn === heading.sortColumn ? (sortDirection === "asc" ? "desc" : "asc") : "asc"); 
-                  }}
-                >
-                  { heading.subName ?
-                    <div className="basic-table--col-headings--two-line">
-                      <div>{heading.name}</div>
-                      <small>{heading.subName}</small>
-                    </div>
-                  :
-                    <div>
-                      {heading.name}
-                    </div>
-                  }
-                    {
-                    (sortColumn === heading.sortColumn) &&
+                <div className="basic-table--col-headings--heading">
+                  <button 
+                    className={"basic-table--col-headings--button button-el light" + (sortColumn === heading.sortColumn ? " active-light-clickable" : "")}
+                    onClick={() => { 
+                      setSortColumn(heading.sortColumn); 
+                      setSortDirection(sortColumn === heading.sortColumn ? (sortDirection === "asc" ? "desc" : "asc") : "asc"); 
+                    }}
+                  >
+                    { heading.subName ?
+                      <div className="basic-table--col-headings--two-line">
+                        <div>{heading.name}</div>
+                        <small>{heading.subName}</small>
+                      </div>
+                    :
                       <div>
-                        {sortDirection === "asc" ? "▲" : "▼" }
+                        {heading.name}
+                      </div>
+                    }
+                    {
+                      (sortColumn === heading.sortColumn) &&
+                        <div>
+                          {sortDirection === "asc" ? "▲" : "▼" }
+                        </div>
+                    }
+                  </button>
+                  {
+                    heading.infoButtonContent &&
+                      <div className="basic-table--col-headings--info-button">
+                        <InfoButton content={heading.infoButtonContent} lightColor={true} />
                       </div>
                   }
-                </button>
+                </div>
               </th>
             )
         }

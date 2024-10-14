@@ -2,7 +2,7 @@ import { Header } from '../../components/Header';
 import { Navbar } from '../../components/Navbar';
 import { Networth } from './Networth';
 import { useContext, useEffect, useState } from 'react';
-import { IFilterBarValues, filterBarValuesInit, formatFilterBarValuesForServer } from '../../components/FilterBar';
+import { IFilterBarValues, getFilterBarValuesInit, formatFilterBarValuesForServer } from '../../components/FilterBar';
 import { AuthenticatorContext } from '../../providers/AppAuthenticatorProvider';
 import { IAccount } from '../../components/AccountView';
 import { createDateFromDayValue, createDateStringFromDate, createLocalDateFromDateTimeString, getBeginningOfYear, getPriorMonthEnd } from '../../utils/dates';
@@ -17,6 +17,7 @@ import { AssetAllocation } from './AssetAllocation';
 import { Performance } from './Performance';
 import { PerformanceChartIcon } from '../../assets/PerformanceChartIcon';
 import './Investments.css';
+import { isEqual } from 'lodash-es';
 
 
 export enum SubPageType {
@@ -28,7 +29,7 @@ export enum SubPageType {
   
 export const Investments: React.FC = () => {
     const [subPage, setSubPage] = useState<SubPageType>(SubPageType.networth);
-    const [filterBarValues, setFilterBarValues] = useState<IFilterBarValues>(filterBarValuesInit);
+    const [filterBarValues, setFilterBarValues] = useState<IFilterBarValues>(getFilterBarValuesInit());
     const [dbHoldings, setDbHoldings] = useState<[] | null>(null);
     const [dbAccounts, setDbAccounts] = useState<{[index: number]: IAccount} | null>(null);
     const appUserAttributes = useContext(AuthenticatorContext);
@@ -82,9 +83,11 @@ export const Investments: React.FC = () => {
     }, [filterBarValues])
 
     const handleFilterBarValuesChange = (values: IFilterBarValues) => {
-        setDbHoldings(null);
-        setDbAccounts(null);
-        setFilterBarValues(values);
+        if(!isEqual(values, filterBarValues)) {
+            setDbHoldings(null);
+            setDbAccounts(null);
+            setFilterBarValues(values);
+        }
     }
 
     const handleSubPageChange = (value: SubPageType) => {

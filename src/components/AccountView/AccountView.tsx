@@ -58,7 +58,7 @@ export interface IAccount {
 }
 
 export const AccountView: React.FC<IAccountView> = ({ title, startDate, asOfDate, accounts, holdings, getAccountGroupValues, accountGroupCategoryFilterType,
-  holdingsFilters, setHoldingsFilters, columns, returns}) => {
+  holdingsFilters, setHoldingsFilters, columns, returns}) => {  
   const [sortColumn, setSortColumn] = useState<string>("name");
   const [sortDirection, setSortDirection] = useState<string>("asc");
 
@@ -84,6 +84,7 @@ export const AccountView: React.FC<IAccountView> = ({ title, startDate, asOfDate
         subLabel={ "As of " + (asOfDate?.getMonth()+1) + " / " + asOfDate?.getDate() + " / " + asOfDate?.getFullYear() } 
         handleActionButtonClick={() => setHoldingsFilters([holdingsFilterAll]) }
         isActive={holdingsFilters[0].type === HoldingsFilterTypes.all ? true : false}
+        infoButtonContent={headingInfo}
       />
       <AccountGroupList
         accountGroups={accountGroupsSorted}
@@ -127,7 +128,8 @@ const createAccountGroups = (startDate: Date, asOfDate: Date,
       }
       if(includeReturns) {
         // Set return to null if returns are null (denotes a placeholder should be displayed).
-        const ytdReturn = returns === null ? null : getReturn(returns ? returns.accountTypeCategories : {}, accountGroupValues.accountGroupCategoryId);
+        const ytdReturn = returns === null ? null : 
+          getReturn((returns && returns.accountTypeCategories) ? returns.accountTypeCategories : {}, accountGroupValues.accountGroupCategoryId);
         newAg.accountGroupCategory.returnValue = ytdReturn;
       }
       ag[accountGroupValues.accountGroupCategoryId] = newAg;
@@ -146,7 +148,7 @@ const createAccountGroups = (startDate: Date, asOfDate: Date,
       }
       if(includeReturns) {
         // Set return to null if returns are null (denotes a placeholder should be displayed).
-        const ytdReturn = returns === null ? null : getReturn(returns ? returns.accounts : {}, account.accountId);
+        const ytdReturn = returns === null ? null : getReturn((returns && returns.accounts) ? returns.accounts : {}, account.accountId);
         account.returnValue = ytdReturn;
       }
       rec.accounts[holdingAccount.accountId] = account;
@@ -275,3 +277,19 @@ const sortFunctionSetSecondLevel: { [index: string]: { [index: string]: (a: IAcc
         a.aggValues!.calcUnrealizedGainLoss() <= b.aggValues!.calcUnrealizedGainLoss() ? 1 : -1,
     },
 };
+
+const headingInfo = 
+<div className="info-button--info">
+  <h2>Account View</h2>
+  <div>The "Account View" shows all accounts that have a value on the selected 'As of Date.' Accounts are grouped into categories based on how they’re classified. For example:</div>
+  <div><br /></div>
+  <div>Accounts are grouped into categories (the title defines the grouping category), with the value of the accounts restricted by the category.  Example categories include:</div>
+  <ul>
+    <li className="info-button--info-indent"><strong>Account Type: </strong>Each account has only one type, so the full value of the account is shown under its type.</li>
+    <li className="info-button--info-indent"><strong>Asset Class: </strong>An account might show up in more than one asset class, depending on what it holds. In this case, you’ll see the portion of the account’s value that applies to each asset class.</li>
+  </ul>
+  <div>You can click on any account, group, or section heading to see more details about the holdings.</div>
+  <div><br /></div>
+  <div>Even if an account currently has no value, it might still appear if it had a value at the beginning of the comparison period.</div>
+  <div className="info-button--info-indent">For example, if you're looking at the Year-to-Date Change (YTD Chg), an account will be shown if it had a balance either at the start of the year or on the 'As of Date.'</div>
+</div>;

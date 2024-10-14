@@ -1,6 +1,7 @@
 import { ClearButton } from '../ClearButton';
 import { ActionButton } from '../ActionButton';
 import './SectionHeading.css';
+import { InfoButton } from '../InfoButton';
 
 
 export enum SectionHeadingSizeType {
@@ -17,13 +18,14 @@ interface ISectionHeading {
   size: SectionHeadingSizeType,
   handleActionButtonClick?: () => void,
   handleClearButtonClick?: () => void,
+  infoButtonContent?: JSX.Element,
   isClearAll?: boolean,
   actionText?: string,
   isActive?: boolean,
   lightColor?: boolean,
 }
 
-export const SectionHeading: React.FC<ISectionHeading> = ({ label, subLabel, size, handleActionButtonClick, handleClearButtonClick, 
+export const SectionHeading: React.FC<ISectionHeading> = ({ label, subLabel, size, handleActionButtonClick, handleClearButtonClick, infoButtonContent,
   isClearAll, actionText, isActive, lightColor }) => {
   const activeClass = isActive ? " active" : "";
   let heading = <h4 className={activeClass}>{label}</h4>;
@@ -53,6 +55,12 @@ export const SectionHeading: React.FC<ISectionHeading> = ({ label, subLabel, siz
             <div className="section-heading--main-heading">
               {heading}
             </div>
+        }
+        { 
+          infoButtonContent && 
+          <div className={"section-heading--info-button" + sizeClass}>
+            <InfoButton content={infoButtonContent} lightColor={lightColor} />
+          </div>
         }
         { 
           handleClearButtonClick && 

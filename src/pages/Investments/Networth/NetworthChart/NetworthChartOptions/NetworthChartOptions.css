@@ -8,14 +8,26 @@
     color: var(--medium-grey);
 }
 
+.networth-chart--options-top-side {
+    display: flex;
+    gap: .25em;
+}
+
+.networth-chart--options-left-side {
+    justify-self: end;
+}
+
+.networth-chart--options-info-button {
+    width: .8em;
+    height: .8em;
+    align-self: center;
+    fill: var(--medium-grey);
+}
+
 .networth-chart--options--sub-options {
     display: flex;
     gap: 1.5em;
     padding-top: .25em;
     width: max-content;
     border-top: 1px solid var(--medium-grey);
-}
-
-.networth-chart--options-left-side {
-    justify-self: end;
 }

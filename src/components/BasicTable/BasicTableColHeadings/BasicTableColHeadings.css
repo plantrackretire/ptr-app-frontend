@@ -1,3 +1,8 @@
+.basic-table--col-headings--heading {
+    display: flex;
+    gap: .5em;
+}
+
 .basic-table--col-headings--button {
     width: 100%;
     display: flex;
@@ -6,4 +11,14 @@
 
 .basic-table--col-headings--button span:nth-child(2) {
     margin-left: .5em;
+}
+
+.basic-table--col-headings--info-button {
+    align-self: center;
+    justify-self: center;
+    fill: var(--light-text);
+    .svg-container {
+        width: .85em;
+        height: .85em;
+    }
 }

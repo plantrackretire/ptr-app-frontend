@@ -3,6 +3,7 @@ import { formatBalance, formatChangePercentage, hexToRgb } from '../../../../../
 import { ITargetAssetClassRecord } from '../../AssetAllocation';
 import { AssetAllocationBarTablePlaceholder } from './AssetAllocationBarTablePlaceholder';
 import { AssetAllocationBarTableHeadings } from './AssetAllocationBarTableHeadings';
+import { IBasicTableColHeadingsSet } from '../../../../../components/BasicTable/BasicTableColHeadings';
 import './AssetAllocationBarTable.css';
 
 
@@ -30,7 +31,7 @@ export const AssetAllocationBarTable: React.FC<IAssetAllocationBarTable> = ({ ta
     // Create explicit grid template columns to account for varaible number of asset class levels. 
     // First is color block, then variable number of asset class levels, then the various metrics.
     let gridColumnsString = '1em ';
-    const headingSet = [ { sortColumn: '', name: '', justify: '' } ];
+    const headingSet: IBasicTableColHeadingsSet[] = [ { sortColumn: '', name: '', justify: '' } ];
 
     for(let i=1; i <= numLevels; i++) {
         // 'assetClassLevel' substring is used to determine column sort is based on an asset class level, the level number is used to determine the level to sort.
@@ -48,7 +49,7 @@ export const AssetAllocationBarTable: React.FC<IAssetAllocationBarTable> = ({ ta
             { sortColumn: 'actValue', name: 'Act Value', justify: 'right', },
             { sortColumn: 'actPercent', name: 'Act %', justify: 'right', },
             { sortColumn: 'tgtPercent', name: 'Tgt %', justify: 'right', },
-            { sortColumn: 'delta', name: 'Delta', justify: 'right', },
+            { sortColumn: 'delta', name: 'Delta', justify: 'right', infoButtonContent: deltaInfo },
         ]);
         gridColumnsString += ' max-content max-content max-content max-content';
     } else if(aaDisplayActuals) {
@@ -189,3 +190,17 @@ const getChangeColor = (value: number): string => {
 
     return(color);
 }
+
+const deltaInfo = 
+<div className="info-button--info">
+  <h2>Delta</h2>
+  <div>The "Delta" shows the percentage difference between your actual and target allocations for each asset class.</div>
+  <div>For example, if your actual allocation is 3% and your target is 2%, the Delta would be 50%.</div>
+  <div><br /></div>
+  <div>The color coding helps you see how close your actual allocation is to the target:</div>
+  <ul>
+    <li className="info-button--info-indent"><strong>Green: </strong>If the difference (Delta) is within 10% of the target, it shows as green.</li>
+    <li className="info-button--info-indent"><strong>Red: </strong>If the Delta is more than 10%, it appears red, with darker shades indicating a bigger difference.</li>
+  </ul>
+</div>;
+

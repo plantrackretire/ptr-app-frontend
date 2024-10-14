@@ -8,6 +8,17 @@
     padding: 1em;
 }
 
+.ytd-card--title {
+    display: flex;
+    gap: .25em;
+    .svg-container {
+        align-self: center;
+        width: 1em;
+        height: 1em;
+        fill: var(--medium-grey);
+    }
+}
+
 .ytd-card--comparison {
     display: flex;
     flex-direction: column;

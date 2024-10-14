@@ -335,6 +335,16 @@ svg {
   border-bottom: 1px solid var(--light-grey);
 }
 
+.info-button--info {
+  margin: 1em;
+}
+.info-button--info * {
+  margin: .5em 0 .5em 0;
+}
+.info-button--info-indent {
+  margin-left: 2em;
+}
+
 
 @media (prefers-color-scheme: light) {
   :root {

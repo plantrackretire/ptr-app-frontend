@@ -1,0 +1,6 @@
+/* Name the sections of the page for grid */
+.info-button {
+  display: flex;
+  gap: .3em;
+  align-items: center;
+}

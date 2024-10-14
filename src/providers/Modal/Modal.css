@@ -16,6 +16,7 @@
     background-color: white;
     padding: 1.5em 2em;
     max-height: 90vh;
+    max-width: 90vw;
     overflow: hidden;
 }
 
@@ -36,7 +37,7 @@
 
 /* For closable modals */
 #modal--content--closable {
-    max-width: 100%;
+    max-width: 90%;
     display: flex;
     flex-direction: column;
     gap: .25em;

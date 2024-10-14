@@ -153,5 +153,4 @@ export const getReturn = (returns: { [index: string]: IReturn }, recordId: numbe
   } else {
     return 'N/A';
   }
-
 }

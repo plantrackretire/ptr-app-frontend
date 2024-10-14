@@ -6,6 +6,17 @@
     gap: .25em;
 }
 
+.multi-year-chart--title {
+    display: flex;
+    gap: .5em;
+    .svg-container {
+        align-self: center;
+        width: .85em;
+        height: .85em;
+        fill: var(--medium-grey);
+    }
+}
+
 .multi-year-chart--chart {
     width: 100%;
     max-height: 11em;
