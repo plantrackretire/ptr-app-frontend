@@ -1,6 +1,6 @@
 .responsive-calendar {
     /* by setting font-size, all calendar elements will correspond */
-    font-size: .65em !important; /* default to 10px */
+    font-size: 8px !important; /* px needs to be used for calendar to properly format */
 }
 
 .responsive-calendar-input {

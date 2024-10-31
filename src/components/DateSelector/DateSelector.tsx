@@ -29,6 +29,7 @@ export const DateSelector: React.FC<IDateSelector> = ({ selectedDay, handleSelec
           formatInputText={formatInputValue}
           minimumDate={minimumDate}
           maximumDate={maximumDate}
+          calendarPopperPosition="bottom"
         />
       :
         <DatePicker 
@@ -37,6 +38,7 @@ export const DateSelector: React.FC<IDateSelector> = ({ selectedDay, handleSelec
           calendarClassName="responsive-calendar" 
           inputClassName="responsive-calendar-input" 
           formatInputText={formatInputValue}
+          calendarPopperPosition="bottom"
         />
     }
     </Fragment>
