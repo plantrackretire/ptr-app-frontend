@@ -158,7 +158,7 @@ export const getYearFromStringDate = (date: string) => {
         return "";
     }
 
-    return date.slice(4);
+    return date.substring(0, 4);
 }
 
 // Assumes string format of YYYY-MM-DD

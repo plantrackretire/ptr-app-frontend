@@ -1,11 +1,10 @@
 import { Fragment, useState, memo } from 'react';
-import { calcChangeFromDataSet } from '../../../../utils/calcs';
+import { calcChangeFromDataSet, calcYtdChangeFromDataSet } from '../../../../utils/calcs';
 import { adjustDateByYear, calcDiffInYears, createDateFromString } from '../../../../utils/dates';
 import { ChartColorTypes } from '../../../../providers/ConfigProvider';
 import { formatAnnotatedChangePercentage, formatBalance, invalidValue } from '../../../../utils/general';
 import { NetworthChartOptions } from './NetworthChartOptions';
 import { NetworthChartPlaceholder } from './NetworthChartPlaceholder';
-import { IHolding, calcHoldingsTotals } from '../../../../components/HoldingView';
 import { Ticks, Tick } from 'chart.js';
 import { ChartsTitle } from '../../../../components/Charts/ChartsTitle';
 import { LineChart } from '../../../../components/Charts/LineChart';
@@ -17,11 +16,10 @@ export const defaultNetworthChartHeight = "350px";
 interface INetworthChart {
   labels: string[] | null,
   balances: number[] | null,
-  holdings: IHolding[] | null,
 }
 
 // Using memo because without it the chart re-renders (causing flickering of the annotation) on every call, even if params did not change.
-export const NetworthChart: React.FC<INetworthChart> = memo(({ labels, balances, holdings }) => {
+export const NetworthChart: React.FC<INetworthChart> = memo(({ labels, balances }) => {
   const [timePeriod, setTimePeriod] = useState<string>("ALL");
   const [units, setUnits] = useState<string>("Months");
   const [yearValueType, setYearValueType] = useState<string>("$");
@@ -42,8 +40,8 @@ export const NetworthChart: React.FC<INetworthChart> = memo(({ labels, balances,
     dataValues = createChangesInValue(filteredBalances); // Calc change in value percentage for each year (except first)
   }
 
-  const titleAnnualPercentageChange = 
-    calcPercentageChange(filteredLabels, filteredBalances); // Not using dataValues because they may be percentages
+  const titleAnnualPercentageChange = calcChangeFromDataSet(filteredLabels, filteredBalances, true); // Not using dataValues because they may be percentages
+  const changeFromStartDate = calcYtdChangeFromDataSet(filteredLabels, filteredBalances); // Using historical data because holdings only includes things with balance at end date.
 
   let chartHeight = defaultNetworthChartHeight;
   if(units === "Years") {
@@ -55,12 +53,7 @@ export const NetworthChart: React.FC<INetworthChart> = memo(({ labels, balances,
     }
   }
 
-  let changeFromStartDate = null;
-  if(holdings !== null) {
-    const totals = calcHoldingsTotals(holdings, false);
-    changeFromStartDate = totals.changeInValue;
-  }
-
+  
   return (
     <div className="networth-chart">
       { balances.length > 0 ?
@@ -161,8 +154,4 @@ const createChangesInValue = (values: number[]): number[] => {
   });
   
   return changeList;
-}
-
-const calcPercentageChange = (dates: string[], values: number[]): number => {
-  return values.length >= 2 ? calcChangeFromDataSet(dates, values, true) : 0;
 }

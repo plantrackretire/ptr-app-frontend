@@ -39,14 +39,15 @@ export const calcYtdChangeFromDataSet = (dates: string[], values: number[]) => {
     while(priorYearDateIndex === -1 && index >= 0) {
         if(getYearFromStringDate(dates[index]) !== latestDateYear)
             priorYearDateIndex = index;
-        index--;
+        else
+            index--;
     }
 
     // If all dates are the same year then use the earliest date.
     if(priorYearDateIndex === -1)
         priorYearDateIndex = 0;
 
-    return (values[dates.length-1] - values[index]) / values[index];
+    return (values[dates.length-1] - values[index]) / Math.abs(values[index]);
 }
 
 export const calcChangeFromDataSet = (dates: string[], values: number[], annualized?: boolean) => {

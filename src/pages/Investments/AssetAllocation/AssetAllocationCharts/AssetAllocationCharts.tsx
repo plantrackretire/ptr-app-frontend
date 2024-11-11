@@ -19,7 +19,6 @@ interface IAssetAllocationCharts {
     totalValue: number | null,
     maxLevel: number | null,
     numAssetClasses: number,
-    changeFromStartDate: number | null,
     dbTargetAssetClassAllocations: ITargetAssetAllocation[] | null,
     tacRecords: ITargetAssetClassRecord[] | null,
 }
@@ -35,7 +34,7 @@ export enum TargetAaDisplayReasons {
 const otherAssetClassId = -1; 
 
 export const AssetAllocationCharts: React.FC<IAssetAllocationCharts> = ({ aaDisplayType, aaDisplayLevel, setAaDisplayLevel, filterBarValues, totalValue, 
-    maxLevel, numAssetClasses, changeFromStartDate, setAaDisplayType, dbTargetAssetClassAllocations, tacRecords }) => {
+    maxLevel, numAssetClasses, setAaDisplayType, dbTargetAssetClassAllocations, tacRecords }) => {
     const [sortColumn, setSortColumn] = useState<string>("actPercent");
     const [sortDirection, setSortDirection] = useState<string>("desc");
     const [hoverAc, setHoverAc] = useState<number>(0); 
@@ -124,7 +123,7 @@ export const AssetAllocationCharts: React.FC<IAssetAllocationCharts> = ({ aaDisp
 
     return (
         <div className='asset-allocation--chart-area'>
-          <ChartsTitle titleBalance={totalValue} titleChangeFromStartDate={changeFromStartDate} />
+          <ChartsTitle titleBalance={totalValue} />
           <ChartsOptions
               currentLevel={aaDisplayLevel}
               maxLevel={maxLevel}

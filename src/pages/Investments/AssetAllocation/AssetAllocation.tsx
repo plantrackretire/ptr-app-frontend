@@ -148,10 +148,9 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
     }
 
     // Calc total holdings and change from start date for title.
-    let changeFromStartDate = null; let total = null; let numAssetClasses = 0;
+    let total = null; let numAssetClasses = 0;
     if(holdings !== null) {
       const totals = calcHoldingsTotals(holdings, true);
-      changeFromStartDate = totals.changeInValue;
       total = totals.endTotal;
       numAssetClasses = totals.uniqueAssetClasses!;
     }
@@ -230,7 +229,6 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
                   totalValue={total}
                   maxLevel={maxLevel}
                   numAssetClasses={numAssetClasses}
-                  changeFromStartDate={changeFromStartDate}
                   dbTargetAssetClassAllocations={dbTargetAssetClassAllocations}
                   tacRecords={tacRecords}
                 />

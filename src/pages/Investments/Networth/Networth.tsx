@@ -115,7 +115,6 @@ export const Networth: React.FC<INetworth> = ({ filterBarValues, dbHoldings, dbA
                 <NetworthChart 
                     labels={dbHistoricalHoldings ? dbHistoricalHoldings['labels'] : null} 
                     balances={dbHistoricalHoldings ? dbHistoricalHoldings['values'] : null} 
-                    holdings={dbHoldings}
                 />
                 <AccountView 
                     title="Accounts by Account Category"
