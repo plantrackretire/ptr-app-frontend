@@ -58,55 +58,66 @@ export const AccountGroupList: React.FC<IAccountGroupList> = ({ accountGroups, c
             setSortDirection={setSortDirection}
           />
           {
-            accountGroups.map((accountGroup) => (
-              <Fragment key={accountGroup.accountGroupCategory.accountGroupCategoryName}>
-                <BasicTableHeading>
-                  <AccountGroupCategoryHeading
-                    accountGroupCategory={accountGroup.accountGroupCategory} 
-                    columns={columns}
-                    handleAccountGroupCategoryButtonClick={() => { 
-                      setHoldingsFilters([{
-                        type: accountGroupCategoryFilterType,
-                        id: accountGroup.accountGroupCategory.accountGroupCategoryId,
-                        label: accountGroup.accountGroupCategory.accountGroupCategoryName,
-                        filterValue: accountGroup.accountGroupCategory.accountGroupCategoryFilterValue,
-                      }]); 
-                    }}
-                    isActive={holdingsFilters.length === 1 && 
-                      holdingsFilterExists(holdingsFilters, accountGroupCategoryFilterType, accountGroup.accountGroupCategory.accountGroupCategoryId)}
-                  />
-                </BasicTableHeading>
-                <BasicTableBody>
-                  {
-                    Object.values(accountGroup.accounts).sort(accountSortFunction).map((account) => (
-                      <AccountRec
-                        key={account.accountId}
-                        account={account}
-                        columns={columns}
-                        handleAccountButtonClick={() => { 
-                          setHoldingsFilters([
-                            {
+            accountGroups.map((accountGroup) => {
+              if(accountGroup.hasNonZeroAccounts) {
+                return (
+                  <Fragment key={accountGroup.accountGroupCategory.accountGroupCategoryName}>
+                    
+                      <BasicTableHeading>
+                        <AccountGroupCategoryHeading
+                          accountGroupCategory={accountGroup.accountGroupCategory} 
+                          columns={columns}
+                          handleAccountGroupCategoryButtonClick={() => { 
+                            setHoldingsFilters([{
                               type: accountGroupCategoryFilterType,
                               id: accountGroup.accountGroupCategory.accountGroupCategoryId,
                               label: accountGroup.accountGroupCategory.accountGroupCategoryName,
                               filterValue: accountGroup.accountGroupCategory.accountGroupCategoryFilterValue,
-                            },
+                            }]); 
+                          }}
+                          isActive={holdingsFilters.length === 1 && 
+                            holdingsFilterExists(holdingsFilters, accountGroupCategoryFilterType, accountGroup.accountGroupCategory.accountGroupCategoryId)}
+                        />
+                      </BasicTableHeading>
+                    <BasicTableBody>
+                      {
+                        Object.values(accountGroup.accounts).sort(accountSortFunction).map((account) => (
+                          <Fragment key={account.accountId}>
                             {
-                              type: HoldingsFilterTypes.account,
-                              id: account.accountId,
-                              label: account.accountName,
-                              filterValue: [account.accountId],
+                              account.hasNonZeroHoldings &&
+                                <AccountRec
+                                  account={account}
+                                  columns={columns}
+                                  handleAccountButtonClick={() => { 
+                                    setHoldingsFilters([
+                                      {
+                                        type: accountGroupCategoryFilterType,
+                                        id: accountGroup.accountGroupCategory.accountGroupCategoryId,
+                                        label: accountGroup.accountGroupCategory.accountGroupCategoryName,
+                                        filterValue: accountGroup.accountGroupCategory.accountGroupCategoryFilterValue,
+                                      },
+                                      {
+                                        type: HoldingsFilterTypes.account,
+                                        id: account.accountId,
+                                        label: account.accountName,
+                                        filterValue: [account.accountId],
+                                      }
+                                    ]); 
+                                  }}
+                                  isActive={holdingsFilterExists(holdingsFilters, accountGroupCategoryFilterType, accountGroup.accountGroupCategory.accountGroupCategoryId) &&
+                                    holdingsFilterExists(holdingsFilters, HoldingsFilterTypes.account, account.accountId)}
+                                />
                             }
-                          ]); 
-                        }}
-                        isActive={holdingsFilterExists(holdingsFilters, accountGroupCategoryFilterType, accountGroup.accountGroupCategory.accountGroupCategoryId) &&
-                          holdingsFilterExists(holdingsFilters, HoldingsFilterTypes.account, account.accountId)}
-                      />
-                    ))
-                  }
-                </BasicTableBody>
-              </Fragment>
-            ))
+                          </Fragment>
+                        ))
+                      }
+                    </BasicTableBody>
+                  </Fragment>
+                )
+              } else {
+                return <Fragment key={accountGroup.accountGroupCategory.accountGroupCategoryName}></Fragment>
+              }
+            })
           }
         </Fragment>
       </BasicTable>

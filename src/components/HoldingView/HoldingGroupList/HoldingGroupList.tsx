@@ -59,27 +59,37 @@ export const HoldingGroupList: React.FC<IHoldingGroupList> = ({ holdingGroups, c
         />
         <BasicTableBody>
           {
-            holdingGroups.map((holdingGroup) => (
-              <Fragment key={holdingGroup.holdingId}>
-                <HoldingRec
-                  holding={holdingGroup}
-                  columns={columns}
-                  filters={filters}
-                  handleHoldingActionButtonClick={handleHoldingActionButtonClick}
-                />
-                { 
-                  (includeSubRows && holdingGroup.holdings.length > 1) && 
-                  holdingGroup.holdings.sort(accountHoldingSortFunction).map((accountHolding) => (
-                    <AccountHolding
-                      key={accountHolding.accountId}
-                      accountHolding={accountHolding}
+            holdingGroups.map((holdingGroup) => {
+              if(holdingGroup.hasNonZeroHoldings) {
+                return (
+                  <Fragment key={holdingGroup.holdingId}>
+                    <HoldingRec
+                      holding={holdingGroup}
                       columns={columns}
+                      filters={filters}
                       handleHoldingActionButtonClick={handleHoldingActionButtonClick}
                     />
-                  ))
-                }
-              </Fragment>
-            ))
+                    { 
+                      (includeSubRows && holdingGroup.holdings.length > 1) && 
+                      holdingGroup.holdings.sort(accountHoldingSortFunction).map((accountHolding) => (
+                        <Fragment key={accountHolding.accountId}>
+                          {
+                            accountHolding.balance !== 0 &&
+                              <AccountHolding
+                                accountHolding={accountHolding}
+                                columns={columns}
+                                handleHoldingActionButtonClick={handleHoldingActionButtonClick}
+                              />
+                          }
+                        </Fragment>
+                      ))
+                    }
+                  </Fragment>
+                )
+              } else {
+                return <Fragment key={holdingGroup.holdingId}></Fragment>;
+              }
+            })
           }
         </BasicTableBody>
       </BasicTable>

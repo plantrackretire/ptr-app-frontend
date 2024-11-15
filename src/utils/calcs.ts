@@ -109,11 +109,11 @@ export class AggregateValues {
     }
 
     public setPercentageOfTotal(total: number) {
-        if(total) {
+        if(!total) {
             this.percentageOfTotal = 0;
+        } else {
+            this.percentageOfTotal = this.aggregateEndValue / total;
         }
-
-        this.percentageOfTotal = this.aggregateEndValue / total;
     }
 
     // Assumes passed in values are valid for given start and end dates
