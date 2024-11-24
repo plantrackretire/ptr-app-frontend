@@ -12,6 +12,9 @@ import { ModalContextType, ModalType, useModalContext } from '../../providers/Mo
 import { TreeFilter } from './TreeFilter';
 import './FilterBar.css';
 
+const CASH_EQUIVALENT_ASSET_CLASS_ID = 4;
+const CASH_ASSET_CLASS_ID = 50;
+const CASH_SECURITY_ID = 1;
 
 // Account Type Category does not appear here because it goes together with Account Types in account type filter (distinguished by level: 0 and 1).
 export enum FilterableFilterBarCategories {
@@ -722,6 +725,33 @@ export const formatFilterBarValuesForServer = (filterBarValues: IFilterBarValues
 
   return formattedFilterBarValues;
 };
+
+// Determine if asset class and/or asset filters are filtering on Cash along with a subset (or none) of all other securities in scope (accounts, dates...).
+// Filtering on asset classes 'Cash Equivalent' or 'Cash', or on asset 'Cash' excludes most or all other securities.  If they are included,
+// with or without any other asset classes or assets, then Cash is being included without all other assets.  
+// This impacts return calculations and will result in inaccurate returns for Cash and aggregates including Cash.
+// Assumes if filters are set on asset class or asset then not all assets are being included.  There is a case where the filter chosen can still include
+// all assets, but this function does not cover that case.
+export const isCashFilteredWithSubsetOfAssets = (filterBarValues: IFilterBarValues): boolean => {
+  // Check assets first, any value here would take precedence over asset classes.
+  if('assets' in filterBarValues) {
+    for(let i=0; i < filterBarValues.assets.length; i++) {
+      if(filterBarValues.assets[i].value === CASH_SECURITY_ID) {
+        return true;
+      }
+    }
+  }
+
+  if('assetClasses' in filterBarValues) {
+    for(let i=0; i < filterBarValues.assetClasses.length; i++) {
+      if((filterBarValues.assetClasses[i].value === CASH_EQUIVALENT_ASSET_CLASS_ID) || (filterBarValues.assetClasses[i].value === CASH_ASSET_CLASS_ID)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
 
 const headingInfo = 
 <div className="info-button--info">

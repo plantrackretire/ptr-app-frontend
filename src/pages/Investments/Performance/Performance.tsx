@@ -1,8 +1,8 @@
-import { useContext, useEffect, useState } from 'react';
+import { Fragment, useContext, useEffect, useState } from 'react';
 import { AccountView, IAccount, IAccountGroupCategoryValues, IAccountViewColumns } from '../../../components/AccountView';
 import { HoldingView, HoldingsFilterTypes, IHolding, IHoldingViewColumns, IHoldingsFilter, calcHoldingsTotals, holdingsFilterAll } from '../../../components/HoldingView';
 import { createDateFromDayValue, createDateStringFromDate, getBeginningOfYear, getPriorMonthEnd } from '../../../utils/dates';
-import { formatFilterBarValuesForServer, IFilterBarValues, IServerFilterValues } from '../../../components/FilterBar';
+import { formatFilterBarValuesForServer, IFilterBarValues, isCashFilteredWithSubsetOfAssets, IServerFilterValues } from '../../../components/FilterBar';
 import { fetchData, getUserToken } from '../../../utils/general';
 import { AuthenticatorContext, IAuthenticatorContext } from '../../../providers/AppAuthenticatorProvider';
 import { PtrAppApiStack } from '../../../../../ptr-app-backend/cdk-outputs.json';
@@ -176,7 +176,16 @@ export const Performance: React.FC<IPerformance> = ({ filterBarValues, dbHolding
       unrealizedGain: true,
     };
 
+    const filteredOnCashWithoutAllAssets = isCashFilteredWithSubsetOfAssets(filterBarValues);
+
     return (
+      <Fragment>
+        { 
+        filteredOnCashWithoutAllAssets ? 
+        <div className="no-data-found">
+          <h2>Returns cannot be calculated when filtering on Cash or Cash Equivalents asset classes/assets.  Please clear or choose a different filter.</h2>
+        </div> 
+        :
         <div className='content-two-col scrollable'>
             <div className='content-two-col--col scrollable'>
                 <PerformanceCharts
@@ -212,6 +221,8 @@ export const Performance: React.FC<IPerformance> = ({ filterBarValues, dbHolding
                 />
             </div>
         </div>
+        }
+      </Fragment>
     );
 };
 
