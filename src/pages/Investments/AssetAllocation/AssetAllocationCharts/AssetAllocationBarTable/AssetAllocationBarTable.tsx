@@ -113,6 +113,10 @@ export const AssetAllocationBarTable: React.FC<IAssetAllocationBarTable> = ({ ta
                         }
                     }
 
+                    if(('targetValue' in rec && rec.targetValue === 0) && ('actualValue' in rec && rec.actualValue === 0)) {
+                        return "";
+                    }
+                    
                     return(
                         <div 
                             key={rec.assetClassId} className='asset-class-allocation-bar-table--row button-el' 

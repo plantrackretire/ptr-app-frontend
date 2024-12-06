@@ -47,7 +47,10 @@ export const calcYtdChangeFromDataSet = (dates: string[], values: number[]) => {
     if(priorYearDateIndex === -1)
         priorYearDateIndex = 0;
 
-    return (values[dates.length-1] - values[index]) / Math.abs(values[index]);
+    if(Math.abs(values[priorYearDateIndex]) === 0) {
+        return null;
+    }
+    return (values[dates.length-1] - values[priorYearDateIndex]) / Math.abs(values[priorYearDateIndex]);
 }
 
 export const calcChangeFromDataSet = (dates: string[], values: number[], annualized?: boolean) => {
@@ -58,6 +61,9 @@ export const calcChangeFromDataSet = (dates: string[], values: number[], annuali
     }
     if(dates.length === 1) return 0;
 
+    if(values[0] === 0) {
+        return null;
+    }
     if(annualized)
         return annualizeValue(new Date(dates[0]), new Date(dates[dates.length-1]), (values[dates.length-1] - values[0]) / Math.abs(values[0]));
     else

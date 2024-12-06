@@ -6,7 +6,7 @@ import './ChartsTitle.css';
 
 interface IChartsTitle {
   titleBalance: number | null,
-  titleAnnualPercentageChange?: number,
+  titleAnnualPercentageChange?: number | null,
   titleChangeFromStartDate?: number | null,
 }
 
@@ -31,7 +31,13 @@ export const ChartsTitle: React.FC<IChartsTitle> = ({ titleBalance, titleAnnualP
       { showAnnualPercentageChange &&
         <div className="charts--title-section">
           <span className="charts--title-section--label">Annual Chg:</span>
-          <span className="charts--title-section--value"><ColoredPercentage percentage={titleAnnualPercentageChange} /></span>
+          <span className="charts--title-section--value">
+            { titleAnnualPercentageChange === null ?
+                <span className="charts--title-section--label">N/A</span>
+              :
+                <ColoredPercentage percentage={titleAnnualPercentageChange} />
+            }
+          </span>
           <InfoButton content={annualChgInfo} />
         </div>
       }
