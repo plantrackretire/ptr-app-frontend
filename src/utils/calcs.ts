@@ -1,5 +1,5 @@
 
-import { IReturn } from "../pages/Investments/Performance";
+import { IReturn } from "../pages/InvestmentReview/Performance";
 import { calcDaysInYear, calcDiffInDays, compareDates, getYearFromStringDate } from "./dates";
 
 // Functions to calculate aggregate gain/loss in value based on gain/loss in value percentage of individual records.

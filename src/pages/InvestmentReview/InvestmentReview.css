@@ -1,0 +1,22 @@
+/* Represents two columns, navbar and content */
+.investment-review {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 16em minmax(0, 1fr);
+}
+
+.investment-review--navbar {
+  border-right: 1px solid var(--light-grey);
+}
+
+@media (min-width: 800px) {
+}
+
+
+
+/* Not needed with current layout, calcs height of nav bar to fill vertical space without scroll.
+    Viewport height minus height of header, minus 1px to ensure no scrollbar
+.page--navbar {
+  height: calc(100vh - (var(--h1-font-size) + (var(--outer-padding) * 2)) -1px);
+}
+*/

@@ -1,4 +1,4 @@
-import { Header } from '../../components/Header';
+import { Header, PageType } from '../../components/Header';
 import { Navbar } from '../../components/Navbar';
 import { Networth } from './Networth';
 import { useContext, useEffect, useState } from 'react';
@@ -16,8 +16,8 @@ import { INavItem } from '../../components/Navlist';
 import { AssetAllocation } from './AssetAllocation';
 import { Performance } from './Performance';
 import { PerformanceChartIcon } from '../../assets/PerformanceChartIcon';
-import './Investments.css';
 import { isEqual } from 'lodash-es';
+import './InvestmentReview.css';
 
 
 export enum SubPageType {
@@ -27,7 +27,8 @@ export enum SubPageType {
     transactions,
 };
   
-export const Investments: React.FC = () => {
+export const InvestmentReview: React.FC = () => {
+    const [page, setPage] = useState<PageType>(PageType.investmentReview);
     const [subPage, setSubPage] = useState<SubPageType>(SubPageType.networth);
     const [filterBarValues, setFilterBarValues] = useState<IFilterBarValues>(getFilterBarValuesInit());
     const [dbHoldings, setDbHoldings] = useState<[] | null>(null);
@@ -98,12 +99,12 @@ export const Investments: React.FC = () => {
     navItems.forEach(navItem => (navItem.value === subPage) ? navItem.isActive = true : navItem.isActive = false);
 
     return (
-        <div className='investments'>
-            <div className='investments--header'>
-                <Header />
+        <div className='investment-review'>
+            <div className='investment-review--header'>
+                <Header page={page} setPage={setPage} />
             </div>
-            <div className="investments--content-container">
-                <div className='investments--navbar '>
+            <div className="investment-review--content-container">
+                <div className='investment-review--navbar '>
                     <Navbar 
                         subPageItems={navItems}
                         setSubPage={handleSubPageChange}

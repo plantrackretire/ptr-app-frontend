@@ -8,7 +8,7 @@ import { ModalType, useModalContext } from '../../providers/Modal';
 import { IFilterBarValues } from '../FilterBar';
 import { TransactionView } from '../TransactionView';
 import { IAccount } from '../AccountView';
-import { IReturn } from '../../pages/Investments/Performance';
+import { IReturn } from '../../pages/InvestmentReview/Performance';
 import './HoldingView.css';
 
 

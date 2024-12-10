@@ -4,7 +4,7 @@ import { AccountGroupList } from './AccountGroupList';
 import { IHolding, IHoldingsFilter, HoldingsFilterTypes, holdingsFilterAll } from '../HoldingView';
 import { AggregateValues, getReturn, isNumber } from '../../utils/calcs';
 import { AccountViewPlaceholder } from './AccountViewPlaceholder';
-import { IReturn } from '../../pages/Investments/Performance';
+import { IReturn } from '../../pages/InvestmentReview/Performance';
 import './AccountView.css';
 
 

@@ -1,21 +1,11 @@
-import { ReactElement, useState } from 'react';
+import { ReactElement } from 'react';
 import { InvestmentReview } from './pages/InvestmentReview';
-import { Header, PageType } from './components/Header';
 import './App.css';
 
 
 const App = (): ReactElement => {
-  const [page, setPage] = useState<PageType>(PageType.investmentReview);
-  
   return (
-      <div className='page'>
-        <div className='page--header'>
-            <Header page={page} setPage={setPage} />
-        </div>
-        { page === PageType.investmentReview &&
-          <InvestmentReview />
-        }
-    </div>
+    <InvestmentReview />
   );
 };
 

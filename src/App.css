@@ -1,0 +1,20 @@
+/* Represents the header and content (two rows) */
+.page {
+    height: 100vh;
+    max-width: var(--app-max-width);
+    margin: auto;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  
+  .page--header {
+    border-bottom: 1px solid var(--light-grey);
+  }
+  
+  /* Represents two columns, navbar and content */
+  .page--content-container {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 16em minmax(0, 1fr);
+  }
+  

@@ -6,26 +6,31 @@ interface INavList {
   navItems: INavItem[],
   setCurrentNavItem: (value: any) => void,
   iconWidth?: string,
+  displayHorizontal?: boolean,
 }
 export interface INavItem {
-  icon: any,
+  icon?: any,
   label: string,
   value: any,
   title?: string,
   isActive?: boolean,
 }
 
-export const Navlist: React.FC<INavList> = ({ navItems, setCurrentNavItem, iconWidth }) => {
+export const Navlist: React.FC<INavList> = ({ navItems, setCurrentNavItem, iconWidth, displayHorizontal }) => {
+  const orientationClass = displayHorizontal ? "navlist-horizontal" : "navlist-vertical";
+
   return (
     <div className='navlist'>
-      <ul>
+      <ul className={orientationClass}>
           {
             navItems.map((navItem, index) => (
               <li key={index} className={"button-el" + (navItem.isActive ? ' active' : '')} onClick={() => setCurrentNavItem(navItem.value)}>
-                <div className="navlist--icon" 
-                  style={iconWidth ? { width: iconWidth, height: iconWidth } : { width: "1em", height: "1em" }}>
-                  <navItem.icon title={navItem.title || ''} />
-                </div>
+                { navItem.icon &&
+                  <div className="navlist--icon" 
+                    style={iconWidth ? { width: iconWidth, height: iconWidth } : { width: "1em", height: "1em" }}>
+                    <navItem.icon title={navItem.title || ''} />
+                  </div>
+                }
                 <span>{navItem.label}</span>
               </li>
             ))

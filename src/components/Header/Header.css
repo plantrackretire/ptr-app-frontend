@@ -8,10 +8,27 @@
 }
 
 .header--nav {
+  display: flex;
+  align-items: center;
+  justify-items: center;
+  gap: 2em;
+}
+
+.header--nav-options {
+  display: flex;
+  align-items: left;
+  justify-items: center;
+  gap: 1em;
+  div {
+    align-self: center;
+  }
+}
+
+.header--user {
   margin-left: auto;
 }
 
-.header--nav .svg-container {
+.header--user .svg-container {
   width: 1.5em;
   height: 1.5em;
 }

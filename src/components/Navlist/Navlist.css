@@ -1,9 +1,18 @@
 /* Name the sections of the page for grid */
-.navlist ul {
+.navlist {
+  height: min-content;
+}
+.navlist-vertical {
   list-style: none;
   display: flex;
   flex-direction: column;
   gap: .5em;
+}
+.navlist-horizontal {
+  list-style: none;
+  display: flex;
+  flex-direction: row;
+  gap: 1.5em;
 }
 
 .navlist ul li {
