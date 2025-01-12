@@ -161,3 +161,8 @@ export const convertArrayToString = (inputArray: any[], delimeter: string): stri
 
   return outputString;
 }
+
+// Used to check if a value (string or number) is in an enum.
+export function isValueInEnum<T extends Record<string, string | number>>(value: string | number, enumObj: T): value is T[keyof T] {
+  return Object.values(enumObj).includes(value);
+}

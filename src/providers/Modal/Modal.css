@@ -13,7 +13,7 @@
 }
 
 .modal--content {
-    background-color: white;
+    background-color: var(--app-background-color);
     padding: 1.5em 2em;
     max-height: 90vh;
     max-width: 90vw;

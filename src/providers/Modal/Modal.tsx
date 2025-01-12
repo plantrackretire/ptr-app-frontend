@@ -49,6 +49,8 @@ type ModalReturnContent = {
 
 const ModalContext = React.createContext<ModalContextType>({} as ModalContextType);
 
+// Modal provider is scoped before authentication provider, so components in a Modal cannot use authentication provider.
+// Should pass in appUserAttributes to components requiring it within a Modal.
 export const ModalContextProvider: React.FC<ModalContextProviderProps> = ({ children }) => {
     const {setShow, show, onHide} = useModalShow();
     const [content, setContent] = useState<{ title: string | JSX.Element, content: string | JSX.Element | null} | null>();

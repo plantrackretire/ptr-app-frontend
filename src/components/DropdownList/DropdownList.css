@@ -36,7 +36,7 @@
 }
 .dropdown-list--selected {
     background-color: var(--blue);
-    color: white;
+    color: var(--light-text);
 }
 
 /* For reference: */
@@ -82,7 +82,7 @@
 /* .react-dropdown-select-item {
     border: none !important;
     box-shadow: 0 0px 0px #ccc inset !important;
-    color: white;
+    color: var(--light-text);
     background-color: red !important;
 } */
 

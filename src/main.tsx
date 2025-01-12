@@ -8,12 +8,12 @@ import { ModalContextProvider } from './providers/Modal';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <AppAuthenticatorProvider>
-      <ConfigProvider>
-        <ModalContextProvider>
+    <ModalContextProvider>
+      <AppAuthenticatorProvider>
+        <ConfigProvider>
           <App />
-        </ModalContextProvider>
-      </ConfigProvider>
-    </AppAuthenticatorProvider>
+        </ConfigProvider>
+      </AppAuthenticatorProvider>
+    </ModalContextProvider>
   </React.StrictMode>
 )

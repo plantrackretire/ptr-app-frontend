@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from 'react';
 import { AccountView, IAccount, IAccountGroupCategoryValues, IAccountViewColumns } from '../../../components/AccountView';
 import { HoldingView, HoldingsFilterTypes, IHolding, IHoldingViewColumns, IHoldingsFilter, calcHoldingsTotals, holdingsFilterAll } from '../../../components/HoldingView';
 import { createDateFromDayValue, createDateStringFromDayValue, getBeginningOfYear } from '../../../utils/dates';
-import { IFilterBarValues } from '../../../components/FilterBar';
+import { IFilterBarValues } from '../../../components/FilterBar/FilterBarDeclarations';
 import { convertStringToArray, fetchData, getUserToken } from '../../../utils/general';
 import { AuthenticatorContext } from '../../../providers/AppAuthenticatorProvider';
 import { PtrAppApiStack } from '../../../../../ptr-app-backend/cdk-outputs.json';
@@ -65,10 +65,11 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
         const getData = async() => {
           const url = PtrAppApiStack.PtrAppApiEndpoint + "GetRefData";
           // Assumes only one tag chosen at a time, if more than one can be chosen the the first one is being used.
-          const tagId = filterBarValues.tags.length > 0 ? filterBarValues.tags[0].value : 0;
+          const tagId = (filterBarValues.tags && filterBarValues.tags.length > 0) ? filterBarValues.tags[0].value : 0;
           const asOfDate = createDateStringFromDayValue(filterBarValues.asOfDate);
           const includeTargets =
-            !(filterBarValues.accounts.length > 0 || filterBarValues.accountTypes.length > 0 || filterBarValues.assetClasses.length > 0 || filterBarValues.assets.length > 0);
+            !((filterBarValues.accounts && filterBarValues.accounts.length > 0) || (filterBarValues.accountTypes && filterBarValues.accountTypes.length > 0) || 
+              (filterBarValues.assetClasses && filterBarValues.assetClasses.length > 0) || (filterBarValues.assets && filterBarValues.assets.length > 0));
           const bodyHoldings = { 
             userId: appUserAttributes!.userId, 
             queryType: "getAssetClasses", 
@@ -102,9 +103,6 @@ export const AssetAllocation: React.FC<IAssetAllocation> = ({ filterBarValues, d
           let targetAssetClassAllocations = [];
           if('targetAssetClassAllocations' in results[0]) {
             targetAssetClassAllocations = results[0].targetAssetClassAllocations;
-          } else {
-            // TODO: Throw exception
-            console.log("targetAssetClassAllocations not in GetAssetClasses API results.");
           }
 
           // Test data

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { SectionHeading, SectionHeadingSizeType } from '../../SectionHeading';
-import { DropListFilterBarValue, DropListFilterBarValues, FilterableFilterBarCategories, IFilterBarOption } from '../FilterBar';
+import { DropListFilterBarValue, DropListFilterBarValues, FilterableFilterBarCategories, IFilterBarOption } from '../FilterBarDeclarations';
 import { isEqual } from 'lodash-es';
 import { TreeView } from '../../TreeView';
 import './TreeFilter.css';
@@ -45,7 +45,7 @@ export const TreeFilter: React.FC<ITreeFilter> = ({ treeOptions, drilldownOption
     drilldownOptions.filter(item => {
       let found = false, index = 0;
       while(!found && index < treeSelection.length) {
-        if(treeSelection[index].value in item.associations[treeElementName as FilterableFilterBarCategories]) {
+        if(item.associations && (treeSelection[index].value in item.associations[treeElementName as FilterableFilterBarCategories])) {
           found = true;
         }
         index++;

@@ -8,16 +8,52 @@
     width: 100%;
     border-spacing: 0 0; /* Along with separate setting above this allows for cell and row spacing when non-zero */
 }
-.basic-table th,
+.basic-table th:not(.basic-table--col-headings-group-heading) {
+    vertical-align: bottom;
+    text-wrap: balance;
+    padding-top: .6em;
+    padding-bottom: .6em;
+    font-weight: 400;
+}
+.basic-table th.basic-table--col-headings-group-heading {
+    vertical-align: bottom;
+    text-wrap: balance;
+    text-align: center;
+    padding-top: .6em;
+    font-weight: 400;
+}
+.basic-table--col-headings-group-heading-even {
+    background-color: var(--yellow) !important;
+    color: var(--default-color) !important;
+}
+.basic-table--col-headings-group-heading-odd {
+    background-color: var(--light-blue) !important;
+    color: var(--default-color) !important;
+}
+.basic-table--col-headings-group-heading-child-even {
+    background-color: var(--yellow) !important;
+    color: var(--default-color) !important;
+    border-top: 1px solid var(--medium-grey);
+}
+.basic-table--col-headings-group-heading-child-odd {
+    background-color: var(--light-blue) !important;
+    color: var(--default-color) !important;
+    border-top: 1px solid var(--medium-grey);
+}
 .basic-table td {
     vertical-align: top;
     text-wrap: balance;
 }
-.basic-table th {
-    padding-top: .6em;
-    padding-bottom: .6em;
-    font-weight: 400;
+.basic-table thead:not(:first-of-type) th {
+    border-top: 1em solid var(--app-background-color); /* Create gap between sub headings and row above */
+    font-weight: bold;
+}
+.basic-table thead:not(:first-of-type):not(.basic-table--col-headings-highlight) th {
     background-color: var(--light-grey);
+}
+.basic-table--col-headings-highlight.basic-table--col-headings-highlight {
+    background-color: var(--brown);
+    color: var(--light-text);
 }
 .basic-table tr:not(.basic-table--sub-row) td {
     padding-top: .6em;
@@ -29,11 +65,10 @@
     padding-bottom: .5em;
 }
 .basic-table--col-headings th {
-    border-bottom: .5em solid var(--app-background-color); /* Create gap between col headings and rows */
     background-color: var(--medium-grey);
-    color: white;
+    color: var(--light-text);
 }
-.basic-table--col-headings.freeze-headings tr:first-child>th {
+.freeze-headings {
     position: sticky;
     top: 0;
 }
@@ -50,11 +85,8 @@
 }
 .basic-table tr th,
 .basic-table tr td {
-    padding-right: 1em;
-}
-.basic-table th:first-child,
-.basic-table td:first-child { 
-    padding-left: .5em; 
+    padding-left: .75em; 
+    padding-right: .75em;
 }
 .basic-table thead:not(.basic-table--col-headings) + tbody td:first-child { padding-left: 1em; }
 .basic-table tbody tr:last-child td { border-bottom: 0; }
@@ -64,28 +96,38 @@ tr.basic-table--sub-row:has(+ :not(.basic-table--sub-row)) td {
 }
 /* Use class basic-table--clickable-rows on table element to have rows behave as buttons */
 .basic-table--highlightable-rows tr:not(.basic-table--sub-row):hover td {
-    background-color: var(--medium-grey) !important;
-    color: white;
+    background-color: var(--blue) !important;
+    color: var(--light-text);
 }
 .basic-table--highlightable-rows thead:not(.basic-table--col-headings) tr:hover th,
 .basic-table--highlightable-rows tr.basic-table--sub-row:hover td:not(:first-child) {
-    background-color: var(--medium-grey) !important;
-    color: white;
+    background-color: var(--blue) !important;
+    color: var(--light-text);
 }
 .basic-table--highlightable-rows tr:hover td [class*="color-modifier"],
 .basic-table--highlightable-rows thead:not(.basic-table--col-headings) tr:hover th [class*="color-modifier"],
 .basic-table--highlightable-rows tr:hover .two-line :nth-child(2),
 .basic-table--highlightable-rows thead:not(.basic-table--col-headings) tr:hover th .active,
 .basic-table--highlightable-rows tr:hover td .active {
-    color: white !important;
+    color: var(--light-text) !important;
 }
 
 .basic-table--clickable-rows tr:hover td,
 .basic-table--clickable-rows thead:not(.basic-table--col-headings) tr:hover th {
     cursor: pointer;
 }
+td.basic-table--clickable-cells:hover,
+thead:not(.basic-table--col-headings) th.basic-table--clickable-cells:hover  {
+    cursor: pointer;
+}
+
+.basic-table-cell-with-edit {
+    height: 100%;
+    display: flex;
+    gap: .5em;
+}
 
 /* For alternating row stripes */
-.basic-table--zebra-stripes tr:not(.basic-table--sub-row):nth-child(odd) td {
+.basic-table--zebra-stripes tr:not(.basic-table--sub-row):nth-child(even) td {
     background-color: var(--light-grey);
 }

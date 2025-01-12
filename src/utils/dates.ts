@@ -9,6 +9,7 @@ export const precannedDates = [
     { value: 3, label: "Prior Year End" },
 ];
 
+// Starts with index 0 from January.
 export const getMonthName = (month: number): string => {
     return monthAbbreviations[month];
 }
@@ -72,6 +73,11 @@ export const createDateFromDayValue = (dt: DayValue): Date => {
     return new Date(dt.year, dt.month-1, dt.day);
 };
 
+// Assumes month is indexed from 1.
+export const createDay = (year: number, month: number, day: number): Day => {
+    return { year: year, month: month, day: day };
+}
+
 export const createDayFromDate = (dt: Date): Day => {
     if(!dt) {
         const today = new Date();
@@ -84,7 +90,7 @@ export const createDayFromDate = (dt: Date): Day => {
 export const createDateStringFromDayValue = (dt: DayValue): string => {
     if(!dt) return "";
 
-    return (dt.year + "-" + dt.month + "-" + dt.day);
+    return (dt.year + "-" + dt.month.toString().padStart(2, '0') + "-" + dt.day.toString().padStart(2, '0'));
 };
 
 export const createDateStringFromDate = (dt: Date): string => {
@@ -95,6 +101,12 @@ export const createDateStringFromDate = (dt: Date): string => {
 
 export const getBeginningOfYear = (dt: Date): Date => {
     return new Date(dt.getFullYear(), 0, 1);
+}
+
+export const getMonthEnd = (dt: Date): Date => {
+    const newDt = new Date((dt.getMonth() === 11) ? dt.getFullYear() + 1 : dt.getFullYear(), (dt.getMonth() === 11) ? 0 : dt.getMonth() + 1, 1);
+    newDt.setDate(newDt.getDate() - 1);
+    return newDt;
 }
 
 export const getPriorMonthEnd = (dt: Date): Date => {

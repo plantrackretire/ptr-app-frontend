@@ -33,6 +33,27 @@ export const Header: React.FC<IHeader> = ({ page, setPage }) => {
 
   const handlePageClicked = (page: PageType) => setPage(page);
 
+  const pageItems: INavItem[] = appUserAttributes?.givenName === "Peter" ? 
+    [
+      {
+        label: "Investment Review",
+        value: PageType.investmentReview,
+        title: 'Investment Review',
+      },
+      {
+        label: "Investment Actions",
+        value: PageType.investmentActions,
+        title: 'Investment Actions',
+      },
+    ] :
+    [
+      {
+        label: "Investment Review",
+        value: PageType.investmentReview,
+        title: 'Investment Review',
+      },
+    ];
+
   // Set current page to active in page list
   pageItems.forEach(navItem => (navItem.value === page) ? navItem.isActive = true : navItem.isActive = false);
   
@@ -55,17 +76,3 @@ export const Header: React.FC<IHeader> = ({ page, setPage }) => {
     </div>
   );
 };  
-
-
-const pageItems: INavItem[] = [
-  {
-    label: "Investment Review",
-    value: PageType.investmentReview,
-    title: 'Investment Review',
-  },
-  // {
-  //   label: "Investment Actions",
-  //   value: PageType.investmentActions,
-  //   title: 'Investment Actions',
-  // },
-];

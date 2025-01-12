@@ -1,5 +1,6 @@
 import { ReactElement, useState } from 'react';
 import { InvestmentReview } from './pages/InvestmentReview';
+import { InvestmentActions } from './pages/InvestmentActions/InvestmentActions';
 import { Header, PageType } from './components/Header';
 import './App.css';
 
@@ -14,6 +15,9 @@ const App = (): ReactElement => {
         </div>
         { page === PageType.investmentReview &&
           <InvestmentReview />
+        }
+        { page === PageType.investmentActions &&
+          <InvestmentActions />
         }
     </div>
   );

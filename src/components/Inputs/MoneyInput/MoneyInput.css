@@ -1,0 +1,26 @@
+.money-input {
+    display: flex;
+    gap: .25em;
+    align-items: center;
+}
+
+.money-input--input {
+    border: none;
+    font-size: inherit;
+    color: inherit;
+    background-color: inherit;
+    text-align: end;
+    width: 8em;
+}
+
+input.money-input--input:hover:not(:focus) {
+    cursor: pointer;
+}
+
+input.money-input--input:focus {
+    padding: .2em;
+    border: 1px solid #ccc;
+    background-color: canvas;
+    color: var(--default-color);
+    border-radius: '4px';
+}

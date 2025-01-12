@@ -1,15 +1,16 @@
 import { SectionHeading, SectionHeadingSizeType } from '../SectionHeading';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { AggregateValues, getReturn, isNumber } from '../../utils/calcs';
 import { HoldingGroupList } from './HoldingGroupList';
 import { compareDates } from '../../utils/dates';
 import { HoldingViewPlaceholder } from './HoldingViewPlaceholder';
 import { ModalType, useModalContext } from '../../providers/Modal';
-import { IFilterBarValues } from '../FilterBar';
-import { TransactionView } from '../TransactionView';
+import { IFilterBarValues } from '../FilterBar/FilterBarDeclarations';
+import { TransactionView, TransactionViewTypes } from '../TransactionView';
 import { IAccount } from '../AccountView';
 import { IReturn } from '../../pages/InvestmentReview/Performance';
 import './HoldingView.css';
+import { AuthenticatorContext } from '../../providers/AppAuthenticatorProvider';
 
 
 export interface IHoldingViewColumns {
@@ -93,6 +94,7 @@ export const HoldingView: React.FC<IHoldingView> = ({ columns, startDate, asOfDa
   const [sortColumn, setSortColumn] = useState<string>("securityName");
   const [sortDirection, setSortDirection] = useState<string>("asc");
   const modalContext = useModalContext();
+  const appUserAttributes = useContext(AuthenticatorContext);
 
   let filteredHoldings: IHolding[] = [];
   if(holdings !== null && accounts !== null) {
@@ -116,8 +118,10 @@ export const HoldingView: React.FC<IHoldingView> = ({ columns, startDate, asOfDa
   const handleHoldingActionButtonClick = async({securityId, securityName, accountId, accountName, 
     accountTypeCategoryId, accountTypeCategoryName, assetClassIdList, assetClassName}: IHandleHoldingActionButtonClick) => {
     await modalContext.showModal(
-      ModalType.closable,
+      ModalType.noButtons,
       <TransactionView
+        transactionViewType={TransactionViewTypes.basicView}
+        appUserAttributes={appUserAttributes!}
         securityId={securityId}
         securityName={securityName}
         accountId={accountId ? accountId : undefined}
@@ -127,6 +131,7 @@ export const HoldingView: React.FC<IHoldingView> = ({ columns, startDate, asOfDa
         assetClassIdList={assetClassIdList ? assetClassIdList : undefined}
         assetClassName={assetClassName ? assetClassName : undefined}
         filterBarValues={filterBarValues}
+        handleCloseWithContent={() => {}}
         freezeHeadings={true}
         maxHeight='80vh'
       />

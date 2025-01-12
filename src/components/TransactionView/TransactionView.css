@@ -4,6 +4,16 @@
   gap: 1.25em;
 }
 
+.transaction-view--compound-heading {
+  display: flex;
+  justify-content: space-between;
+}
+
+.transaction-view--buttons {
+  display: flex;
+  gap: 1em;
+}
+
 .transaction-view--heading {
   margin-top: .4em;
   display: flex;

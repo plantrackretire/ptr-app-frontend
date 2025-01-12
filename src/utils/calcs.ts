@@ -161,3 +161,17 @@ export const getReturn = (returns: { [index: string]: IReturn }, recordId: numbe
     return 'N/A';
   }
 }
+
+// Handles the many edge cases of rounding.
+export const roundNumber = (num: number, scale: number) => {
+    if(!("" + num).includes("e")) {
+      return +(Math.round(Number(num + "e+" + scale))  + "e-" + scale);
+    } else {
+      var arr = ("" + num).split("e");
+      var sig = ""
+      if(+arr[1] + scale > 0) {
+        sig = "+";
+      }
+      return +(Math.round(Number(+arr[0] + "e" + sig + (+arr[1] + scale))) + "e-" + scale);
+    }
+}

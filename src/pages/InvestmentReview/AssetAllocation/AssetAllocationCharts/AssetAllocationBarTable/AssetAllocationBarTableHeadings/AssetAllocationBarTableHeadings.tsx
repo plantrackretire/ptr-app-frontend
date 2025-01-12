@@ -19,14 +19,14 @@ export const AssetAllocationBarTableHeadings: React.FC<IAssetAllocationBarTableH
         { headingSet &&
             headingSet.map(heading => 
               <div key={heading.name}>
-                { heading.sortColumn.length > 0 ?
+                { heading.sortColumn && heading.sortColumn.length > 0 ?
                   <div className="asset-allocation-bar-table--headings-heading">
                     <button 
                       className={"asset-allocation-bar-table--headings--button button-el light" + 
                         (heading.justify ? (heading.justify === 'left' ? '  left-justify' : (heading.justify === 'right' ? ' right-justify' : ' center-justify')) : 'left-justify') +
                         (sortColumn === heading.sortColumn ? " active-light-clickable" : "")}
                       onClick={() => { 
-                        setSortColumn(heading.sortColumn); 
+                        setSortColumn(heading.sortColumn!); 
                         setSortDirection(sortColumn === heading.sortColumn ? (sortDirection === "asc" ? "desc" : "asc") : "desc"); // Default to desc to show largest values first. 
                       }}
                     >

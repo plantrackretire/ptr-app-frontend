@@ -5,8 +5,8 @@ import { AccountHolding } from './AccountHolding';
 import { BasicTable } from '../../BasicTable';
 import { BasicTableBody } from '../../BasicTable/BasicTableBody';
 import { BasicTableColHeadings } from '../../BasicTable/BasicTableColHeadings';
-import './HoldingGroupList.css';
 import { IAccountViewColumns } from '../../AccountView';
+import './HoldingGroupList.css';
 
 
 interface IHoldingGroupList {

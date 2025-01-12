@@ -1,5 +1,5 @@
 import { useContext, useState } from 'react';
-import { IFilterBarValues } from '../../../../components/FilterBar';
+import { IFilterBarValues } from '../../../../components/FilterBar/FilterBarDeclarations';
 import { IPieChartItem, PieChart } from '../../../../components/PieChart';
 import { formatBalance, formatChangePercentage } from '../../../../utils/general';
 import { AssetAllocationBarTable } from './AssetAllocationBarTable';
@@ -118,7 +118,7 @@ export const AssetAllocationCharts: React.FC<IAssetAllocationCharts> = ({ aaDisp
     }
 
     // Create label for source of targets.
-    const tag = filterBarValues.tags.length > 0 ? filterBarValues.tags[0] : 0;
+    const tag = (filterBarValues.tags && filterBarValues.tags.length > 0) ? filterBarValues.tags[0] : 0;
     const targetsSource = tag ? tag.label : 'Entire Portfolio';
 
     return (
@@ -195,10 +195,11 @@ export const AssetAllocationCharts: React.FC<IAssetAllocationCharts> = ({ aaDisp
 const determineDisplayTargets = (filterBarValues: IFilterBarValues, dbTargetAssetClassAllocations: ITargetAssetAllocation[]) => {
   let displayTargets: TargetAaDisplayReasons;
 
-  if(filterBarValues.accounts.length > 0 || filterBarValues.accountTypes.length > 0 || filterBarValues.assetClasses.length > 0 || filterBarValues.assets.length > 0) {
+  if((filterBarValues.accounts && filterBarValues.accounts.length > 0) || (filterBarValues.accountTypes && filterBarValues.accountTypes.length > 0) || 
+      (filterBarValues.assetClasses && filterBarValues.assetClasses.length > 0) || (filterBarValues.assets && filterBarValues.assets.length > 0)) {
     displayTargets = TargetAaDisplayReasons.invalidFilter;
   } else if(dbTargetAssetClassAllocations !== null && dbTargetAssetClassAllocations.length === 0) {
-      const tagId = filterBarValues.tags.length > 0 ? filterBarValues.tags[0].value : 0;
+      const tagId = (filterBarValues.tags && filterBarValues.tags.length > 0) ? filterBarValues.tags[0].value : 0;
       if(tagId !== 0) {
         displayTargets = TargetAaDisplayReasons.noTargetsForTag;
       } else {

@@ -1,0 +1,10 @@
+.checkbox--input {
+    border: none;
+    font-size: inherit;
+    color: inherit;
+    background-color: inherit;
+}
+
+input.checkbox--input:hover:not(:focus) {
+    cursor: pointer;
+}

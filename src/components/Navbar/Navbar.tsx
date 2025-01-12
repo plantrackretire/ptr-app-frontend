@@ -1,16 +1,18 @@
 import { INavItem, Navlist } from '../Navlist';
-import { FilterBar, IFilterBarValues } from '../FilterBar';
+import { FilterBar } from '../FilterBar';
+import { FilterBarTypes, IFilterBarValues } from '../FilterBar/FilterBarDeclarations';
 import './Navbar.css';
 
 
 interface INavbar {
   subPageItems: INavItem[],
   setSubPage: (value: any) => void,
+  filterBarType: FilterBarTypes,
   filterBarValues: IFilterBarValues,
   setFilterBarValues: (filterBarValues: IFilterBarValues) => void,
 }
 
-export const Navbar: React.FC<INavbar> = ({ subPageItems, setSubPage, filterBarValues, setFilterBarValues }) => {
+export const Navbar: React.FC<INavbar> = ({ subPageItems, setSubPage, filterBarType, filterBarValues, setFilterBarValues }) => {
   return (
     <div className='navbar'>
       <Navlist 
@@ -18,7 +20,11 @@ export const Navbar: React.FC<INavbar> = ({ subPageItems, setSubPage, filterBarV
         setCurrentNavItem={setSubPage}
         iconWidth="1em" 
       />
-      <FilterBar appliedFilterBarValues={filterBarValues} setAppliedFilterBarValues={setFilterBarValues} useApply={false} />
+      <FilterBar 
+        filterBarType={filterBarType}
+        appliedFilterBarValues={filterBarValues} 
+        setAppliedFilterBarValues={setFilterBarValues} 
+        useApply={false} />
     </div>
   );
 };  

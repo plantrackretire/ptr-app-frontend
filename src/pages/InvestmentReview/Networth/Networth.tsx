@@ -3,7 +3,8 @@ import { AccountView, IAccount, IAccountGroupCategoryValues, IAccountViewColumns
 import { HoldingView, HoldingsFilterTypes, IHolding, IHoldingViewColumns, IHoldingsFilter, holdingsFilterAll } from '../../../components/HoldingView';
 import { NetworthChart } from './NetworthChart';
 import { createDateFromDayValue, createDateStringFromDate, getBeginningOfYear, getPriorMonthEnd } from '../../../utils/dates';
-import { IFilterBarValues, formatFilterBarValuesForServer } from '../../../components/FilterBar';
+import { formatFilterBarValuesForServer } from '../../../components/FilterBar';
+import { IFilterBarValues } from '../../../components/FilterBar/FilterBarDeclarations';
 import { PtrAppApiStack } from '../../../../../ptr-app-backend/cdk-outputs.json';
 import { AuthenticatorContext } from '../../../providers/AppAuthenticatorProvider';
 import { ModalType, useModalContext } from '../../../providers/Modal';

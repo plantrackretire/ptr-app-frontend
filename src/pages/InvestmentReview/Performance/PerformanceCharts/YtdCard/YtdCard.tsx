@@ -1,6 +1,7 @@
+import { Fragment } from 'react';
 import { ColoredPercentage } from '../../../../../components/ColoredPercentage';
-import { InfoButton } from '../../../../../components/InfoButton';
 import { formatChangePercentage } from '../../../../../utils/general';
+import { InfoCard } from '../../../../../components/InfoCard';
 import './YtdCard.css';
 
 
@@ -12,33 +13,27 @@ interface IYtdCard {
 export const YtdCard: React.FC<IYtdCard> = ({ ytdReturn, averageAnnualReturn }) => {
   if(ytdReturn === null) {
     return (
-      <div className='ytd-card'>
-        <div></div>
-        <div className="placeholder placeholder-heading1"><br /></div>
-        <div></div>
-        <div className="placeholder"><br /></div>
-        <div className="placeholder"><br /></div>
-        <div></div>
-      </div>
-    );
+      <InfoCard title={null} />
+    )
   }
 
-  const percentageDiff = ytdReturn - (averageAnnualReturn ? averageAnnualReturn : 0);
+  let subTitle: JSX.Element | undefined = undefined;
+  if(averageAnnualReturn !== null && averageAnnualReturn !== 0) {
+    const percentageDiff = ytdReturn - (averageAnnualReturn ? averageAnnualReturn : 0);
+    subTitle = 
+      <Fragment>
+        <ColoredPercentage percentage={percentageDiff} />
+        <small className='de-emphasize'>Compared to { formatChangePercentage(averageAnnualReturn) } average annualized return</small>
+      </Fragment>
+  }
 
   return (
-      <div className='ytd-card'>
-        <div className='ytd-card--title'>
-          <h2>YTD Return</h2>
-          <InfoButton content={ytdReturnInfo} />
-        </div>
-        <h1><ColoredPercentage percentage={ytdReturn} /></h1>
-        { (averageAnnualReturn !== null && averageAnnualReturn !== 0) &&
-          <div className='ytd-card--comparison'>
-            <ColoredPercentage percentage={percentageDiff} />
-            <small className='de-emphasize'>Compared to { formatChangePercentage(averageAnnualReturn) } average annualized return</small>
-          </div> 
-        }
-      </div>
+    <InfoCard 
+      title="YTD Return"
+      titleInfo={ytdReturnInfo}
+      middleContent={<ColoredPercentage percentage={ytdReturn} />}
+      subTitle={subTitle}
+    />
   );
 };
 

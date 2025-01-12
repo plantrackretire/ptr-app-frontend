@@ -1,7 +1,10 @@
 import { Navbar } from '../../components/Navbar';
 import { Networth } from './Networth';
+import { AssetAllocation } from './AssetAllocation';
+import { Performance } from './Performance';
 import { useContext, useEffect, useState } from 'react';
-import { IFilterBarValues, getFilterBarValuesInit, formatFilterBarValuesForServer } from '../../components/FilterBar';
+import { getFilterBarValuesInit, formatFilterBarValuesForServer } from '../../components/FilterBar';
+import { FilterBarTypes, IFilterBarValues } from '../../components/FilterBar/FilterBarDeclarations';
 import { AuthenticatorContext } from '../../providers/AppAuthenticatorProvider';
 import { IAccount } from '../../components/AccountView';
 import { createDateFromDayValue, createDateStringFromDate, createLocalDateFromDateTimeString, getBeginningOfYear, getPriorMonthEnd } from '../../utils/dates';
@@ -12,23 +15,21 @@ import { ModalType, useModalContext } from '../../providers/Modal';
 import { PiggyBankIcon } from '../../assets/PiggyBankIcon';
 import { PieChartIcon } from '../../assets/PieChartIcon';
 import { INavItem } from '../../components/Navlist';
-import { AssetAllocation } from './AssetAllocation';
-import { Performance } from './Performance';
 import { PerformanceChartIcon } from '../../assets/PerformanceChartIcon';
 import { isEqual } from 'lodash-es';
 import './InvestmentReview.css';
 
 
-export enum SubPageType {
-    networth,
-    assetallocation,
-    performance,
-    transactions,
+export enum InvestmentReviewSubPageType {
+  networth,
+  assetallocation,
+  performance,
+  transactions,
 };
-  
+
 export const InvestmentReview: React.FC = () => {
-    const [subPage, setSubPage] = useState<SubPageType>(SubPageType.networth);
-    const [filterBarValues, setFilterBarValues] = useState<IFilterBarValues>(getFilterBarValuesInit());
+    const [subPage, setSubPage] = useState<InvestmentReviewSubPageType>(InvestmentReviewSubPageType.networth);
+    const [filterBarValues, setFilterBarValues] = useState<IFilterBarValues>(getFilterBarValuesInit(FilterBarTypes.investmentReview));
     const [dbHoldings, setDbHoldings] = useState<[] | null>(null);
     const [dbAccounts, setDbAccounts] = useState<{[index: number]: IAccount} | null>(null);
     const appUserAttributes = useContext(AuthenticatorContext);
@@ -89,7 +90,7 @@ export const InvestmentReview: React.FC = () => {
         }
     }
 
-    const handleSubPageChange = (value: SubPageType) => {
+    const handleSubPageChange = (value: InvestmentReviewSubPageType) => {
         setSubPage(value);
     }
 
@@ -97,30 +98,29 @@ export const InvestmentReview: React.FC = () => {
     navItems.forEach(navItem => (navItem.value === subPage) ? navItem.isActive = true : navItem.isActive = false);
 
     return (
-        <div className="investment-review">
-            <div className='investment-review--navbar '>
-                <Navbar 
-                    subPageItems={navItems}
-                    setSubPage={handleSubPageChange}
-                    filterBarValues={filterBarValues}
-                    setFilterBarValues={handleFilterBarValuesChange}
-                />
-            </div>
-            { subPage === SubPageType.networth &&
+        <div className="content-with-nav">
+            <Navbar 
+                subPageItems={navItems}
+                setSubPage={handleSubPageChange}
+                filterBarType={FilterBarTypes.investmentReview}
+                filterBarValues={filterBarValues}
+                setFilterBarValues={handleFilterBarValuesChange}
+            />
+            { subPage === InvestmentReviewSubPageType.networth &&
                 <Networth 
                     filterBarValues={filterBarValues} 
                     dbHoldings={dbHoldings}
                     dbAccounts={dbAccounts}
                 />
             }
-            { subPage === SubPageType.assetallocation &&
+            { subPage === InvestmentReviewSubPageType.assetallocation &&
                 <AssetAllocation 
                     filterBarValues={filterBarValues} 
                     dbHoldings={dbHoldings}
                     dbAccounts={dbAccounts}
                 />
             }
-            { subPage === SubPageType.performance &&
+            { subPage === InvestmentReviewSubPageType.performance &&
                 <Performance 
                     filterBarValues={filterBarValues} 
                     dbHoldings={dbHoldings}
@@ -161,19 +161,19 @@ const navItems: INavItem[] = [
     {
       icon: PiggyBankIcon,
       label: "Net Worth",
-      value: SubPageType.networth,
+      value: InvestmentReviewSubPageType.networth,
       title: 'Net Worth',
     },
     {
       icon: PieChartIcon,
       label: "Asset Allocation",
-      value: SubPageType.assetallocation,
+      value: InvestmentReviewSubPageType.assetallocation,
       title: 'Asset Allocation',
     },
     {
       icon: PerformanceChartIcon,
       label: "Performance",
-      value: SubPageType.performance,
+      value: InvestmentReviewSubPageType.performance,
       title: 'Performance',
     },
   ]

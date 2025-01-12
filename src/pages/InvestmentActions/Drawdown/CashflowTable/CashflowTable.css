@@ -1,0 +1,45 @@
+.cashflow-table {
+  min-width: 550px;
+}
+
+.cashflow-table th:first-child,
+.cashflow-table th:first-child button,
+.cashflow-table td:first-child {
+  text-align: left;
+  justify-content: start;
+}
+
+.cashflow-table th:not(:first-child):not(.basic-table--col-headings-group-heading) *,
+.cashflow-table th[class*="basic-table--col-headings-group-heading-child"] *,
+.cashflow-table th:not(:first-child):not(.basic-table--col-headings-group-heading),
+.cashflow-table th:not(:first-child) button,
+.cashflow-table td:not(:first-child) {
+  text-align: right !important;
+  justify-content: end;
+}
+
+.cashflow-table thead:not(.basic-table--col-headings) th {
+vertical-align: top;
+}
+
+.cashflow-table--balance {
+  background-color: var(--pale-blue) !important;
+  border-bottom: 1px solid var(--light-grey);
+}
+.cashflow-table--drawdown {
+  background-color: var(--pale-orange) !important;
+  border-bottom: 1px solid var(--light-grey);
+}
+
+.cashflow-table thead.basic-table--col-headings-highlight .two-line :nth-child(2) {
+  color: var(--pale-orange);
+}
+.cashflow-table thead:not(.basic-table--col-headings-highlight) .two-line :nth-child(2),
+.cashflow-table tbody .two-line :nth-child(2) {
+    color: var(--orange);
+}
+
+.cashflow-table .svg-container {
+  width: .85em;
+  height: .85em;
+}

@@ -5,7 +5,7 @@ import { fetchUserAttributes } from '@aws-amplify/auth';
 import '@aws-amplify/ui-react/styles.css';
 import config from '../../../../ptr-app-backend/cdk-outputs.json'
 import { fetchData, getUserToken } from '../../utils/general';
-import { useModalContext } from '../Modal';
+import { ModalType, useModalContext } from '../Modal';
 import { PtrAppApiStack } from '../../../../ptr-app-backend/cdk-outputs.json';
 import './AppAuthenticatorProvider.css';
 
@@ -54,15 +54,24 @@ const AppAuthenticator = ({children}: AuthenticatorProps) => {
         const appAttributes = await fetchData(url, { userId: user.userId, queryType: "getAuthUser" }, token)
 
         if(!ignoreResults) {
-          setAppUserAttributes({
-            authUserId: user.userId,
-            authUsername: user.username,
-            userId: appAttributes.userId,
-            email: authAttributes.email || '',
-            familyName: authAttributes.family_name || '',
-            givenName: authAttributes.given_name || '',
-            signOutFunction: signOut
-          })
+          if(appAttributes) {
+            setAppUserAttributes({
+              authUserId: user.userId,
+              authUsername: user.username,
+              userId: appAttributes.userId,
+              email: authAttributes.email || '',
+              familyName: authAttributes.family_name || '',
+              givenName: authAttributes.given_name || '',
+              signOutFunction: signOut            
+            })
+          } else {
+            console.error("ERROR getting app user attributes.")
+            await modalContext.showModal(
+              ModalType.confirm,
+              'Error logging in, please try again.  Contact support if problem persists.',
+            );
+            signOut();
+          }
         }
       }
 

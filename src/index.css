@@ -4,6 +4,7 @@
 
   --app-background-color: #242424;
   --light-blue: #b0dfff;
+  --pale-blue: #DAE9F8;
   --blue: #35A2EB;
   /* --green: #0DB800; */
   --green: #008000;
@@ -12,8 +13,11 @@
   --light-red: #fec1c1;
   --brown: #AF8260;
   --yellow: #F3CA52;
-  --orange: #ED7D31;
+  --dark-yellow: #956f00;
+  --orange: #ec6e1a;
   --light-orange: #ffdca7;
+  --pale-orange: #EFC9B0;
+  /* --light-orange: #F7C7AC; */
   --light-grey: #F2F2F2;
   --light-grey2: #e0e0e0;
   --medium-grey: #909090;
@@ -149,8 +153,8 @@ a:hover {
 .button-el--visual:hover:not(.button-el--disabled) {
   background-color: var(--dark-active-color) !important;
   border: 1px solid var(--light-active-color);
-  color: white !important;
-  fill: white !important;
+  color: var(--light-text) !important;
+  fill: var(--light-text) !important;
 }
 .button-el:hover:active:not(.button-el--disabled),
 .button-el--visual:hover:active:not(.button-el--disabled) {
@@ -249,6 +253,10 @@ svg {
   overflow: visible;
 }
 
+.emphasize {
+  font-weight: bold;
+  color: var(--orange);
+}
 .de-emphasize {
   color: var(--medium-grey);
   fill: var(--medium-grey);
@@ -312,6 +320,19 @@ svg {
   0% { background-color:var(--light-grey); }
   50% { background-color:var(--light-grey2); }
   100% { background-color:var(--light-grey); } 
+}
+
+/* Styling for two columns including a nav bar and content */
+.content-with-nav {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 16em minmax(0, 1fr);
+}
+.content-with-nav > div:not(:last-child) {
+  border-right: 1px solid var(--light-grey);
+}
+.content-with-nav > div:last-child {
+  margin: var(--outer-padding);
 }
 
 /* Styling for two columns of content with divider lines */
