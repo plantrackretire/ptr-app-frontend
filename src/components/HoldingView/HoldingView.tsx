@@ -131,7 +131,7 @@ export const HoldingView: React.FC<IHoldingView> = ({ columns, startDate, asOfDa
         assetClassIdList={assetClassIdList ? assetClassIdList : undefined}
         assetClassName={assetClassName ? assetClassName : undefined}
         filterBarValues={filterBarValues}
-        handleCloseWithContent={() => {}}
+        handleCloseWithContent={modalContext.closeWithContent}
         freezeHeadings={true}
         maxHeight='80vh'
       />
